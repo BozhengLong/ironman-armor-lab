@@ -1,0 +1,1643 @@
+{
+  "source": "assets/raw/ironman/scene.gltf",
+  "upAxis": "y",
+  "latAxis": "x",
+  "bodyCenter": [
+    -0.0,
+    1.26929,
+    0.0
+  ],
+  "bounds": {
+    "min": [
+      -0.58559,
+      -0.00237,
+      -0.27654
+    ],
+    "max": [
+      0.58547,
+      2.54095,
+      0.27654
+    ]
+  },
+  "skipped": [],
+  "usableParts": 61,
+  "parts": [
+    {
+      "node": 94,
+      "name": "Object_94",
+      "part": "helmet",
+      "side": "C",
+      "flag": null,
+      "h": 0.9381,
+      "lat": 0.0,
+      "tris": 2396,
+      "center": [
+        0.0,
+        2.38364,
+        0.13714
+      ],
+      "size": [
+        0.19627,
+        0.25159,
+        0.09688
+      ],
+      "explodeDir": [
+        0.0,
+        0.9925,
+        0.1221
+      ],
+      "material": "default"
+    },
+    {
+      "node": 98,
+      "name": "Object_98",
+      "part": "helmet",
+      "side": "C",
+      "flag": null,
+      "h": 0.9344,
+      "lat": -0.1009,
+      "tris": 2309,
+      "center": [
+        -0.05404,
+        2.37411,
+        0.02495
+      ],
+      "size": [
+        0.10962,
+        0.33369,
+        0.28983
+      ],
+      "explodeDir": [
+        -0.0488,
+        0.9986,
+        0.0225
+      ],
+      "material": "default"
+    },
+    {
+      "node": 106,
+      "name": "Object_106",
+      "part": "helmet",
+      "side": "C",
+      "flag": null,
+      "h": 0.9344,
+      "lat": 0.1009,
+      "tris": 2260,
+      "center": [
+        0.05404,
+        2.37411,
+        0.02495
+      ],
+      "size": [
+        0.10962,
+        0.33369,
+        0.28983
+      ],
+      "explodeDir": [
+        0.0488,
+        0.9986,
+        0.0225
+      ],
+      "material": "default"
+    },
+    {
+      "node": 78,
+      "name": "Object_78",
+      "part": "helmet",
+      "side": "C",
+      "flag": null,
+      "h": 0.9001,
+      "lat": -0.0,
+      "tris": 609,
+      "center": [
+        -0.0,
+        2.28675,
+        0.01917
+      ],
+      "size": [
+        0.17309,
+        0.17865,
+        0.27657
+      ],
+      "explodeDir": [
+        -0.0,
+        0.9998,
+        0.0188
+      ],
+      "material": "default"
+    },
+    {
+      "node": 76,
+      "name": "Object_76",
+      "part": "neck",
+      "side": "C",
+      "flag": null,
+      "h": 0.8923,
+      "lat": 0.0,
+      "tris": 1076,
+      "center": [
+        0.0,
+        2.26708,
+        -0.1493
+      ],
+      "size": [
+        0.15967,
+        0.21903,
+        0.10573
+      ],
+      "explodeDir": [
+        0.0,
+        0.989,
+        -0.148
+      ],
+      "material": "default"
+    },
+    {
+      "node": 80,
+      "name": "Object_80",
+      "part": "neck",
+      "side": "C",
+      "flag": null,
+      "h": 0.8774,
+      "lat": 0.0,
+      "tris": 520,
+      "center": [
+        -0.0,
+        2.22921,
+        -0.02581
+      ],
+      "size": [
+        0.19132,
+        0.14923,
+        0.23144
+      ],
+      "explodeDir": [
+        0.0,
+        0.9996,
+        -0.0269
+      ],
+      "material": "default"
+    },
+    {
+      "node": 82,
+      "name": "Object_82",
+      "part": "neck",
+      "side": "C",
+      "flag": null,
+      "h": 0.8612,
+      "lat": -0.0,
+      "tris": 514,
+      "center": [
+        -0.0,
+        2.1879,
+        -0.0356
+      ],
+      "size": [
+        0.21976,
+        0.14367,
+        0.26417
+      ],
+      "explodeDir": [
+        -0.0,
+        0.9992,
+        -0.0387
+      ],
+      "material": "default"
+    },
+    {
+      "node": 32,
+      "name": "Object_32",
+      "part": "neck",
+      "side": "R",
+      "flag": null,
+      "h": 0.8574,
+      "lat": 0.2898,
+      "tris": 732,
+      "center": [
+        0.15521,
+        2.1783,
+        0.07944
+      ],
+      "size": [
+        0.12866,
+        0.13678,
+        0.10733
+      ],
+      "explodeDir": [
+        0.1677,
+        0.9821,
+        0.0858
+      ],
+      "material": "default"
+    },
+    {
+      "node": 34,
+      "name": "Object_34",
+      "part": "neck",
+      "side": "C",
+      "flag": null,
+      "h": 0.8574,
+      "lat": -0.0903,
+      "tris": 789,
+      "center": [
+        -0.0484,
+        2.1783,
+        0.07944
+      ],
+      "size": [
+        0.34575,
+        0.13678,
+        0.10733
+      ],
+      "explodeDir": [
+        -0.053,
+        0.9948,
+        0.0869
+      ],
+      "material": "default"
+    },
+    {
+      "node": 26,
+      "name": "Object_26",
+      "part": "neck",
+      "side": "C",
+      "flag": null,
+      "h": 0.8449,
+      "lat": -0.0,
+      "tris": 154,
+      "center": [
+        -0.0,
+        2.14647,
+        -0.22595
+      ],
+      "size": [
+        0.10414,
+        0.05509,
+        0.06164
+      ],
+      "explodeDir": [
+        -0.0,
+        0.9684,
+        -0.2494
+      ],
+      "material": "default"
+    },
+    {
+      "node": 30,
+      "name": "Object_30",
+      "part": "neck",
+      "side": "R",
+      "flag": null,
+      "h": 0.8435,
+      "lat": 0.412,
+      "tris": 343,
+      "center": [
+        0.2207,
+        2.143,
+        -0.01492
+      ],
+      "size": [
+        0.05676,
+        0.1624,
+        0.30995
+      ],
+      "explodeDir": [
+        0.2449,
+        0.9694,
+        -0.0166
+      ],
+      "material": "default"
+    },
+    {
+      "node": 28,
+      "name": "Object_28",
+      "part": "neck",
+      "side": "C",
+      "flag": null,
+      "h": 0.8401,
+      "lat": 0.0,
+      "tris": 1092,
+      "center": [
+        -0.0,
+        2.13433,
+        0.07572
+      ],
+      "size": [
+        0.22449,
+        0.11296,
+        0.15105
+      ],
+      "explodeDir": [
+        0.0,
+        0.9962,
+        0.0872
+      ],
+      "material": "default"
+    },
+    {
+      "node": 36,
+      "name": "Object_36",
+      "part": "chest",
+      "side": "L",
+      "flag": null,
+      "h": 0.8397,
+      "lat": -0.412,
+      "tris": 216,
+      "center": [
+        -0.2207,
+        2.13318,
+        -0.01492
+      ],
+      "size": [
+        0.05676,
+        0.14277,
+        0.30995
+      ],
+      "explodeDir": [
+        -0.2475,
+        0.9687,
+        -0.0167
+      ],
+      "material": "default"
+    },
+    {
+      "node": 38,
+      "name": "Object_38",
+      "part": "chest",
+      "side": "L",
+      "flag": null,
+      "h": 0.8329,
+      "lat": -0.253,
+      "tris": 385,
+      "center": [
+        -0.13553,
+        2.11592,
+        0.14759
+      ],
+      "size": [
+        0.14165,
+        0.06515,
+        0.07138
+      ],
+      "explodeDir": [
+        -0.1558,
+        0.9731,
+        0.1696
+      ],
+      "material": "default"
+    },
+    {
+      "node": 72,
+      "name": "Object_72",
+      "part": "chest",
+      "side": "R",
+      "flag": null,
+      "h": 0.8329,
+      "lat": 0.2524,
+      "tris": 364,
+      "center": [
+        0.13519,
+        2.11592,
+        0.14759
+      ],
+      "size": [
+        0.14097,
+        0.06515,
+        0.07138
+      ],
+      "explodeDir": [
+        0.1554,
+        0.9732,
+        0.1696
+      ],
+      "material": "default"
+    },
+    {
+      "node": 86,
+      "name": "Object_86",
+      "part": "shoulder",
+      "side": "L",
+      "flag": null,
+      "h": 0.8171,
+      "lat": -0.6117,
+      "tris": 1733,
+      "center": [
+        -0.32765,
+        2.07585,
+        -0.01725
+      ],
+      "size": [
+        0.21733,
+        0.23907,
+        0.27017
+      ],
+      "explodeDir": [
+        -0.3763,
+        0.9263,
+        -0.0198
+      ],
+      "material": "default"
+    },
+    {
+      "node": 126,
+      "name": "Object_126",
+      "part": "shoulder",
+      "side": "R",
+      "flag": null,
+      "h": 0.8171,
+      "lat": 0.6117,
+      "tris": 1732,
+      "center": [
+        0.32765,
+        2.07585,
+        -0.01725
+      ],
+      "size": [
+        0.21733,
+        0.23907,
+        0.27017
+      ],
+      "explodeDir": [
+        0.3763,
+        0.9263,
+        -0.0198
+      ],
+      "material": "default"
+    },
+    {
+      "node": 74,
+      "name": "Object_74",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.8132,
+      "lat": 0.0,
+      "tris": 311,
+      "center": [
+        0.0,
+        2.06591,
+        -0.26143
+      ],
+      "size": [
+        0.1081,
+        0.11559,
+        0.02219
+      ],
+      "explodeDir": [
+        0.0,
+        0.9501,
+        -0.3118
+      ],
+      "material": "default"
+    },
+    {
+      "node": 40,
+      "name": "Object_40",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.7979,
+      "lat": -0.0075,
+      "tris": 987,
+      "center": [
+        -0.004,
+        2.02704,
+        -0.02543
+      ],
+      "size": [
+        0.532,
+        0.31658,
+        0.28735
+      ],
+      "explodeDir": [
+        -0.0053,
+        0.9994,
+        -0.0335
+      ],
+      "review": "体积为 chest 组中位数的 18 倍",
+      "material": "default"
+    },
+    {
+      "node": 102,
+      "name": "Object_102",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.7766,
+      "lat": 0.0,
+      "tris": 2875,
+      "center": [
+        0.0,
+        1.97273,
+        0.19684
+      ],
+      "size": [
+        0.51578,
+        0.27542,
+        0.1594
+      ],
+      "explodeDir": [
+        0.0,
+        0.963,
+        0.2695
+      ],
+      "review": "体积为 chest 组中位数的 8 倍",
+      "material": "default"
+    },
+    {
+      "node": 8,
+      "name": "Object_8",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.7627,
+      "lat": 0.0,
+      "tris": 9044,
+      "center": [
+        0.0,
+        1.93734,
+        -0.08994
+      ],
+      "size": [
+        0.54364,
+        0.69247,
+        0.37321
+      ],
+      "explodeDir": [
+        0.0,
+        0.9911,
+        -0.1334
+      ],
+      "review": "体积为 chest 组中位数的 51 倍",
+      "material": "default"
+    },
+    {
+      "node": 16,
+      "name": "Object_16",
+      "part": "chest",
+      "side": "L",
+      "flag": null,
+      "h": 0.7371,
+      "lat": -0.3271,
+      "tris": 1059,
+      "center": [
+        -0.17519,
+        1.87241,
+        0.13975
+      ],
+      "size": [
+        0.1707,
+        0.31778,
+        0.25493
+      ],
+      "explodeDir": [
+        -0.2723,
+        0.9374,
+        0.2172
+      ],
+      "material": "default"
+    },
+    {
+      "node": 84,
+      "name": "Object_84",
+      "part": "chest",
+      "side": "R",
+      "flag": null,
+      "h": 0.7371,
+      "lat": 0.3271,
+      "tris": 1070,
+      "center": [
+        0.17519,
+        1.87241,
+        0.13975
+      ],
+      "size": [
+        0.1707,
+        0.31778,
+        0.25493
+      ],
+      "explodeDir": [
+        0.2723,
+        0.9374,
+        0.2172
+      ],
+      "material": "default"
+    },
+    {
+      "node": 92,
+      "name": "Object_92",
+      "part": "upper_arm",
+      "side": "L",
+      "flag": null,
+      "h": 0.7227,
+      "lat": -0.6344,
+      "tris": 7476,
+      "center": [
+        -0.33982,
+        1.83561,
+        -0.0384
+      ],
+      "size": [
+        0.29476,
+        0.51643,
+        0.24128
+      ],
+      "explodeDir": [
+        -0.5137,
+        0.856,
+        -0.0581
+      ],
+      "material": "default"
+    },
+    {
+      "node": 18,
+      "name": "Object_18",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.6957,
+      "lat": 0.0,
+      "tris": 236,
+      "center": [
+        0.0,
+        1.76711,
+        0.23045
+      ],
+      "size": [
+        0.28706,
+        0.14579,
+        0.06607
+      ],
+      "explodeDir": [
+        0.0,
+        0.9075,
+        0.4201
+      ],
+      "material": "default"
+    },
+    {
+      "node": 20,
+      "name": "Object_20",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.6946,
+      "lat": 0.1034,
+      "tris": 7010,
+      "center": [
+        0.0554,
+        1.76423,
+        -0.04742
+      ],
+      "size": [
+        0.70559,
+        0.62677,
+        0.43473
+      ],
+      "explodeDir": [
+        0.1107,
+        0.9893,
+        -0.0948
+      ],
+      "review": "体积为 chest 组中位数的 70 倍",
+      "material": "default"
+    },
+    {
+      "node": 70,
+      "name": "Object_70",
+      "part": "chest",
+      "side": "R",
+      "flag": null,
+      "h": 0.6819,
+      "lat": 0.3057,
+      "tris": 280,
+      "center": [
+        0.16373,
+        1.73204,
+        0.1149
+      ],
+      "size": [
+        0.09462,
+        0.14341,
+        0.1355
+      ],
+      "explodeDir": [
+        0.3248,
+        0.9179,
+        0.2279
+      ],
+      "material": "default"
+    },
+    {
+      "node": 58,
+      "name": "Object_58",
+      "part": "chest",
+      "side": "L",
+      "flag": null,
+      "h": 0.6806,
+      "lat": -0.3057,
+      "tris": 280,
+      "center": [
+        -0.16373,
+        1.72868,
+        0.12265
+      ],
+      "size": [
+        0.09462,
+        0.1367,
+        0.12001
+      ],
+      "explodeDir": [
+        -0.3256,
+        0.9135,
+        0.2439
+      ],
+      "material": "default"
+    },
+    {
+      "node": 10,
+      "name": "Object_10",
+      "part": "abdomen",
+      "side": "C",
+      "flag": null,
+      "h": 0.6651,
+      "lat": 0.0,
+      "tris": 236,
+      "center": [
+        0.0,
+        1.68932,
+        0.20727
+      ],
+      "size": [
+        0.31508,
+        0.13369,
+        0.06606
+      ],
+      "explodeDir": [
+        0.0,
+        0.8968,
+        0.4425
+      ],
+      "material": "default"
+    },
+    {
+      "node": 46,
+      "name": "Object_46",
+      "part": "abdomen",
+      "side": "C",
+      "flag": null,
+      "h": 0.6625,
+      "lat": 0.0,
+      "tris": 420,
+      "center": [
+        -0.0,
+        1.68265,
+        -0.13247
+      ],
+      "size": [
+        0.11539,
+        0.08482,
+        0.0501
+      ],
+      "explodeDir": [
+        0.0,
+        0.9523,
+        -0.3052
+      ],
+      "material": "default"
+    },
+    {
+      "node": 60,
+      "name": "Object_60",
+      "part": "abdomen",
+      "side": "R",
+      "flag": null,
+      "h": 0.6565,
+      "lat": 0.3072,
+      "tris": 418,
+      "center": [
+        0.16454,
+        1.66721,
+        0.11379
+      ],
+      "size": [
+        0.11238,
+        0.15231,
+        0.12247
+      ],
+      "explodeDir": [
+        0.3695,
+        0.8934,
+        0.2555
+      ],
+      "material": "default"
+    },
+    {
+      "node": 68,
+      "name": "Object_68",
+      "part": "abdomen",
+      "side": "L",
+      "flag": null,
+      "h": 0.6565,
+      "lat": -0.3072,
+      "tris": 418,
+      "center": [
+        -0.16454,
+        1.66721,
+        0.11379
+      ],
+      "size": [
+        0.11238,
+        0.15231,
+        0.12247
+      ],
+      "explodeDir": [
+        -0.3695,
+        0.8934,
+        0.2555
+      ],
+      "material": "default"
+    },
+    {
+      "node": 48,
+      "name": "Object_48",
+      "part": "abdomen",
+      "side": "C",
+      "flag": null,
+      "h": 0.653,
+      "lat": 0.0,
+      "tris": 20,
+      "center": [
+        -0.0,
+        1.6583,
+        0.17625
+      ],
+      "size": [
+        0.31166,
+        0.28034,
+        0.08407
+      ],
+      "explodeDir": [
+        0.0,
+        0.9109,
+        0.4127
+      ],
+      "material": "default"
+    },
+    {
+      "node": 96,
+      "name": "Object_96",
+      "part": "upper_arm",
+      "side": "R",
+      "flag": null,
+      "h": 0.6477,
+      "lat": 0.691,
+      "tris": 7654,
+      "center": [
+        0.37012,
+        1.64494,
+        -0.0384
+      ],
+      "size": [
+        0.3623,
+        0.89776,
+        0.24128
+      ],
+      "explodeDir": [
+        0.7,
+        0.7105,
+        -0.0726
+      ],
+      "material": "default"
+    },
+    {
+      "node": 50,
+      "name": "Object_50",
+      "part": "abdomen",
+      "side": "C",
+      "flag": null,
+      "h": 0.6348,
+      "lat": 0.0,
+      "tris": 604,
+      "center": [
+        0.0,
+        1.61212,
+        -0.12847
+      ],
+      "size": [
+        0.11552,
+        0.08981,
+        0.04328
+      ],
+      "explodeDir": [
+        0.0,
+        0.9364,
+        -0.3509
+      ],
+      "material": "default"
+    },
+    {
+      "node": 22,
+      "name": "Object_22",
+      "part": "abdomen",
+      "side": "C",
+      "flag": null,
+      "h": 0.6346,
+      "lat": -0.0,
+      "tris": 180,
+      "center": [
+        -0.0,
+        1.6117,
+        0.19592
+      ],
+      "size": [
+        0.27156,
+        0.10971,
+        0.04617
+      ],
+      "explodeDir": [
+        -0.0,
+        0.868,
+        0.4966
+      ],
+      "material": "default"
+    },
+    {
+      "node": 62,
+      "name": "Object_62",
+      "part": "abdomen",
+      "side": "R",
+      "flag": null,
+      "h": 0.6314,
+      "lat": 0.2894,
+      "tris": 410,
+      "center": [
+        0.15501,
+        1.60344,
+        0.1158
+      ],
+      "size": [
+        0.11203,
+        0.15245,
+        0.12059
+      ],
+      "explodeDir": [
+        0.4014,
+        0.8654,
+        0.2999
+      ],
+      "material": "default"
+    },
+    {
+      "node": 66,
+      "name": "Object_66",
+      "part": "abdomen",
+      "side": "L",
+      "flag": null,
+      "h": 0.6314,
+      "lat": -0.2894,
+      "tris": 414,
+      "center": [
+        -0.15501,
+        1.60344,
+        0.1158
+      ],
+      "size": [
+        0.11203,
+        0.15245,
+        0.12059
+      ],
+      "explodeDir": [
+        -0.4014,
+        0.8654,
+        0.2999
+      ],
+      "material": "default"
+    },
+    {
+      "node": 88,
+      "name": "Object_88",
+      "part": "upper_arm",
+      "side": "L",
+      "flag": null,
+      "h": 0.6277,
+      "lat": -0.8392,
+      "tris": 2420,
+      "center": [
+        -0.44955,
+        1.59408,
+        -0.02731
+      ],
+      "size": [
+        0.23646,
+        0.38907,
+        0.20733
+      ],
+      "explodeDir": [
+        -0.8096,
+        0.5849,
+        -0.0492
+      ],
+      "material": "default"
+    },
+    {
+      "node": 52,
+      "name": "Object_52",
+      "part": "abdomen",
+      "side": "C",
+      "flag": null,
+      "h": 0.6091,
+      "lat": 0.0,
+      "tris": 471,
+      "center": [
+        -0.0,
+        1.54675,
+        -0.13384
+      ],
+      "size": [
+        0.11552,
+        0.09193,
+        0.04089
+      ],
+      "explodeDir": [
+        0.0,
+        0.9007,
+        -0.4345
+      ],
+      "material": "default"
+    },
+    {
+      "node": 56,
+      "name": "Object_56",
+      "part": "abdomen",
+      "side": "L",
+      "flag": null,
+      "h": 0.6074,
+      "lat": -0.2725,
+      "tris": 441,
+      "center": [
+        -0.14594,
+        1.54253,
+        0.11024
+      ],
+      "size": [
+        0.11887,
+        0.149,
+        0.11316
+      ],
+      "explodeDir": [
+        -0.4439,
+        0.831,
+        0.3353
+      ],
+      "material": "default"
+    },
+    {
+      "node": 64,
+      "name": "Object_64",
+      "part": "abdomen",
+      "side": "R",
+      "flag": null,
+      "h": 0.6074,
+      "lat": 0.2725,
+      "tris": 468,
+      "center": [
+        0.14594,
+        1.54253,
+        0.11024
+      ],
+      "size": [
+        0.11887,
+        0.149,
+        0.11316
+      ],
+      "explodeDir": [
+        0.4439,
+        0.831,
+        0.3353
+      ],
+      "material": "default"
+    },
+    {
+      "node": 24,
+      "name": "Object_24",
+      "part": "abdomen",
+      "side": "C",
+      "flag": null,
+      "h": 0.5995,
+      "lat": 0.0,
+      "tris": 206,
+      "center": [
+        -0.0,
+        1.52238,
+        0.18356
+      ],
+      "size": [
+        0.22796,
+        0.12768,
+        0.04041
+      ],
+      "explodeDir": [
+        0.0,
+        0.8095,
+        0.5871
+      ],
+      "material": "default"
+    },
+    {
+      "node": 54,
+      "name": "Object_54",
+      "part": "abdomen",
+      "side": "C",
+      "flag": null,
+      "h": 0.5796,
+      "lat": 0.0,
+      "tris": 186,
+      "center": [
+        0.0,
+        1.47182,
+        -0.1539
+      ],
+      "size": [
+        0.11335,
+        0.10156,
+        0.05234
+      ],
+      "explodeDir": [
+        0.0,
+        0.7962,
+        -0.605
+      ],
+      "material": "default"
+    },
+    {
+      "node": 90,
+      "name": "Object_90",
+      "part": "upper_arm",
+      "side": "R",
+      "flag": null,
+      "h": 0.5772,
+      "lat": 0.8561,
+      "tris": 13093,
+      "center": [
+        0.45856,
+        1.46569,
+        0.0222
+      ],
+      "size": [
+        0.25382,
+        0.64044,
+        0.29907
+      ],
+      "explodeDir": [
+        0.9183,
+        0.3933,
+        0.0445
+      ],
+      "material": "default"
+    },
+    {
+      "node": 114,
+      "name": "Object_114",
+      "part": "forearm",
+      "side": "L",
+      "flag": null,
+      "h": 0.5392,
+      "lat": -1.0,
+      "tris": 1998,
+      "center": [
+        -0.53566,
+        1.36892,
+        0.04612
+      ],
+      "size": [
+        0.09985,
+        0.20374,
+        0.16226
+      ],
+      "explodeDir": [
+        -0.9796,
+        0.1822,
+        0.0843
+      ],
+      "review": "体积为 forearm 组中位数的 9 倍",
+      "material": "default"
+    },
+    {
+      "node": 116,
+      "name": "Object_116",
+      "part": "forearm",
+      "side": "L",
+      "flag": null,
+      "h": 0.5306,
+      "lat": -0.9427,
+      "tris": 2083,
+      "center": [
+        -0.50497,
+        1.34711,
+        0.04606
+      ],
+      "size": [
+        0.09069,
+        0.16849,
+        0.1653
+      ],
+      "explodeDir": [
+        -0.9843,
+        0.1517,
+        0.0898
+      ],
+      "material": "default"
+    },
+    {
+      "node": 128,
+      "name": "Object_128",
+      "part": "forearm",
+      "side": "L",
+      "flag": null,
+      "h": 0.5243,
+      "lat": -0.8917,
+      "tris": 929,
+      "center": [
+        -0.47764,
+        1.33104,
+        0.12728
+      ],
+      "size": [
+        0.07954,
+        0.08233,
+        0.08184
+      ],
+      "explodeDir": [
+        -0.9588,
+        0.124,
+        0.2555
+      ],
+      "material": "default"
+    },
+    {
+      "node": 124,
+      "name": "Object_124",
+      "part": "forearm",
+      "side": "L",
+      "flag": null,
+      "h": 0.4928,
+      "lat": -0.9677,
+      "tris": 1360,
+      "center": [
+        -0.51838,
+        1.2509,
+        -0.03642
+      ],
+      "size": [
+        0.04595,
+        0.11052,
+        0.07089
+      ],
+      "explodeDir": [
+        -0.9969,
+        -0.0354,
+        -0.07
+      ],
+      "material": "default"
+    },
+    {
+      "node": 118,
+      "name": "Object_118",
+      "part": "forearm",
+      "side": "L",
+      "flag": null,
+      "h": 0.4844,
+      "lat": -1.0138,
+      "tris": 1382,
+      "center": [
+        -0.54307,
+        1.22964,
+        0.10449
+      ],
+      "size": [
+        0.03955,
+        0.12214,
+        0.06531
+      ],
+      "explodeDir": [
+        -0.9795,
+        -0.0715,
+        0.1884
+      ],
+      "material": "default"
+    },
+    {
+      "node": 122,
+      "name": "Object_122",
+      "part": "forearm",
+      "side": "L",
+      "flag": null,
+      "h": 0.4827,
+      "lat": -1.0106,
+      "tris": 1397,
+      "center": [
+        -0.54135,
+        1.22523,
+        0.00597
+      ],
+      "size": [
+        0.03989,
+        0.12438,
+        0.04627
+      ],
+      "explodeDir": [
+        -0.9966,
+        -0.0811,
+        0.011
+      ],
+      "material": "default"
+    },
+    {
+      "node": 120,
+      "name": "Object_120",
+      "part": "forearm",
+      "side": "L",
+      "flag": null,
+      "h": 0.4798,
+      "lat": -1.022,
+      "tris": 1386,
+      "center": [
+        -0.54744,
+        1.21797,
+        0.05266
+      ],
+      "size": [
+        0.05035,
+        0.13922,
+        0.04417
+      ],
+      "explodeDir": [
+        -0.9911,
+        -0.0929,
+        0.0953
+      ],
+      "material": "default"
+    },
+    {
+      "node": 12,
+      "name": "Object_12",
+      "part": "thigh",
+      "side": "R",
+      "flag": null,
+      "h": 0.4478,
+      "lat": 0.2906,
+      "tris": 1639,
+      "center": [
+        0.15566,
+        1.13651,
+        0.18927
+      ],
+      "size": [
+        0.17423,
+        0.40836,
+        0.07824
+      ],
+      "explodeDir": [
+        0.5585,
+        -0.4764,
+        0.6791
+      ],
+      "material": "default"
+    },
+    {
+      "node": 14,
+      "name": "Object_14",
+      "part": "thigh",
+      "side": "L",
+      "flag": null,
+      "h": 0.4423,
+      "lat": -0.2906,
+      "tris": 1641,
+      "center": [
+        -0.15566,
+        1.12251,
+        0.18927
+      ],
+      "size": [
+        0.17423,
+        0.38035,
+        0.07824
+      ],
+      "explodeDir": [
+        -0.5449,
+        -0.5138,
+        0.6626
+      ],
+      "material": "default"
+    },
+    {
+      "node": 6,
+      "name": "Object_6",
+      "part": "body_shell",
+      "side": "C",
+      "flag": "body_shell",
+      "h": 0.4371,
+      "lat": 0.0147,
+      "tris": 23379,
+      "center": [
+        0.00788,
+        1.10944,
+        0.02358
+      ],
+      "size": [
+        1.11805,
+        2.21547,
+        0.43951
+      ],
+      "explodeDir": [
+        0.0487,
+        -0.9881,
+        0.1457
+      ],
+      "material": "default"
+    },
+    {
+      "node": 42,
+      "name": "Object_42",
+      "part": "thigh",
+      "side": "L",
+      "flag": null,
+      "h": 0.4126,
+      "lat": -0.2773,
+      "tris": 439,
+      "center": [
+        -0.14854,
+        1.04693,
+        -0.06768
+      ],
+      "size": [
+        0.22535,
+        0.51203,
+        0.15186
+      ],
+      "explodeDir": [
+        -0.5385,
+        -0.8061,
+        -0.2454
+      ],
+      "material": "default"
+    },
+    {
+      "node": 44,
+      "name": "Object_44",
+      "part": "thigh",
+      "side": "R",
+      "flag": null,
+      "h": 0.4126,
+      "lat": 0.2773,
+      "tris": 465,
+      "center": [
+        0.14854,
+        1.04693,
+        -0.06768
+      ],
+      "size": [
+        0.22535,
+        0.51203,
+        0.15186
+      ],
+      "explodeDir": [
+        0.5385,
+        -0.8061,
+        -0.2454
+      ],
+      "material": "default"
+    },
+    {
+      "node": 108,
+      "name": "Object_108",
+      "part": "shin",
+      "side": "L",
+      "flag": null,
+      "h": 0.1591,
+      "lat": -0.3892,
+      "tris": 3724,
+      "center": [
+        -0.20847,
+        0.40229,
+        -0.04398
+      ],
+      "size": [
+        0.23788,
+        0.66344,
+        0.32342
+      ],
+      "explodeDir": [
+        -0.2335,
+        -0.9711,
+        -0.0493
+      ],
+      "material": "default"
+    },
+    {
+      "node": 100,
+      "name": "Object_100",
+      "part": "shin",
+      "side": "C",
+      "flag": null,
+      "h": 0.142,
+      "lat": 0.09,
+      "tris": 13076,
+      "center": [
+        0.04821,
+        0.35869,
+        0.03059
+      ],
+      "size": [
+        0.56077,
+        0.72213,
+        0.47257
+      ],
+      "explodeDir": [
+        0.0528,
+        -0.998,
+        0.0335
+      ],
+      "material": "default"
+    },
+    {
+      "node": 110,
+      "name": "Object_110",
+      "part": "foot",
+      "side": "L",
+      "flag": null,
+      "h": 0.0536,
+      "lat": -0.4216,
+      "tris": 190,
+      "center": [
+        -0.22583,
+        0.13407,
+        0.07638
+      ],
+      "size": [
+        0.1615,
+        0.08533,
+        0.16462
+      ],
+      "explodeDir": [
+        -0.1947,
+        -0.9787,
+        0.0658
+      ],
+      "material": "default"
+    },
+    {
+      "node": 112,
+      "name": "Object_112",
+      "part": "foot",
+      "side": "L",
+      "flag": null,
+      "h": 0.0252,
+      "lat": -0.4167,
+      "tris": 5356,
+      "center": [
+        -0.22322,
+        0.06176,
+        -0.01361
+      ],
+      "size": [
+        0.17508,
+        0.12649,
+        0.37099
+      ],
+      "explodeDir": [
+        -0.1818,
+        -0.9833,
+        -0.0111
+      ],
+      "material": "default"
+    },
+    {
+      "node": 104,
+      "name": "Object_104",
+      "part": "foot",
+      "side": "L",
+      "flag": null,
+      "h": 0.0204,
+      "lat": -0.4355,
+      "tris": 3871,
+      "center": [
+        -0.23327,
+        0.04959,
+        0.14687
+      ],
+      "size": [
+        0.19066,
+        0.10392,
+        0.24001
+      ],
+      "explodeDir": [
+        -0.1865,
+        -0.9754,
+        0.1175
+      ],
+      "material": "default"
+    }
+  ]
+}

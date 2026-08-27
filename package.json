@@ -1,0 +1,15 @@
+{
+  "name": "ironman-armor-lab",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Web 3D 装甲交互档案 — 最小验证",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "test": "python3 scripts/test_classifier.py && python3 scripts/test_explode.py",
+    "plan": "python3 scripts/explode_plan.py assets/manifests/ironman.json --metric && python3 scripts/explode_plan.py assets/manifests/hulkbuster.json --metric"
+  },
+  "dependencies": {
+    "three": "^0.180.0"
+  }
+}

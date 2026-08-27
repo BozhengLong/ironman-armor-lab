@@ -1,0 +1,17 @@
+# ---------------------------------------------------------------------------
+# 本仓库不入库任何 3D 原始资源 —— assets/raw/ 是下载缓存，见 .gitignore。
+# 因此当前没有启用 Git LFS。
+#
+# 若将来需要入库自制的 GLB（自己在 Blender 里做的，属于源码而非缓存），
+# 取消下面一行的注释，并注意：GitHub Pages 不解析 LFS 指针，会把约 130 字节
+# 的指针文件当资源发出去，必须走 GitHub Actions 并在 checkout 上设 lfs: true。
+# assets/authored/**/*.glb  filter=lfs diff=lfs merge=lfs -text
+# ---------------------------------------------------------------------------
+
+# 行尾统一
+*.md    text
+*.py    text
+*.mjs   text
+*.html  text
+*.json  text
+*.txt   text

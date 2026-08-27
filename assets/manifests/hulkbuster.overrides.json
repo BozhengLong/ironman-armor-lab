@@ -1,0 +1,13 @@
+{
+  "_comment": "人工覆盖表。键为 glTF node 索引，值为 部位:左右。依据见下方注释。",
+  "_evidence_37": "tris=14809 与 node75(tris=14761, thigh L) 近镜像，lat +0.55 对应右腿",
+  "37": "thigh:R",
+  "_evidence_34_72": "tris 均为 5096 的精确镜像对，h≈0.33 与其他腿部件同高",
+  "34": "thigh:R",
+  "72": "thigh:L",
+  "_evidence_33_71": "tris 均为 2758 的镜像对，材质名 legs_down 明确指向腿部",
+  "33": "thigh:R",
+  "71": "thigh:L",
+  "_evidence_273": "材质名 Pelvis 明确；前倾姿态下骨盆位置偏高，故位置判定落到 abdomen",
+  "273": "pelvis:C"
+}

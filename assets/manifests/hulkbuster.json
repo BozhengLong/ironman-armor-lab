@@ -1,0 +1,4094 @@
+{
+  "source": "assets/raw/hulkbuster/scene.gltf",
+  "upAxis": "y",
+  "latAxis": "x",
+  "bodyCenter": [
+    -9.20961,
+    169.03715,
+    -52.70336
+  ],
+  "bounds": {
+    "min": [
+      -159.19249,
+      0.85689,
+      -142.72477
+    ],
+    "max": [
+      152.3738,
+      337.21742,
+      37.31804
+    ]
+  },
+  "skipped": [],
+  "usableParts": 147,
+  "parts": [
+    {
+      "node": 236,
+      "name": "Plane002__0",
+      "part": "helmet",
+      "side": "C",
+      "flag": null,
+      "h": 0.9166,
+      "lat": -0.0179,
+      "tris": 6882,
+      "center": [
+        -11.28325,
+        309.17164,
+        -32.23618
+      ],
+      "size": [
+        68.60424,
+        56.09157,
+        70.49834
+      ],
+      "explodeDir": [
+        -0.0146,
+        0.9894,
+        0.1445
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 235,
+      "name": "Plane002_Face_0",
+      "part": "helmet",
+      "side": "C",
+      "flag": null,
+      "h": 0.9038,
+      "lat": -0.0494,
+      "tris": 3774,
+      "center": [
+        -14.93095,
+        304.85878,
+        -21.78626
+      ],
+      "size": [
+        60.93012,
+        40.14004,
+        47.79542
+      ],
+      "explodeDir": [
+        -0.041,
+        0.9742,
+        0.2218
+      ],
+      "material": "Face"
+    },
+    {
+      "node": 237,
+      "name": "Plane002_light 2_0",
+      "part": "neck",
+      "side": "C",
+      "flag": null,
+      "h": 0.897,
+      "lat": -0.0728,
+      "tris": 12,
+      "center": [
+        -17.64144,
+        302.56554,
+        -13.74555
+      ],
+      "size": [
+        30.10065,
+        10.88738,
+        16.56924
+      ],
+      "explodeDir": [
+        -0.0605,
+        0.9582,
+        0.2796
+      ],
+      "material": "light_2",
+      "emissive": true
+    },
+    {
+      "node": 239,
+      "name": "Object099_Feet_0",
+      "part": "neck",
+      "side": "C",
+      "flag": null,
+      "h": 0.8823,
+      "lat": -0.0504,
+      "tris": 504,
+      "center": [
+        -15.04547,
+        297.61797,
+        -23.60747
+      ],
+      "size": [
+        43.70504,
+        15.57193,
+        24.88803
+      ],
+      "explodeDir": [
+        -0.0442,
+        0.9744,
+        0.2205
+      ],
+      "review": "材质 'Feet' 指向 foot（合理高度 -0.01–0.09），但实际 h=0.88，位置判定为 neck",
+      "material": "Feet"
+    },
+    {
+      "node": 241,
+      "name": "Object100_Feet_0",
+      "part": "neck",
+      "side": "C",
+      "flag": null,
+      "h": 0.8789,
+      "lat": -0.0528,
+      "tris": 848,
+      "center": [
+        -15.31839,
+        296.49694,
+        -23.06708
+      ],
+      "size": [
+        40.17215,
+        11.6183,
+        20.34084
+      ],
+      "explodeDir": [
+        -0.0466,
+        0.973,
+        0.2262
+      ],
+      "review": "材质 'Feet' 指向 foot（合理高度 -0.01–0.09），但实际 h=0.88，位置判定为 neck",
+      "material": "Feet"
+    },
+    {
+      "node": 266,
+      "name": "Cylinder014_iron_0",
+      "part": "neck",
+      "side": "C",
+      "flag": null,
+      "h": 0.8555,
+      "lat": 0.1032,
+      "tris": 48,
+      "center": [
+        2.74036,
+        288.60719,
+        -28.534
+      ],
+      "size": [
+        13.80926,
+        21.7914,
+        10.50024
+      ],
+      "explodeDir": [
+        0.0975,
+        0.9755,
+        0.1972
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 158,
+      "name": "Object034_foot_0",
+      "part": "shoulder",
+      "side": "R",
+      "flag": null,
+      "h": 0.8552,
+      "lat": 0.6644,
+      "tris": 404,
+      "center": [
+        67.72421,
+        288.52835,
+        -38.77205
+      ],
+      "size": [
+        51.12641,
+        58.18747,
+        63.26212
+      ],
+      "explodeDir": [
+        0.5388,
+        0.8368,
+        0.0976
+      ],
+      "review": "材质 'foot' 指向 foot（合理高度 -0.01–0.09），但实际 h=0.86，位置判定为 shoulder",
+      "material": "foot"
+    },
+    {
+      "node": 256,
+      "name": "Cylinder016_iron_0",
+      "part": "neck",
+      "side": "L",
+      "flag": null,
+      "h": 0.8498,
+      "lat": -0.1351,
+      "tris": 48,
+      "center": [
+        -24.84959,
+        286.68957,
+        -33.60253
+      ],
+      "size": [
+        10.28623,
+        21.71415,
+        9.91897
+      ],
+      "explodeDir": [
+        -0.1301,
+        0.9787,
+        0.1589
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 151,
+      "name": "Object002_Arm_0",
+      "part": "shoulder",
+      "side": "R",
+      "flag": null,
+      "h": 0.8487,
+      "lat": 0.7322,
+      "tris": 4258,
+      "center": [
+        75.5865,
+        286.32265,
+        -39.05718
+      ],
+      "size": [
+        74.74611,
+        95.12045,
+        80.06869
+      ],
+      "explodeDir": [
+        0.5833,
+        0.8068,
+        0.0939
+      ],
+      "material": "material"
+    },
+    {
+      "node": 157,
+      "name": "Object034_iron_0",
+      "part": "shoulder",
+      "side": "R",
+      "flag": null,
+      "h": 0.8467,
+      "lat": 0.5815,
+      "tris": 2410,
+      "center": [
+        58.12576,
+        285.65211,
+        -40.15478
+      ],
+      "size": [
+        29.67247,
+        50.83601,
+        57.87019
+      ],
+      "explodeDir": [
+        0.4979,
+        0.8623,
+        0.0928
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 153,
+      "name": "Object002_Gold 1_0",
+      "part": "shoulder",
+      "side": "R",
+      "flag": null,
+      "h": 0.8396,
+      "lat": 0.8019,
+      "tris": 292,
+      "center": [
+        83.6484,
+        283.27551,
+        -38.83105
+      ],
+      "size": [
+        39.32372,
+        41.89238,
+        63.35657
+      ],
+      "explodeDir": [
+        0.628,
+        0.7726,
+        0.0938
+      ],
+      "material": "Gold_1"
+    },
+    {
+      "node": 152,
+      "name": "Object002_iron_0",
+      "part": "shoulder",
+      "side": "R",
+      "flag": null,
+      "h": 0.8392,
+      "lat": 0.8743,
+      "tris": 2172,
+      "center": [
+        92.03835,
+        283.1428,
+        -40.11745
+      ],
+      "size": [
+        32.07287,
+        52.31598,
+        30.96323
+      ],
+      "explodeDir": [
+        0.6615,
+        0.7455,
+        0.0822
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 261,
+      "name": "Cylinder008_iron_0",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.8344,
+      "lat": 0.036,
+      "tris": 48,
+      "center": [
+        -5.04227,
+        281.5166,
+        -23.33644
+      ],
+      "size": [
+        14.14416,
+        21.73741,
+        11.24688
+      ],
+      "explodeDir": [
+        0.0358,
+        0.9669,
+        0.2525
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 251,
+      "name": "Cylinder010_iron_0",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.8333,
+      "lat": -0.0867,
+      "tris": 48,
+      "center": [
+        -19.25198,
+        281.14126,
+        -25.68014
+      ],
+      "size": [
+        8.62091,
+        21.58345,
+        9.10863
+      ],
+      "explodeDir": [
+        -0.0868,
+        0.9685,
+        0.2335
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 264,
+      "name": "Cylinder015_iron_0",
+      "part": "chest",
+      "side": "R",
+      "flag": null,
+      "h": 0.8301,
+      "lat": 0.1307,
+      "tris": 600,
+      "center": [
+        5.92026,
+        280.06586,
+        -27.09008
+      ],
+      "size": [
+        14.87258,
+        19.96464,
+        12.27761
+      ],
+      "explodeDir": [
+        0.1316,
+        0.9659,
+        0.2228
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 244,
+      "name": "Plane004_Gold 1_0",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.8286,
+      "lat": 0.0156,
+      "tris": 16330,
+      "center": [
+        -7.39759,
+        279.57078,
+        -52.08095
+      ],
+      "size": [
+        118.79487,
+        86.1743,
+        125.81037
+      ],
+      "explodeDir": [
+        0.0164,
+        0.9998,
+        0.0056
+      ],
+      "review": "体积为 chest 组中位数的 303 倍",
+      "material": "Gold_1"
+    },
+    {
+      "node": 268,
+      "name": "Cylinder019_Feet_0",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.8273,
+      "lat": -0.0061,
+      "tris": 202,
+      "center": [
+        -9.9112,
+        279.12601,
+        -31.39265
+      ],
+      "size": [
+        76.08539,
+        36.7981,
+        35.81621
+      ],
+      "explodeDir": [
+        -0.0063,
+        0.9818,
+        0.19
+      ],
+      "review": "体积为 chest 组中位数的 24 倍",
+      "material": "Feet"
+    },
+    {
+      "node": 230,
+      "name": "Object059_foot_0",
+      "part": "shoulder",
+      "side": "L",
+      "flag": null,
+      "h": 0.8247,
+      "lat": -0.646,
+      "tris": 404,
+      "center": [
+        -84.01321,
+        278.23712,
+        -57.4596
+      ],
+      "size": [
+        45.3086,
+        53.21979,
+        61.59795
+      ],
+      "explodeDir": [
+        -0.5648,
+        0.8245,
+        -0.0359
+      ],
+      "review": "材质 'foot' 指向 foot（合理高度 -0.01–0.09），但实际 h=0.82，位置判定为 shoulder",
+      "material": "foot"
+    },
+    {
+      "node": 254,
+      "name": "Cylinder017_Iron 2_0",
+      "part": "chest",
+      "side": "L",
+      "flag": null,
+      "h": 0.8234,
+      "lat": -0.1518,
+      "tris": 600,
+      "center": [
+        -26.79044,
+        277.82481,
+        -31.92892
+      ],
+      "size": [
+        11.50381,
+        19.54206,
+        11.28996
+      ],
+      "explodeDir": [
+        -0.1568,
+        0.9701,
+        0.1853
+      ],
+      "material": "Iron_2"
+    },
+    {
+      "node": 229,
+      "name": "Object059_iron_0",
+      "part": "shoulder",
+      "side": "L",
+      "flag": null,
+      "h": 0.82,
+      "lat": -0.5601,
+      "tris": 2410,
+      "center": [
+        -74.07031,
+        276.68622,
+        -56.43567
+      ],
+      "size": [
+        24.20534,
+        48.6331,
+        57.40086
+      ],
+      "explodeDir": [
+        -0.5159,
+        0.8562,
+        -0.0297
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 243,
+      "name": "Plane004_Torsi_0",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.8155,
+      "lat": 0.018,
+      "tris": 28036,
+      "center": [
+        -7.12895,
+        275.15723,
+        -51.83172
+      ],
+      "size": [
+        152.49526,
+        105.5421,
+        130.00205
+      ],
+      "explodeDir": [
+        0.0196,
+        0.9998,
+        0.0082
+      ],
+      "review": "体积为 chest 组中位数的 493 倍",
+      "material": "Torsi"
+    },
+    {
+      "node": 223,
+      "name": "Object058_Arm_0",
+      "part": "shoulder",
+      "side": "L",
+      "flag": null,
+      "h": 0.8149,
+      "lat": -0.7032,
+      "tris": 4258,
+      "center": [
+        -90.6453,
+        274.97251,
+        -57.97079
+      ],
+      "size": [
+        57.87578,
+        97.57341,
+        86.79641
+      ],
+      "explodeDir": [
+        -0.609,
+        0.7922,
+        -0.0394
+      ],
+      "material": "material"
+    },
+    {
+      "node": 259,
+      "name": "Cylinder012_Iron 2_0",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.8096,
+      "lat": 0.0658,
+      "tris": 600,
+      "center": [
+        -1.59064,
+        273.16178,
+        -21.48318
+      ],
+      "size": [
+        15.03969,
+        20.07966,
+        12.84558
+      ],
+      "explodeDir": [
+        0.0699,
+        0.9555,
+        0.2865
+      ],
+      "material": "Iron_2"
+    },
+    {
+      "node": 249,
+      "name": "Cylinder013_iron_0",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.8066,
+      "lat": -0.0988,
+      "tris": 600,
+      "center": [
+        -20.649,
+        272.15459,
+        -24.11828
+      ],
+      "size": [
+        9.86977,
+        19.25007,
+        10.34279
+      ],
+      "explodeDir": [
+        -0.1063,
+        0.9582,
+        0.2656
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 245,
+      "name": "Plane004_light 3_0",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.8063,
+      "lat": 0.0588,
+      "tris": 72,
+      "center": [
+        -2.40598,
+        272.06833,
+        -88.48189
+      ],
+      "size": [
+        95.80473,
+        30.61121,
+        38.63865
+      ],
+      "explodeDir": [
+        0.0623,
+        0.9428,
+        -0.3274
+      ],
+      "review": "体积为 chest 组中位数的 27 倍",
+      "material": "light_3",
+      "emissive": true
+    },
+    {
+      "node": 225,
+      "name": "Object058_Gold 1_0",
+      "part": "shoulder",
+      "side": "L",
+      "flag": null,
+      "h": 0.8045,
+      "lat": -0.7692,
+      "tris": 292,
+      "center": [
+        -98.2817,
+        271.46379,
+        -59.89551
+      ],
+      "size": [
+        29.00009,
+        45.86269,
+        61.48826
+      ],
+      "explodeDir": [
+        -0.6553,
+        0.7535,
+        -0.0529
+      ],
+      "material": "Gold_1"
+    },
+    {
+      "node": 224,
+      "name": "Object058_iron_0",
+      "part": "shoulder",
+      "side": "L",
+      "flag": null,
+      "h": 0.8032,
+      "lat": -0.8373,
+      "tris": 2172,
+      "center": [
+        -106.16888,
+        271.02504,
+        -63.00412
+      ],
+      "size": [
+        22.79221,
+        53.33981,
+        38.85129
+      ],
+      "explodeDir": [
+        -0.6872,
+        0.7228,
+        -0.073
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 147,
+      "name": "Plane009_Gold 1_0",
+      "part": "shoulder",
+      "side": "R",
+      "flag": null,
+      "h": 0.7875,
+      "lat": 0.7016,
+      "tris": 4000,
+      "center": [
+        72.04064,
+        265.73505,
+        -45.61769
+      ],
+      "size": [
+        51.67452,
+        39.61654,
+        53.51244
+      ],
+      "explodeDir": [
+        0.6423,
+        0.7644,
+        0.056
+      ],
+      "material": "Gold_1"
+    },
+    {
+      "node": 246,
+      "name": "Plane004_iron_0",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.7656,
+      "lat": 0.0268,
+      "tris": 10542,
+      "center": [
+        -6.10211,
+        258.36038,
+        -50.91931
+      ],
+      "size": [
+        124.90445,
+        81.15117,
+        121.96204
+      ],
+      "explodeDir": [
+        0.0348,
+        0.9992,
+        0.02
+      ],
+      "review": "体积为 chest 组中位数的 291 倍",
+      "material": "iron"
+    },
+    {
+      "node": 219,
+      "name": "Plane014_Gold 1_0",
+      "part": "shoulder",
+      "side": "L",
+      "flag": null,
+      "h": 0.7577,
+      "lat": -0.6462,
+      "tris": 4000,
+      "center": [
+        -84.04248,
+        255.71299,
+        -66.0294
+      ],
+      "size": [
+        46.12226,
+        40.02781,
+        47.7404
+      ],
+      "explodeDir": [
+        -0.6491,
+        0.7519,
+        -0.1156
+      ],
+      "material": "Gold_1",
+      "pairedWith": "Plane009_Gold 1_0"
+    },
+    {
+      "node": 149,
+      "name": "Plane009_iron_0",
+      "part": "upper_arm",
+      "side": "R",
+      "flag": null,
+      "h": 0.7564,
+      "lat": 0.7549,
+      "tris": 7140,
+      "center": [
+        78.21233,
+        255.28294,
+        -50.80617
+      ],
+      "size": [
+        82.84252,
+        103.99647,
+        71.0123
+      ],
+      "explodeDir": [
+        0.7118,
+        0.7022,
+        0.0154
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 148,
+      "name": "Plane009_Arm_0",
+      "part": "upper_arm",
+      "side": "R",
+      "flag": null,
+      "h": 0.753,
+      "lat": 0.7565,
+      "tris": 3654,
+      "center": [
+        78.39909,
+        254.14186,
+        -49.87222
+      ],
+      "size": [
+        60.37929,
+        58.78111,
+        62.62002
+      ],
+      "explodeDir": [
+        0.7171,
+        0.6966,
+        0.0232
+      ],
+      "material": "material"
+    },
+    {
+      "node": 279,
+      "name": "Object086_light_0",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.7294,
+      "lat": -0.0034,
+      "tris": 20,
+      "center": [
+        -9.60104,
+        246.21329,
+        -6.4222
+      ],
+      "size": [
+        3.4743,
+        3.50059,
+        0.63701
+      ],
+      "explodeDir": [
+        -0.0043,
+        0.8576,
+        0.5143
+      ],
+      "material": "light",
+      "emissive": true
+    },
+    {
+      "node": 278,
+      "name": "Object086_Feet_0",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.7291,
+      "lat": -0.0043,
+      "tris": 146,
+      "center": [
+        -9.70928,
+        246.0974,
+        -5.19767
+      ],
+      "size": [
+        10.2505,
+        10.3457,
+        4.28263
+      ],
+      "explodeDir": [
+        -0.0055,
+        0.8512,
+        0.5248
+      ],
+      "review": "材质 'Feet' 指向 foot（合理高度 -0.01–0.09），但实际 h=0.73，位置判定为 chest",
+      "material": "Feet"
+    },
+    {
+      "node": 221,
+      "name": "Plane014_iron_0",
+      "part": "upper_arm",
+      "side": "L",
+      "flag": null,
+      "h": 0.728,
+      "lat": -0.6809,
+      "tris": 7532,
+      "center": [
+        -88.06126,
+        245.72986,
+        -73.6742
+      ],
+      "size": [
+        67.18921,
+        104.15494,
+        79.6445
+      ],
+      "explodeDir": [
+        -0.7042,
+        0.6849,
+        -0.1873
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 276,
+      "name": "Cylinder020_iron_0",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.728,
+      "lat": -0.007,
+      "tris": 704,
+      "center": [
+        -10.02413,
+        245.73544,
+        -1.78776
+      ],
+      "size": [
+        25.61437,
+        25.81938,
+        6.42095
+      ],
+      "explodeDir": [
+        -0.0088,
+        0.8331,
+        0.553
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 220,
+      "name": "Plane014_Arm_0",
+      "part": "upper_arm",
+      "side": "L",
+      "flag": null,
+      "h": 0.7242,
+      "lat": -0.6833,
+      "tris": 3262,
+      "center": [
+        -88.34204,
+        244.46302,
+        -72.9493
+      ],
+      "size": [
+        51.09306,
+        59.76428,
+        60.93356
+      ],
+      "explodeDir": [
+        -0.7118,
+        0.6784,
+        -0.1821
+      ],
+      "material": "material"
+    },
+    {
+      "node": 270,
+      "name": "Object091_Gold 2_0",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.7142,
+      "lat": 0.0348,
+      "tris": 24582,
+      "center": [
+        -5.18053,
+        241.07474,
+        -48.88324
+      ],
+      "size": [
+        125.75688,
+        41.67741,
+        89.58339
+      ],
+      "explodeDir": [
+        0.0558,
+        0.997,
+        0.0529
+      ],
+      "review": "体积为 chest 组中位数的 111 倍",
+      "material": "Gold_2"
+    },
+    {
+      "node": 281,
+      "name": "Object092_iron_0",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.7112,
+      "lat": 0.0,
+      "tris": 12336,
+      "center": [
+        -9.20961,
+        240.08055,
+        -12.26858
+      ],
+      "size": [
+        60.98132,
+        16.18803,
+        18.55667
+      ],
+      "explodeDir": [
+        0.0,
+        0.8691,
+        0.4946
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 274,
+      "name": "Plane006_iron_0",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.6956,
+      "lat": -0.0007,
+      "tris": 10916,
+      "center": [
+        -9.28599,
+        234.83376,
+        -12.4207
+      ],
+      "size": [
+        69.00932,
+        52.65088,
+        37.43681
+      ],
+      "explodeDir": [
+        -0.001,
+        0.8529,
+        0.5221
+      ],
+      "review": "体积为 chest 组中位数的 32 倍",
+      "material": "iron"
+    },
+    {
+      "node": 155,
+      "name": "Object087_Feet_0",
+      "part": "upper_arm",
+      "side": "R",
+      "flag": null,
+      "h": 0.6864,
+      "lat": 0.8477,
+      "tris": 8568,
+      "center": [
+        88.96088,
+        231.73588,
+        -52.98381
+      ],
+      "size": [
+        39.46151,
+        28.60439,
+        42.9216
+      ],
+      "explodeDir": [
+        0.8428,
+        0.5383,
+        -0.0024
+      ],
+      "review": "材质 'Feet' 指向 foot（合理高度 -0.01–0.09），但实际 h=0.69，位置判定为 upper_arm",
+      "material": "Feet"
+    },
+    {
+      "node": 273,
+      "name": "Plane006_Pelvis_0",
+      "part": "pelvis",
+      "side": "C",
+      "flag": null,
+      "h": 0.6735,
+      "lat": 0.0249,
+      "tris": 16298,
+      "center": [
+        -6.32415,
+        227.39236,
+        -47.93885
+      ],
+      "size": [
+        98.36545,
+        67.48651,
+        109.27148
+      ],
+      "explodeDir": [
+        0.0492,
+        0.9955,
+        0.0813
+      ],
+      "overridden": true,
+      "material": "Pelvis"
+    },
+    {
+      "node": 272,
+      "name": "Plane006_Gold 1_0",
+      "part": "abdomen",
+      "side": "C",
+      "flag": null,
+      "h": 0.6671,
+      "lat": 0.0441,
+      "tris": 6624,
+      "center": [
+        -4.10466,
+        225.24712,
+        -40.78505
+      ],
+      "size": [
+        87.10914,
+        34.00445,
+        68.61251
+      ],
+      "explodeDir": [
+        0.0885,
+        0.9744,
+        0.2066
+      ],
+      "material": "Gold_1"
+    },
+    {
+      "node": 227,
+      "name": "Object088_Feet_0",
+      "part": "upper_arm",
+      "side": "L",
+      "flag": null,
+      "h": 0.661,
+      "lat": -0.746,
+      "tris": 8568,
+      "center": [
+        -95.59656,
+        223.19196,
+        -85.66831
+      ],
+      "size": [
+        37.22674,
+        29.24469,
+        35.75484
+      ],
+      "explodeDir": [
+        -0.8062,
+        0.5054,
+        -0.3076
+      ],
+      "review": "材质 'Feet' 指向 foot（合理高度 -0.01–0.09），但实际 h=0.66，位置判定为 upper_arm",
+      "material": "Feet"
+    },
+    {
+      "node": 144,
+      "name": "Object006_forearm_0",
+      "part": "forearm",
+      "side": "R",
+      "flag": null,
+      "h": 0.62,
+      "lat": 0.8781,
+      "tris": 8669,
+      "center": [
+        92.47784,
+        209.40876,
+        -43.24966
+      ],
+      "size": [
+        83.63238,
+        97.03327,
+        95.96059
+      ],
+      "explodeDir": [
+        0.926,
+        0.3676,
+        0.0861
+      ],
+      "review": "体积为 forearm 组中位数的 56 倍",
+      "material": "forearm"
+    },
+    {
+      "node": 145,
+      "name": "Object006_iron_0",
+      "part": "upper_arm",
+      "side": "R",
+      "flag": null,
+      "h": 0.5985,
+      "lat": 0.938,
+      "tris": 5394,
+      "center": [
+        99.40992,
+        202.16129,
+        -37.33874
+      ],
+      "size": [
+        75.75381,
+        128.87352,
+        103.53636
+      ],
+      "explodeDir": [
+        0.9479,
+        0.2891,
+        0.1341
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 283,
+      "name": "Object083_Gold 1_0",
+      "part": "abdomen",
+      "side": "C",
+      "flag": null,
+      "h": 0.5936,
+      "lat": 0.0296,
+      "tris": 1758,
+      "center": [
+        -5.78166,
+        200.52473,
+        -55.50973
+      ],
+      "size": [
+        62.00772,
+        37.62822,
+        96.58724
+      ],
+      "explodeDir": [
+        0.1078,
+        0.9902,
+        -0.0883
+      ],
+      "material": "Gold_1"
+    },
+    {
+      "node": 217,
+      "name": "Object065_forearm_0",
+      "part": "forearm",
+      "side": "L",
+      "flag": null,
+      "h": 0.591,
+      "lat": -0.7795,
+      "tris": 8607,
+      "center": [
+        -99.48362,
+        199.6365,
+        -76.23918
+      ],
+      "size": [
+        75.468,
+        87.65441,
+        81.94377
+      ],
+      "explodeDir": [
+        -0.9195,
+        0.3117,
+        -0.2397
+      ],
+      "review": "体积为 forearm 组中位数的 39 倍",
+      "material": "forearm"
+    },
+    {
+      "node": 285,
+      "name": "Object083_iron_0",
+      "part": "abdomen",
+      "side": "C",
+      "flag": null,
+      "h": 0.5867,
+      "lat": 0.0292,
+      "tris": 3436,
+      "center": [
+        -5.82881,
+        198.18886,
+        -55.85772
+      ],
+      "size": [
+        35.5258,
+        35.0504,
+        91.0988
+      ],
+      "explodeDir": [
+        0.1145,
+        0.9877,
+        -0.1069
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 284,
+      "name": "Object083_Pelvis_0",
+      "part": "pelvis",
+      "side": "C",
+      "flag": null,
+      "h": 0.5736,
+      "lat": 0.0284,
+      "tris": 12284,
+      "center": [
+        -5.91982,
+        193.77752,
+        -57.31926
+      ],
+      "size": [
+        105.90911,
+        71.87927,
+        104.01665
+      ],
+      "explodeDir": [
+        0.1296,
+        0.9747,
+        -0.1819
+      ],
+      "material": "Pelvis"
+    },
+    {
+      "node": 143,
+      "name": "Object006_Gold 4_0",
+      "part": "upper_arm",
+      "side": "R",
+      "flag": null,
+      "h": 0.5727,
+      "lat": 1.0088,
+      "tris": 9994,
+      "center": [
+        107.60799,
+        193.47976,
+        -28.89797
+      ],
+      "size": [
+        89.53162,
+        121.29277,
+        104.92449
+      ],
+      "explodeDir": [
+        0.9599,
+        0.2008,
+        0.1956
+      ],
+      "material": "Gold_4"
+    },
+    {
+      "node": 83,
+      "name": "Plane015_Iron 2_0",
+      "part": "forearm",
+      "side": "L",
+      "flag": null,
+      "h": 0.5665,
+      "lat": -0.4269,
+      "tris": 120,
+      "center": [
+        -58.6416,
+        191.39215,
+        -31.55862
+      ],
+      "size": [
+        13.77199,
+        25.57623,
+        16.85053
+      ],
+      "explodeDir": [
+        -0.849,
+        0.3839,
+        0.3631
+      ],
+      "material": "Iron_2",
+      "pairedWith": "Plane013_Iron 2_0"
+    },
+    {
+      "node": 216,
+      "name": "Object065_iron_0",
+      "part": "forearm",
+      "side": "L",
+      "flag": null,
+      "h": 0.5622,
+      "lat": -0.8466,
+      "tris": 5876,
+      "center": [
+        -107.25156,
+        189.94923,
+        -72.82112
+      ],
+      "size": [
+        73.34718,
+        129.24914,
+        80.24578
+      ],
+      "explodeDir": [
+        -0.9589,
+        0.2045,
+        -0.1968
+      ],
+      "review": "体积为 forearm 组中位数的 55 倍",
+      "material": "iron"
+    },
+    {
+      "node": 45,
+      "name": "Plane013_Iron 2_0",
+      "part": "forearm",
+      "side": "R",
+      "flag": null,
+      "h": 0.5447,
+      "lat": 0.5056,
+      "tris": 120,
+      "center": [
+        49.34262,
+        184.07394,
+        -31.6515
+      ],
+      "size": [
+        16.84292,
+        25.30621,
+        10.00619
+      ],
+      "explodeDir": [
+        0.9147,
+        0.2349,
+        0.3289
+      ],
+      "material": "Iron_2"
+    },
+    {
+      "node": 215,
+      "name": "Object065_Gold 4_0",
+      "part": "forearm",
+      "side": "L",
+      "flag": null,
+      "h": 0.5315,
+      "lat": -0.9254,
+      "tris": 9574,
+      "center": [
+        -116.37828,
+        179.6372,
+        -67.90279
+      ],
+      "size": [
+        85.62843,
+        117.64494,
+        83.87921
+      ],
+      "explodeDir": [
+        -0.9854,
+        0.0975,
+        -0.1398
+      ],
+      "review": "体积为 forearm 组中位数的 61 倍",
+      "material": "Gold_4"
+    },
+    {
+      "node": 80,
+      "name": "Plane015_Legs_0",
+      "part": "thigh",
+      "side": "L",
+      "flag": null,
+      "h": 0.5271,
+      "lat": -0.2533,
+      "tris": 6676,
+      "center": [
+        -38.54468,
+        178.15034,
+        -53.89886
+      ],
+      "size": [
+        81.42453,
+        121.83931,
+        115.27092
+      ],
+      "explodeDir": [
+        -0.9543,
+        0.2964,
+        -0.0389
+      ],
+      "material": "Legs"
+    },
+    {
+      "node": 42,
+      "name": "Plane013_Legs_0",
+      "part": "thigh",
+      "side": "R",
+      "flag": null,
+      "h": 0.524,
+      "lat": 0.2901,
+      "tris": 5788,
+      "center": [
+        24.39047,
+        177.10774,
+        -51.83023
+      ],
+      "size": [
+        102.08466,
+        108.59097,
+        94.26494
+      ],
+      "explodeDir": [
+        0.972,
+        0.2335,
+        0.0253
+      ],
+      "material": "Legs"
+    },
+    {
+      "node": 102,
+      "name": "Object097__0",
+      "part": "forearm",
+      "side": "R",
+      "flag": null,
+      "h": 0.5208,
+      "lat": 0.916,
+      "tris": 1088,
+      "center": [
+        96.87019,
+        176.03118,
+        -2.0776
+      ],
+      "size": [
+        33.99486,
+        27.29515,
+        34.31764
+      ],
+      "explodeDir": [
+        0.9009,
+        0.0594,
+        0.4299
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 98,
+      "name": "Object035_iron_0",
+      "part": "forearm",
+      "side": "R",
+      "flag": null,
+      "h": 0.508,
+      "lat": 0.8363,
+      "tris": 2154,
+      "center": [
+        87.63324,
+        171.71464,
+        -2.24222
+      ],
+      "size": [
+        19.97182,
+        16.04581,
+        20.99045
+      ],
+      "explodeDir": [
+        0.8866,
+        0.0245,
+        0.462
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 99,
+      "name": "Object035__0",
+      "part": "forearm",
+      "side": "R",
+      "flag": null,
+      "h": 0.5023,
+      "lat": 0.8191,
+      "tris": 840,
+      "center": [
+        85.64157,
+        169.80607,
+        -1.54689
+      ],
+      "size": [
+        24.99901,
+        20.65217,
+        26.2515
+      ],
+      "explodeDir": [
+        0.8801,
+        0.0071,
+        0.4747
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 140,
+      "name": "Object080__0",
+      "part": "forearm",
+      "side": "R",
+      "flag": null,
+      "h": 0.4945,
+      "lat": 0.9995,
+      "tris": 4993,
+      "center": [
+        106.53477,
+        167.20364,
+        -14.29531
+      ],
+      "size": [
+        50.75753,
+        52.05815,
+        53.3525
+      ],
+      "explodeDir": [
+        0.949,
+        -0.015,
+        0.3149
+      ],
+      "review": "体积为 forearm 组中位数的 10 倍",
+      "material": "Object037__0"
+    },
+    {
+      "node": 114,
+      "name": "Object039_iron_0",
+      "part": "forearm",
+      "side": "R",
+      "flag": null,
+      "h": 0.4887,
+      "lat": 0.9966,
+      "tris": 1744,
+      "center": [
+        106.20339,
+        165.24457,
+        2.7768
+      ],
+      "size": [
+        14.00472,
+        15.39451,
+        13.56781
+      ],
+      "explodeDir": [
+        0.9009,
+        -0.0296,
+        0.4331
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 95,
+      "name": "Object037_iron_0",
+      "part": "forearm",
+      "side": "R",
+      "flag": null,
+      "h": 0.4849,
+      "lat": 0.7721,
+      "tris": 1970,
+      "center": [
+        80.19739,
+        163.96928,
+        -1.60086
+      ],
+      "size": [
+        17.71768,
+        16.15535,
+        18.91399
+      ],
+      "explodeDir": [
+        0.8671,
+        -0.0492,
+        0.4956
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 141,
+      "name": "Object080_iron_0",
+      "part": "forearm",
+      "side": "R",
+      "flag": null,
+      "h": 0.4842,
+      "lat": 0.953,
+      "tris": 288,
+      "center": [
+        101.15504,
+        163.71386,
+        -15.60504
+      ],
+      "size": [
+        19.79927,
+        24.56585,
+        26.41109
+      ],
+      "explodeDir": [
+        0.9469,
+        -0.0457,
+        0.3183
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 113,
+      "name": "Object039__0",
+      "part": "forearm",
+      "side": "R",
+      "flag": null,
+      "h": 0.4783,
+      "lat": 0.994,
+      "tris": 466,
+      "center": [
+        105.90198,
+        161.74738,
+        5.79114
+      ],
+      "size": [
+        24.4965,
+        26.88571,
+        23.97066
+      ],
+      "explodeDir": [
+        0.8901,
+        -0.0564,
+        0.4523
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 96,
+      "name": "Object037__0",
+      "part": "forearm",
+      "side": "R",
+      "flag": null,
+      "h": 0.4767,
+      "lat": 0.7601,
+      "tris": 894,
+      "center": [
+        78.81703,
+        161.18436,
+        -1.59204
+      ],
+      "size": [
+        23.9121,
+        22.76618,
+        25.50523
+      ],
+      "explodeDir": [
+        0.8622,
+        -0.0769,
+        0.5006
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 81,
+      "name": "Plane015_Gold 1_0",
+      "part": "pelvis",
+      "side": "L",
+      "flag": null,
+      "h": 0.4754,
+      "lat": -0.3699,
+      "tris": 11616,
+      "center": [
+        -52.04889,
+        160.77026,
+        -44.40079
+      ],
+      "size": [
+        79.07872,
+        106.01017,
+        104.20587
+      ],
+      "explodeDir": [
+        -0.9646,
+        -0.1861,
+        0.1869
+      ],
+      "material": "Gold_1"
+    },
+    {
+      "node": 82,
+      "name": "Plane015_iron_0",
+      "part": "pelvis",
+      "side": "L",
+      "flag": null,
+      "h": 0.4752,
+      "lat": -0.33,
+      "tris": 13393,
+      "center": [
+        -47.42226,
+        160.68294,
+        -41.45343
+      ],
+      "size": [
+        105.27301,
+        161.71695,
+        126.49911
+      ],
+      "explodeDir": [
+        -0.9389,
+        -0.2053,
+        0.2764
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 43,
+      "name": "Plane013_Gold 1_0",
+      "part": "pelvis",
+      "side": "R",
+      "flag": null,
+      "h": 0.4697,
+      "lat": 0.4241,
+      "tris": 11616,
+      "center": [
+        39.9041,
+        158.83559,
+        -52.14604
+      ],
+      "size": [
+        96.69682,
+        94.6125,
+        88.474
+      ],
+      "explodeDir": [
+        0.979,
+        -0.2034,
+        0.0111
+      ],
+      "material": "Gold_1"
+    },
+    {
+      "node": 174,
+      "name": "Object098__0",
+      "part": "forearm",
+      "side": "L",
+      "flag": null,
+      "h": 0.4691,
+      "lat": -0.8764,
+      "tris": 1088,
+      "center": [
+        -110.70486,
+        158.63235,
+        -42.29407
+      ],
+      "size": [
+        32.37095,
+        23.89628,
+        28.5275
+      ],
+      "explodeDir": [
+        -0.9896,
+        -0.1015,
+        0.1015
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 125,
+      "name": "Object045_iron_0",
+      "part": "forearm",
+      "side": "R",
+      "flag": null,
+      "h": 0.4656,
+      "lat": 1.0634,
+      "tris": 1878,
+      "center": [
+        113.9355,
+        157.4736,
+        -6.14232
+      ],
+      "size": [
+        16.3763,
+        15.05901,
+        15.46922
+      ],
+      "explodeDir": [
+        0.9318,
+        -0.0875,
+        0.3523
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 44,
+      "name": "Plane013_iron_0",
+      "part": "pelvis",
+      "side": "R",
+      "flag": null,
+      "h": 0.4654,
+      "lat": 0.3917,
+      "tris": 14281,
+      "center": [
+        36.15351,
+        157.3909,
+        -48.41158
+      ],
+      "size": [
+        126.66451,
+        155.27024,
+        91.60826
+      ],
+      "explodeDir": [
+        0.9645,
+        -0.2476,
+        0.0913
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 170,
+      "name": "Object068_iron_0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.4577,
+      "lat": -0.7986,
+      "tris": 2148,
+      "center": [
+        -101.69437,
+        154.80311,
+        -40.2181
+      ],
+      "size": [
+        21.1033,
+        16.68082,
+        19.57279
+      ],
+      "explodeDir": [
+        -0.9797,
+        -0.1508,
+        0.1323
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 137,
+      "name": "Object051_iron_0",
+      "part": "hand",
+      "side": "R",
+      "flag": null,
+      "h": 0.4552,
+      "lat": 1.0956,
+      "tris": 1834,
+      "center": [
+        117.65993,
+        153.95286,
+        -19.38822
+      ],
+      "size": [
+        14.60586,
+        14.08467,
+        11.82239
+      ],
+      "explodeDir": [
+        0.9609,
+        -0.1142,
+        0.2523
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 110,
+      "name": "Object041_iron_0",
+      "part": "hand",
+      "side": "R",
+      "flag": null,
+      "h": 0.4549,
+      "lat": 0.9826,
+      "tris": 2112,
+      "center": [
+        104.5819,
+        153.85947,
+        10.4532
+      ],
+      "size": [
+        16.09383,
+        16.0774,
+        16.78272
+      ],
+      "explodeDir": [
+        0.8685,
+        -0.1158,
+        0.482
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 126,
+      "name": "Object045__0",
+      "part": "hand",
+      "side": "R",
+      "flag": null,
+      "h": 0.4523,
+      "lat": 1.041,
+      "tris": 332,
+      "center": [
+        111.347,
+        152.98675,
+        -5.30627
+      ],
+      "size": [
+        26.31059,
+        23.17825,
+        24.70095
+      ],
+      "explodeDir": [
+        0.9236,
+        -0.123,
+        0.3631
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 171,
+      "name": "Object068__0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.4514,
+      "lat": -0.7834,
+      "tris": 846,
+      "center": [
+        -99.92427,
+        152.69251,
+        -39.50813
+      ],
+      "size": [
+        26.41505,
+        21.54492,
+        24.27388
+      ],
+      "explodeDir": [
+        -0.9742,
+        -0.1755,
+        0.1417
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 111,
+      "name": "Object041__0",
+      "part": "hand",
+      "side": "R",
+      "flag": null,
+      "h": 0.4494,
+      "lat": 0.969,
+      "tris": 594,
+      "center": [
+        102.99782,
+        152.01467,
+        11.15624
+      ],
+      "size": [
+        22.64842,
+        21.32239,
+        23.82178
+      ],
+      "explodeDir": [
+        0.8616,
+        -0.1307,
+        0.4904
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 212,
+      "name": "Object081__0",
+      "part": "forearm",
+      "side": "L",
+      "flag": null,
+      "h": 0.4478,
+      "lat": -0.9277,
+      "tris": 4993,
+      "center": [
+        -116.63849,
+        151.48418,
+        -57.50086
+      ],
+      "size": [
+        45.41107,
+        48.04926,
+        48.5241
+      ],
+      "explodeDir": [
+        -0.986,
+        -0.1611,
+        -0.044
+      ],
+      "material": "Object037__0",
+      "pairedWith": "Object080__0"
+    },
+    {
+      "node": 138,
+      "name": "Object051__0",
+      "part": "hand",
+      "side": "R",
+      "flag": null,
+      "h": 0.445,
+      "lat": 1.0731,
+      "tris": 376,
+      "center": [
+        115.05993,
+        150.55329,
+        -19.86269
+      ],
+      "size": [
+        25.61396,
+        24.79518,
+        21.00498
+      ],
+      "explodeDir": [
+        0.957,
+        -0.1423,
+        0.2529
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 213,
+      "name": "Object081_iron_0",
+      "part": "forearm",
+      "side": "L",
+      "flag": null,
+      "h": 0.4386,
+      "lat": -0.878,
+      "tris": 288,
+      "center": [
+        -110.88993,
+        148.39422,
+        -57.99139
+      ],
+      "size": [
+        17.16759,
+        23.4413,
+        24.13076
+      ],
+      "explodeDir": [
+        -0.9787,
+        -0.1987,
+        -0.0509
+      ],
+      "material": "iron",
+      "pairedWith": "Object080_iron_0"
+    },
+    {
+      "node": 185,
+      "name": "Object063_iron_0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.4343,
+      "lat": -0.9566,
+      "tris": 1840,
+      "center": [
+        -119.98819,
+        146.93182,
+        -41.37987
+      ],
+      "size": [
+        11.50915,
+        11.92452,
+        11.45403
+      ],
+      "explodeDir": [
+        -0.9758,
+        -0.1947,
+        0.0997
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 167,
+      "name": "Object066_iron_0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.4337,
+      "lat": -0.7374,
+      "tris": 2000,
+      "center": [
+        -94.60391,
+        146.7359,
+        -39.48865
+      ],
+      "size": [
+        19.16173,
+        15.93547,
+        17.4669
+      ],
+      "explodeDir": [
+        -0.9569,
+        -0.2499,
+        0.1481
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 107,
+      "name": "Object043_iron_0",
+      "part": "hand",
+      "side": "R",
+      "flag": null,
+      "h": 0.4309,
+      "lat": 0.9115,
+      "tris": 1914,
+      "center": [
+        96.34931,
+        145.80918,
+        11.04128
+      ],
+      "size": [
+        17.01409,
+        15.22182,
+        15.50144
+      ],
+      "explodeDir": [
+        0.8412,
+        -0.1851,
+        0.508
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 122,
+      "name": "Object047_iron_0",
+      "part": "hand",
+      "side": "R",
+      "flag": null,
+      "h": 0.4307,
+      "lat": 0.9863,
+      "tris": 2112,
+      "center": [
+        105.00339,
+        145.73528,
+        -5.36053
+      ],
+      "size": [
+        22.29349,
+        22.22485,
+        15.3071
+      ],
+      "explodeDir": [
+        0.9078,
+        -0.1852,
+        0.3763
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 131,
+      "name": "Object055_iron_0",
+      "part": "hand",
+      "side": "R",
+      "flag": null,
+      "h": 0.4293,
+      "lat": 0.9311,
+      "tris": 1940,
+      "center": [
+        98.61222,
+        145.2547,
+        -25.90715
+      ],
+      "size": [
+        15.77768,
+        16.51202,
+        12.79617
+      ],
+      "explodeDir": [
+        0.949,
+        -0.2093,
+        0.2358
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 132,
+      "name": "Object055__0",
+      "part": "hand",
+      "side": "R",
+      "flag": null,
+      "h": 0.4286,
+      "lat": 0.9188,
+      "tris": 756,
+      "center": [
+        97.19469,
+        145.02257,
+        -26.34388
+      ],
+      "size": [
+        19.00964,
+        18.88982,
+        16.59501
+      ],
+      "explodeDir": [
+        0.9482,
+        -0.214,
+        0.2349
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 134,
+      "name": "Object053_iron_0",
+      "part": "hand",
+      "side": "R",
+      "flag": null,
+      "h": 0.4273,
+      "lat": 1.0159,
+      "tris": 2170,
+      "center": [
+        108.43598,
+        144.59631,
+        -20.73564
+      ],
+      "size": [
+        18.00101,
+        17.74144,
+        13.02958
+      ],
+      "explodeDir": [
+        0.9462,
+        -0.1966,
+        0.2571
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 108,
+      "name": "Object043__0",
+      "part": "hand",
+      "side": "R",
+      "flag": null,
+      "h": 0.427,
+      "lat": 0.9047,
+      "tris": 782,
+      "center": [
+        95.56267,
+        144.47503,
+        11.22695
+      ],
+      "size": [
+        20.03769,
+        18.71474,
+        19.0606
+      ],
+      "explodeDir": [
+        0.837,
+        -0.1962,
+        0.5107
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 135,
+      "name": "Object053__0",
+      "part": "hand",
+      "side": "R",
+      "flag": null,
+      "h": 0.4261,
+      "lat": 0.9977,
+      "tris": 536,
+      "center": [
+        106.33049,
+        144.17864,
+        -21.87741
+      ],
+      "size": [
+        23.98311,
+        24.18333,
+        19.1214
+      ],
+      "explodeDir": [
+        0.946,
+        -0.2035,
+        0.2524
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 168,
+      "name": "Object066__0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.4255,
+      "lat": -0.7253,
+      "tris": 864,
+      "center": [
+        -93.20573,
+        143.96409,
+        -39.63996
+      ],
+      "size": [
+        25.89012,
+        22.55108,
+        23.19052
+      ],
+      "explodeDir": [
+        -0.9478,
+        -0.2829,
+        0.1474
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 123,
+      "name": "Object047__0",
+      "part": "hand",
+      "side": "R",
+      "flag": null,
+      "h": 0.4228,
+      "lat": 0.9566,
+      "tris": 512,
+      "center": [
+        101.56638,
+        143.0845,
+        -5.86137
+      ],
+      "size": [
+        26.36529,
+        25.76427,
+        21.66685
+      ],
+      "explodeDir": [
+        0.9003,
+        -0.2109,
+        0.3807
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 186,
+      "name": "Object063__0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.422,
+      "lat": -0.9442,
+      "tris": 370,
+      "center": [
+        -118.54658,
+        142.81114,
+        -39.84722
+      ],
+      "size": [
+        20.08285,
+        20.71894,
+        20.4431
+      ],
+      "explodeDir": [
+        -0.9661,
+        -0.2317,
+        0.1136
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 119,
+      "name": "Object049_iron_0",
+      "part": "hand",
+      "side": "R",
+      "flag": null,
+      "h": 0.4171,
+      "lat": 0.8877,
+      "tris": 2082,
+      "center": [
+        93.58739,
+        141.16004,
+        -9.20001
+      ],
+      "size": [
+        20.62608,
+        20.57387,
+        14.99994
+      ],
+      "explodeDir": [
+        0.8935,
+        -0.2423,
+        0.3781
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 197,
+      "name": "Object060_iron_0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.415,
+      "lat": -1.0002,
+      "tris": 1874,
+      "center": [
+        -125.03766,
+        140.43015,
+        -52.82824
+      ],
+      "size": [
+        14.81042,
+        14.84991,
+        13.54341
+      ],
+      "explodeDir": [
+        -0.9708,
+        -0.2398,
+        -0.001
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 120,
+      "name": "Object049__0",
+      "part": "hand",
+      "side": "R",
+      "flag": null,
+      "h": 0.4122,
+      "lat": 0.8669,
+      "tris": 614,
+      "center": [
+        91.17649,
+        139.50124,
+        -9.61259
+      ],
+      "size": [
+        23.6315,
+        23.31982,
+        19.46119
+      ],
+      "explodeDir": [
+        0.8871,
+        -0.261,
+        0.3808
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 209,
+      "name": "Object061_iron_0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.4103,
+      "lat": -1.004,
+      "tris": 1774,
+      "center": [
+        -125.47348,
+        138.85994,
+        -66.89291
+      ],
+      "size": [
+        12.97984,
+        13.67973,
+        10.6033
+      ],
+      "explodeDir": [
+        -0.9612,
+        -0.2495,
+        -0.1173
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 198,
+      "name": "Object060__0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.4013,
+      "lat": -0.9794,
+      "tris": 336,
+      "center": [
+        -122.63276,
+        135.84397,
+        -51.98277
+      ],
+      "size": [
+        23.97078,
+        22.88065,
+        21.45989
+      ],
+      "explodeDir": [
+        -0.9597,
+        -0.2809,
+        0.0061
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 210,
+      "name": "Object061__0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.3997,
+      "lat": -0.9832,
+      "tris": 436,
+      "center": [
+        -123.06159,
+        135.29585,
+        -66.74355
+      ],
+      "size": [
+        22.60898,
+        24.06516,
+        18.97913
+      ],
+      "explodeDir": [
+        -0.9521,
+        -0.2822,
+        -0.1174
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 182,
+      "name": "Object070_iron_0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.3965,
+      "lat": -0.9127,
+      "tris": 2226,
+      "center": [
+        -114.90231,
+        134.24018,
+        -38.08607
+      ],
+      "size": [
+        17.34424,
+        17.79076,
+        12.45819
+      ],
+      "explodeDir": [
+        -0.9418,
+        -0.3101,
+        0.1302
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 183,
+      "name": "Object070__0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.3915,
+      "lat": -0.8967,
+      "tris": 480,
+      "center": [
+        -113.04889,
+        132.55723,
+        -37.71329
+      ],
+      "size": [
+        23.81561,
+        23.29334,
+        18.5809
+      ],
+      "explodeDir": [
+        -0.9348,
+        -0.3284,
+        0.135
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 194,
+      "name": "Object062_iron_0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.3802,
+      "lat": -0.9239,
+      "tris": 2204,
+      "center": [
+        -116.20531,
+        128.7332,
+        -51.49207
+      ],
+      "size": [
+        21.70613,
+        21.92152,
+        13.50864
+      ],
+      "explodeDir": [
+        -0.9358,
+        -0.3525,
+        0.0106
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 206,
+      "name": "Object064_iron_0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.3792,
+      "lat": -0.9303,
+      "tris": 2190,
+      "center": [
+        -116.9459,
+        128.41946,
+        -65.77261
+      ],
+      "size": [
+        17.69919,
+        18.60791,
+        11.73565
+      ],
+      "explodeDir": [
+        -0.9297,
+        -0.3505,
+        -0.1128
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 204,
+      "name": "Object071__0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.3781,
+      "lat": -0.8311,
+      "tris": 760,
+      "center": [
+        -105.44965,
+        128.05074,
+        -67.41237
+      ],
+      "size": [
+        14.60843,
+        14.5612,
+        12.75106
+      ],
+      "explodeDir": [
+        -0.9111,
+        -0.388,
+        -0.1392
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 203,
+      "name": "Object071_iron_0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.377,
+      "lat": -0.8435,
+      "tris": 1936,
+      "center": [
+        -106.89352,
+        127.65928,
+        -67.28656
+      ],
+      "size": [
+        12.37669,
+        13.22271,
+        9.09569
+      ],
+      "explodeDir": [
+        -0.9122,
+        -0.3864,
+        -0.1362
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 207,
+      "name": "Object064__0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.3761,
+      "lat": -0.9116,
+      "tris": 516,
+      "center": [
+        -114.77452,
+        127.37755,
+        -66.10465
+      ],
+      "size": [
+        23.38111,
+        24.98476,
+        17.43559
+      ],
+      "explodeDir": [
+        -0.9238,
+        -0.3646,
+        -0.1173
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 179,
+      "name": "Object069_iron_0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.3759,
+      "lat": -0.8316,
+      "tris": 2024,
+      "center": [
+        -105.50885,
+        127.29257,
+        -38.20819
+      ],
+      "size": [
+        16.15378,
+        15.36628,
+        12.25199
+      ],
+      "explodeDir": [
+        -0.9089,
+        -0.394,
+        0.1368
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 195,
+      "name": "Object062__0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.3731,
+      "lat": -0.8923,
+      "tris": 420,
+      "center": [
+        -112.53976,
+        126.3569,
+        -51.57147
+      ],
+      "size": [
+        24.74823,
+        25.19546,
+        19.69534
+      ],
+      "explodeDir": [
+        -0.9242,
+        -0.3817,
+        0.0101
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 191,
+      "name": "Object067_iron_0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.3728,
+      "lat": -0.8173,
+      "tris": 2084,
+      "center": [
+        -103.8514,
+        126.24933,
+        -53.47575
+      ],
+      "size": [
+        18.60181,
+        18.86667,
+        13.53456
+      ],
+      "explodeDir": [
+        -0.9112,
+        -0.4119,
+        -0.0074
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 180,
+      "name": "Object069__0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.3718,
+      "lat": -0.8255,
+      "tris": 672,
+      "center": [
+        -104.80842,
+        125.90516,
+        -38.07642
+      ],
+      "size": [
+        18.25626,
+        18.36333,
+        16.07976
+      ],
+      "explodeDir": [
+        -0.9028,
+        -0.4073,
+        0.1381
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 192,
+      "name": "Object067__0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.3713,
+      "lat": -0.7924,
+      "tris": 612,
+      "center": [
+        -100.96983,
+        125.74768,
+        -53.8974
+      ],
+      "size": [
+        20.51372,
+        21.00317,
+        18.41769
+      ],
+      "explodeDir": [
+        -0.9043,
+        -0.4266,
+        -0.0118
+      ],
+      "material": "Object037__0"
+    },
+    {
+      "node": 71,
+      "name": "Object073_legs down_0",
+      "part": "thigh",
+      "side": "L",
+      "flag": null,
+      "h": 0.3542,
+      "lat": -0.4714,
+      "tris": 2758,
+      "center": [
+        -63.79847,
+        119.99262,
+        -10.29654
+      ],
+      "size": [
+        71.13451,
+        49.16212,
+        53.20961
+      ],
+      "explodeDir": [
+        -0.6441,
+        -0.5787,
+        0.5003
+      ],
+      "overridden": true,
+      "material": "legs_down"
+    },
+    {
+      "node": 33,
+      "name": "Object005_legs down_0",
+      "part": "thigh",
+      "side": "R",
+      "flag": null,
+      "h": 0.3379,
+      "lat": 0.5882,
+      "tris": 2758,
+      "center": [
+        58.90496,
+        114.51846,
+        -35.95624
+      ],
+      "size": [
+        76.58042,
+        59.99188,
+        65.01819
+      ],
+      "explodeDir": [
+        0.7667,
+        -0.6137,
+        0.1885
+      ],
+      "overridden": true,
+      "material": "legs_down"
+    },
+    {
+      "node": 72,
+      "name": "Object073_iron_0",
+      "part": "thigh",
+      "side": "L",
+      "flag": null,
+      "h": 0.3369,
+      "lat": -0.4302,
+      "tris": 5096,
+      "center": [
+        -59.03274,
+        114.16868,
+        -36.33475
+      ],
+      "size": [
+        66.85023,
+        59.65056,
+        61.1197
+      ],
+      "explodeDir": [
+        -0.6564,
+        -0.7229,
+        0.2157
+      ],
+      "overridden": true,
+      "material": "iron",
+      "pairedWith": "Object005_iron_0"
+    },
+    {
+      "node": 34,
+      "name": "Object005_iron_0",
+      "part": "thigh",
+      "side": "R",
+      "flag": null,
+      "h": 0.3287,
+      "lat": 0.5098,
+      "tris": 5096,
+      "center": [
+        49.83218,
+        111.42674,
+        -61.30865
+      ],
+      "size": [
+        75.93093,
+        69.27776,
+        73.11416
+      ],
+      "explodeDir": [
+        0.7119,
+        -0.6946,
+        -0.1038
+      ],
+      "overridden": true,
+      "material": "iron"
+    },
+    {
+      "node": 77,
+      "name": "default001_light_0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.2688,
+      "lat": -0.4649,
+      "tris": 50,
+      "center": [
+        -63.04336,
+        91.26806,
+        -36.22835
+      ],
+      "size": [
+        22.41446,
+        45.30068,
+        56.78174
+      ],
+      "explodeDir": [
+        -0.5607,
+        -0.81,
+        0.1716
+      ],
+      "material": "light",
+      "emissive": true
+    },
+    {
+      "node": 39,
+      "name": "default_light_0",
+      "part": "hand",
+      "side": "R",
+      "flag": null,
+      "h": 0.2621,
+      "lat": 0.5759,
+      "tris": 50,
+      "center": [
+        57.48302,
+        89.02402,
+        -63.37427
+      ],
+      "size": [
+        35.19242,
+        44.68433,
+        57.49138
+      ],
+      "explodeDir": [
+        0.6369,
+        -0.7642,
+        -0.1019
+      ],
+      "review": "体积为 hand 组中位数的 12 倍",
+      "material": "light",
+      "emissive": true
+    },
+    {
+      "node": 75,
+      "name": "default001_iron_0",
+      "part": "thigh",
+      "side": "L",
+      "flag": null,
+      "h": 0.2499,
+      "lat": -0.4308,
+      "tris": 14761,
+      "center": [
+        -59.10195,
+        84.92715,
+        -35.0866
+      ],
+      "size": [
+        78.87223,
+        105.96167,
+        96.12328
+      ],
+      "explodeDir": [
+        -0.5021,
+        -0.8464,
+        0.1773
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 37,
+      "name": "default_iron_0",
+      "part": "thigh",
+      "side": "R",
+      "flag": null,
+      "h": 0.2415,
+      "lat": 0.5525,
+      "tris": 14809,
+      "center": [
+        54.77652,
+        82.08765,
+        -62.10654
+      ],
+      "size": [
+        96.51924,
+        110.69907,
+        106.61404
+      ],
+      "explodeDir": [
+        0.5905,
+        -0.8024,
+        -0.0868
+      ],
+      "overridden": true,
+      "material": "iron"
+    },
+    {
+      "node": 74,
+      "name": "default001_legs down_0",
+      "part": "shin",
+      "side": "L",
+      "flag": null,
+      "h": 0.2223,
+      "lat": -0.4792,
+      "tris": 4051,
+      "center": [
+        -64.69808,
+        75.62704,
+        -44.2161
+      ],
+      "size": [
+        91.86411,
+        123.31014,
+        105.26174
+      ],
+      "explodeDir": [
+        -0.5092,
+        -0.8571,
+        0.0779
+      ],
+      "material": "legs_down"
+    },
+    {
+      "node": 36,
+      "name": "default_legs down_0",
+      "part": "shin",
+      "side": "R",
+      "flag": null,
+      "h": 0.2003,
+      "lat": 0.6082,
+      "tris": 4003,
+      "center": [
+        61.21961,
+        68.22432,
+        -75.51741
+      ],
+      "size": [
+        106.83116,
+        116.30429,
+        112.72144
+      ],
+      "explodeDir": [
+        0.5631,
+        -0.806,
+        -0.1824
+      ],
+      "material": "legs_down"
+    },
+    {
+      "node": 78,
+      "name": "default001_Gold 1_0",
+      "part": "shin",
+      "side": "L",
+      "flag": null,
+      "h": 0.1999,
+      "lat": -0.4931,
+      "tris": 2908,
+      "center": [
+        -66.31754,
+        68.09532,
+        -44.13682
+      ],
+      "size": [
+        55.68173,
+        75.76242,
+        86.05831
+      ],
+      "explodeDir": [
+        -0.4911,
+        -0.868,
+        0.0737
+      ],
+      "material": "Gold_1"
+    },
+    {
+      "node": 40,
+      "name": "default_Gold 1_0",
+      "part": "shin",
+      "side": "R",
+      "flag": null,
+      "h": 0.197,
+      "lat": 0.6213,
+      "tris": 2908,
+      "center": [
+        62.74208,
+        67.10403,
+        -73.47855
+      ],
+      "size": [
+        72.17122,
+        78.44859,
+        91.21564
+      ],
+      "explodeDir": [
+        0.5688,
+        -0.8059,
+        -0.1642
+      ],
+      "material": "Gold_1"
+    },
+    {
+      "node": 76,
+      "name": "default001_light 3_0",
+      "part": "shin",
+      "side": "L",
+      "flag": null,
+      "h": 0.172,
+      "lat": -0.3499,
+      "tris": 16,
+      "center": [
+        -49.73088,
+        58.71664,
+        -19.16341
+      ],
+      "size": [
+        13.61962,
+        14.68234,
+        15.26542
+      ],
+      "explodeDir": [
+        -0.3315,
+        -0.9026,
+        0.2744
+      ],
+      "material": "light_3",
+      "emissive": true
+    },
+    {
+      "node": 38,
+      "name": "default_light 3_0",
+      "part": "shin",
+      "side": "R",
+      "flag": null,
+      "h": 0.1578,
+      "lat": 0.5307,
+      "tris": 16,
+      "center": [
+        52.24999,
+        53.9355,
+        -46.9596
+      ],
+      "size": [
+        16.05037,
+        15.7817,
+        16.88575
+      ],
+      "explodeDir": [
+        0.4706,
+        -0.8813,
+        0.044
+      ],
+      "material": "light_3",
+      "emissive": true
+    },
+    {
+      "node": 14,
+      "name": "Object033_foot_0",
+      "part": "foot",
+      "side": "R",
+      "flag": null,
+      "h": 0.1076,
+      "lat": 0.7846,
+      "tris": 1825,
+      "center": [
+        81.64727,
+        37.03392,
+        -50.1923
+      ],
+      "size": [
+        62.92591,
+        43.44467,
+        54.84189
+      ],
+      "explodeDir": [
+        0.5669,
+        -0.8236,
+        0.0157
+      ],
+      "material": "foot"
+    },
+    {
+      "node": 15,
+      "name": "Object033_Gold 1_0",
+      "part": "shin",
+      "side": "R",
+      "flag": null,
+      "h": 0.1048,
+      "lat": 0.7923,
+      "tris": 1704,
+      "center": [
+        82.54469,
+        36.10292,
+        -46.62386
+      ],
+      "size": [
+        30.06465,
+        10.12642,
+        18.57683
+      ],
+      "explodeDir": [
+        0.5676,
+        -0.8224,
+        0.0376
+      ],
+      "material": "Gold_1"
+    },
+    {
+      "node": 29,
+      "name": "Object017_iron_0",
+      "part": "shin",
+      "side": "R",
+      "flag": null,
+      "h": 0.1013,
+      "lat": 0.6979,
+      "tris": 14652,
+      "center": [
+        71.6047,
+        34.91806,
+        -76.95521
+      ],
+      "size": [
+        82.79251,
+        68.12235,
+        95.01155
+      ],
+      "explodeDir": [
+        0.51,
+        -0.8464,
+        -0.1531
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 67,
+      "name": "Object075_iron_0",
+      "part": "shin",
+      "side": "L",
+      "flag": null,
+      "h": 0.1004,
+      "lat": -0.5405,
+      "tris": 14174,
+      "center": [
+        -71.8043,
+        34.63186,
+        -45.40099
+      ],
+      "size": [
+        77.99527,
+        67.43577,
+        90.93604
+      ],
+      "explodeDir": [
+        -0.4217,
+        -0.9054,
+        0.0492
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 53,
+      "name": "Object076_Gold 1_0",
+      "part": "shin",
+      "side": "L",
+      "flag": null,
+      "h": 0.0993,
+      "lat": -0.6135,
+      "tris": 1704,
+      "center": [
+        -80.2587,
+        34.25769,
+        -14.98763
+      ],
+      "size": [
+        29.62174,
+        9.12257,
+        15.14235
+      ],
+      "explodeDir": [
+        -0.4527,
+        -0.8587,
+        0.2403
+      ],
+      "material": "Gold_1"
+    },
+    {
+      "node": 52,
+      "name": "Object076_foot_0",
+      "part": "foot",
+      "side": "L",
+      "flag": null,
+      "h": 0.099,
+      "lat": -0.6078,
+      "tris": 1825,
+      "center": [
+        -79.59964,
+        34.15978,
+        -18.72419
+      ],
+      "size": [
+        59.3713,
+        39.29749,
+        45.01221
+      ],
+      "explodeDir": [
+        -0.4515,
+        -0.8652,
+        0.218
+      ],
+      "material": "foot"
+    },
+    {
+      "node": 28,
+      "name": "Object017_foot_0",
+      "part": "foot",
+      "side": "R",
+      "flag": null,
+      "h": 0.0987,
+      "lat": 0.6245,
+      "tris": 1297,
+      "center": [
+        63.10613,
+        34.04983,
+        -91.32933
+      ],
+      "size": [
+        63.59896,
+        24.5734,
+        56.88497
+      ],
+      "explodeDir": [
+        0.4579,
+        -0.8547,
+        -0.2446
+      ],
+      "material": "foot"
+    },
+    {
+      "node": 66,
+      "name": "Object075_foot_0",
+      "part": "foot",
+      "side": "L",
+      "flag": null,
+      "h": 0.0974,
+      "lat": -0.4782,
+      "tris": 1297,
+      "center": [
+        -64.58159,
+        33.62135,
+        -59.76116
+      ],
+      "size": [
+        61.84091,
+        24.21401,
+        53.91219
+      ],
+      "explodeDir": [
+        -0.378,
+        -0.9245,
+        -0.0482
+      ],
+      "material": "foot"
+    },
+    {
+      "node": 30,
+      "name": "Object017_Gold 1_0",
+      "part": "foot",
+      "side": "R",
+      "flag": null,
+      "h": 0.0656,
+      "lat": 0.7298,
+      "tris": 5808,
+      "center": [
+        75.29931,
+        22.93731,
+        -65.70943
+      ],
+      "size": [
+        77.12317,
+        42.6599,
+        74.86195
+      ],
+      "explodeDir": [
+        0.4992,
+        -0.8631,
+        -0.0768
+      ],
+      "material": "Gold_1"
+    },
+    {
+      "node": 68,
+      "name": "Object075_Gold 1_0",
+      "part": "foot",
+      "side": "L",
+      "flag": null,
+      "h": 0.0651,
+      "lat": -0.5668,
+      "tris": 6286,
+      "center": [
+        -74.85047,
+        22.75361,
+        -33.20965
+      ],
+      "size": [
+        74.37795,
+        42.16302,
+        71.51478
+      ],
+      "explodeDir": [
+        -0.4064,
+        -0.9057,
+        0.1207
+      ],
+      "material": "Gold_1"
+    },
+    {
+      "node": 17,
+      "name": "Plane010_foot_0",
+      "part": "foot",
+      "side": "R",
+      "flag": null,
+      "h": 0.0479,
+      "lat": 0.8381,
+      "tris": 1798,
+      "center": [
+        87.84337,
+        16.96403,
+        -25.93747
+      ],
+      "size": [
+        64.15313,
+        29.76911,
+        56.95538
+      ],
+      "explodeDir": [
+        0.5322,
+        -0.8338,
+        0.1468
+      ],
+      "material": "foot"
+    },
+    {
+      "node": 55,
+      "name": "Plane016_foot_0",
+      "part": "foot",
+      "side": "L",
+      "flag": null,
+      "h": 0.0476,
+      "lat": -0.676,
+      "tris": 1894,
+      "center": [
+        -87.49728,
+        16.85532,
+        6.35632
+      ],
+      "size": [
+        68.94412,
+        30.01218,
+        56.48841
+      ],
+      "explodeDir": [
+        -0.4324,
+        -0.8406,
+        0.3262
+      ],
+      "material": "foot"
+    },
+    {
+      "node": 21,
+      "name": "Object015_foot_0",
+      "part": "foot",
+      "side": "R",
+      "flag": null,
+      "h": 0.0395,
+      "lat": 0.7251,
+      "tris": 1424,
+      "center": [
+        74.76038,
+        14.14944,
+        -121.07532
+      ],
+      "size": [
+        31.72792,
+        20.46429,
+        38.86174
+      ],
+      "explodeDir": [
+        0.4443,
+        -0.8196,
+        -0.3618
+      ],
+      "material": "foot"
+    },
+    {
+      "node": 25,
+      "name": "Object078_foot_0",
+      "part": "foot",
+      "side": "R",
+      "flag": null,
+      "h": 0.0395,
+      "lat": 0.4236,
+      "tris": 1424,
+      "center": [
+        39.83876,
+        14.15451,
+        -108.10568
+      ],
+      "size": [
+        31.72824,
+        20.46423,
+        38.86164
+      ],
+      "explodeDir": [
+        0.2857,
+        -0.9023,
+        -0.3228
+      ],
+      "material": "foot"
+    },
+    {
+      "node": 59,
+      "name": "Object074_foot_0",
+      "part": "foot",
+      "side": "L",
+      "flag": null,
+      "h": 0.0376,
+      "lat": -0.5982,
+      "tris": 1424,
+      "center": [
+        -78.48095,
+        13.51885,
+        -88.38481
+      ],
+      "size": [
+        29.79466,
+        20.17451,
+        37.95934
+      ],
+      "explodeDir": [
+        -0.3982,
+        -0.8941,
+        -0.2051
+      ],
+      "material": "foot"
+    },
+    {
+      "node": 63,
+      "name": "Object079_foot_0",
+      "part": "foot",
+      "side": "L",
+      "flag": null,
+      "h": 0.0376,
+      "lat": -0.2891,
+      "tris": 1424,
+      "center": [
+        -42.68639,
+        13.5185,
+        -78.06612
+      ],
+      "size": [
+        29.79507,
+        20.1745,
+        37.95923
+      ],
+      "explodeDir": [
+        -0.2078,
+        -0.9654,
+        -0.1574
+      ],
+      "material": "foot"
+    },
+    {
+      "node": 56,
+      "name": "Plane016_iron_0",
+      "part": "foot",
+      "side": "L",
+      "flag": null,
+      "h": 0.0288,
+      "lat": -0.6737,
+      "tris": 5806,
+      "center": [
+        -87.22702,
+        10.53456,
+        7.73379
+      ],
+      "size": [
+        72.44831,
+        17.8207,
+        59.16849
+      ],
+      "explodeDir": [
+        -0.4178,
+        -0.8489,
+        0.3237
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 18,
+      "name": "Plane010_iron_0",
+      "part": "foot",
+      "side": "R",
+      "flag": null,
+      "h": 0.0287,
+      "lat": 0.8619,
+      "tris": 5902,
+      "center": [
+        90.60203,
+        10.52178,
+        -26.09445
+      ],
+      "size": [
+        74.17533,
+        17.82064,
+        62.91393
+      ],
+      "explodeDir": [
+        0.5275,
+        -0.8378,
+        0.1406
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 22,
+      "name": "Object015_iron_0",
+      "part": "foot",
+      "side": "R",
+      "flag": null,
+      "h": 0.0276,
+      "lat": 0.7155,
+      "tris": 784,
+      "center": [
+        73.65138,
+        10.14651,
+        -125.59966
+      ],
+      "size": [
+        30.57971,
+        17.06067,
+        34.25022
+      ],
+      "explodeDir": [
+        0.4283,
+        -0.8213,
+        -0.3768
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 26,
+      "name": "Object078_iron_0",
+      "part": "foot",
+      "side": "R",
+      "flag": null,
+      "h": 0.0276,
+      "lat": 0.4053,
+      "tris": 784,
+      "center": [
+        37.72473,
+        10.15156,
+        -112.25662
+      ],
+      "size": [
+        30.57981,
+        17.06085,
+        34.25057
+      ],
+      "explodeDir": [
+        0.2666,
+        -0.9025,
+        -0.3383
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 60,
+      "name": "Object074_iron_0",
+      "part": "foot",
+      "side": "L",
+      "flag": null,
+      "h": 0.0256,
+      "lat": -0.5916,
+      "tris": 784,
+      "center": [
+        -77.72395,
+        9.47619,
+        -92.94627
+      ],
+      "size": [
+        29.03973,
+        16.81514,
+        33.20422
+      ],
+      "explodeDir": [
+        -0.3844,
+        -0.8951,
+        -0.2258
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 64,
+      "name": "Object079_iron_0",
+      "part": "foot",
+      "side": "L",
+      "flag": null,
+      "h": 0.0256,
+      "lat": -0.2737,
+      "tris": 784,
+      "center": [
+        -40.89921,
+        9.47568,
+        -82.33048
+      ],
+      "size": [
+        29.03985,
+        16.81536,
+        33.2046
+      ],
+      "explodeDir": [
+        -0.1916,
+        -0.965,
+        -0.1792
+      ],
+      "material": "iron"
+    },
+    {
+      "node": 299,
+      "name": "Plane017_Mat_0",
+      "part": "base",
+      "side": "C",
+      "flag": "base",
+      "h": -0.0073,
+      "lat": -0.1707,
+      "tris": 5287,
+      "center": [
+        -28.97889,
+        -1.59475,
+        0.0249
+      ],
+      "size": [
+        360.4007,
+        21.10549,
+        196.05027
+      ],
+      "explodeDir": [
+        -0.11,
+        -0.9496,
+        0.2934
+      ],
+      "material": "material_18"
+    },
+    {
+      "node": 298,
+      "name": "Plane017_Mat_0",
+      "part": "base",
+      "side": "C",
+      "flag": "base",
+      "h": -0.0147,
+      "lat": 0.2449,
+      "tris": 33281,
+      "center": [
+        19.15069,
+        -4.10259,
+        -63.44279
+      ],
+      "size": [
+        456.65986,
+        26.64479,
+        473.43313
+      ],
+      "explodeDir": [
+        0.1613,
+        -0.985,
+        -0.0611
+      ],
+      "material": "material_18"
+    },
+    {
+      "node": 296,
+      "name": "Plane018_Mat_0",
+      "part": "base",
+      "side": "C",
+      "flag": "base",
+      "h": -0.0285,
+      "lat": 0.4476,
+      "tris": 5287,
+      "center": [
+        42.62081,
+        -8.74564,
+        -11.36696
+      ],
+      "size": [
+        151.9475,
+        16.35768,
+        279.32624
+      ],
+      "explodeDir": [
+        0.2732,
+        -0.937,
+        0.2179
+      ],
+      "material": "material_18"
+    },
+    {
+      "node": 295,
+      "name": "Plane018_Mat_0",
+      "part": "base",
+      "side": "C",
+      "flag": "base",
+      "h": -0.0343,
+      "lat": 0.0228,
+      "tris": 33281,
+      "center": [
+        -6.56941,
+        -10.68932,
+        -48.66948
+      ],
+      "size": [
+        366.9313,
+        20.65088,
+        353.93129
+      ],
+      "explodeDir": [
+        0.0147,
+        -0.9996,
+        0.0224
+      ],
+      "material": "material_18"
+    },
+    {
+      "node": 293,
+      "name": "Plane019_Mat_0",
+      "part": "base",
+      "side": "C",
+      "flag": "base",
+      "h": -0.0524,
+      "lat": 0.3432,
+      "tris": 5287,
+      "center": [
+        30.53554,
+        -16.75915,
+        -90.30431
+      ],
+      "size": [
+        250.26991,
+        14.6561,
+        136.14149
+      ],
+      "explodeDir": [
+        0.2052,
+        -0.9593,
+        -0.1941
+      ],
+      "material": "material_18"
+    },
+    {
+      "node": 292,
+      "name": "Plane019_Mat_0",
+      "part": "base",
+      "side": "C",
+      "flag": "base",
+      "h": -0.0575,
+      "lat": 0.0546,
+      "tris": 33281,
+      "center": [
+        -2.88666,
+        -18.50065,
+        -46.23099
+      ],
+      "size": [
+        317.11433,
+        18.50271,
+        328.76205
+      ],
+      "explodeDir": [
+        0.0337,
+        -0.9988,
+        0.0345
+      ],
+      "material": "material_18"
+    },
+    {
+      "node": 290,
+      "name": "Plane020_Mat_0",
+      "part": "base",
+      "side": "C",
+      "flag": "base",
+      "h": -0.0752,
+      "lat": -0.1204,
+      "tris": 5287,
+      "center": [
+        -23.14756,
+        -24.45232,
+        -92.32665
+      ],
+      "size": [
+        207.11271,
+        13.24636,
+        257.0056
+      ],
+      "explodeDir": [
+        -0.0704,
+        -0.9772,
+        -0.2001
+      ],
+      "material": "material_18"
+    },
+    {
+      "node": 289,
+      "name": "Plane020_Mat_0",
+      "part": "base",
+      "side": "C",
+      "flag": "base",
+      "h": -0.0799,
+      "lat": 0.0812,
+      "tris": 33281,
+      "center": [
+        0.1881,
+        -26.02631,
+        -48.11491
+      ],
+      "size": [
+        390.42669,
+        16.72297,
+        385.33473
+      ],
+      "explodeDir": [
+        0.0481,
+        -0.9986,
+        0.0235
+      ],
+      "material": "material_18"
+    }
+  ]
+}

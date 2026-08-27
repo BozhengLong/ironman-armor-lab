@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ARMOR LAB — 最小验证</title>
+<style>
+  :root{
+    --bg:#0a0c0f; --fg:#c8d2dc; --dim:#5a6672; --accent:#e8541f; --line:#1b2128;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);
+    font:11px/1.5 var(--mono);letter-spacing:.06em;overflow:hidden}
+  canvas{display:block;position:fixed;inset:0}
+  .panel{position:fixed;z-index:2}
+  .lbl{color:var(--dim);font-size:9px;letter-spacing:.18em}
+  .val{font-size:13px;color:var(--fg)}
+  .hd{position:fixed;top:16px;left:20px;z-index:2}
+  .hd h1{margin:0;font-size:12px;font-weight:400;letter-spacing:.3em}
+  .hd .sub{color:var(--dim);font-size:9px;letter-spacing:.18em;margin-top:4px}
+
+  #tele{top:16px;right:20px;text-align:right;min-width:150px}
+  #tele .row{display:flex;justify-content:space-between;gap:16px;padding:2px 0}
+  #tele .row span:first-child{color:var(--dim);font-size:9px;letter-spacing:.14em}
+  #tele .sect{margin-top:10px;padding-top:6px;border-top:1px solid var(--line)}
+
+  #ctl{bottom:18px;left:20px;display:flex;flex-direction:column;gap:12px}
+  .grp{display:flex;gap:4px;align-items:center}
+  button{background:transparent;border:1px solid var(--line);color:var(--dim);
+    font:inherit;letter-spacing:.12em;padding:5px 9px;cursor:pointer}
+  button:hover{border-color:var(--dim);color:var(--fg)}
+  button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  input[type=range]{width:190px;accent-color:var(--accent)}
+  #load{position:fixed;inset:0;z-index:9;background:var(--bg);display:grid;
+    place-content:center;text-align:center;gap:8px;transition:opacity .4s}
+  #load.done{opacity:0;pointer-events:none}
+  #bar{width:220px;height:1px;background:var(--line);margin:0 auto}
+  #bar i{display:block;height:100%;width:0;background:var(--accent)}
+  #err{color:var(--accent);max-width:60ch;text-align:left;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div class="hd">
+  <h1>ARMOR LAB</h1>
+  <div class="sub" id="modelName">—</div>
+</div>
+
+<div class="panel" id="tele">
+  <div class="row"><span>AZIMUTH</span><span class="val" id="az">0.0°</span></div>
+  <div class="row"><span>ELEVATION</span><span class="val" id="el">0.0°</span></div>
+  <div class="row"><span>ORTHO ZOOM</span><span class="val" id="zm">1.00</span></div>
+  <div class="row"><span>EXPLODE</span><span class="val" id="ex">0%</span></div>
+  <div class="sect">
+    <div class="row"><span>FPS</span><span class="val" id="fps">—</span></div>
+    <div class="row"><span>TRIANGLES</span><span class="val" id="tri">—</span></div>
+    <div class="row"><span>DRAW CALLS</span><span class="val" id="dc">—</span></div>
+    <div class="row"><span>GROUPS</span><span class="val" id="gc">—</span></div>
+    <div class="row"><span>PARTS</span><span class="val" id="pc">—</span></div>
+    <div class="row"><span>LOAD</span><span class="val" id="lt">—</span></div>
+  </div>
+</div>
+
+<div class="panel" id="ctl">
+  <div class="grp" id="views"></div>
+  <div class="grp"><span class="lbl">MODE</span><span id="modes" style="display:inline-flex;gap:4px"></span></div>
+  <div class="grp">
+    <span class="lbl">EXPLODE</span>
+    <input type="range" id="slider" min="0" max="1" step="0.001" value="0">
+    <button id="btnParts" aria-pressed="false">PARTS</button>
+    <button id="btnDebris" aria-pressed="false">DEBRIS</button>
+    <button id="btnModel">SWITCH</button>
+  </div>
+</div>
+
+<div id="load">
+  <div class="lbl">LOADING</div>
+  <div class="val" id="pct">00%</div>
+  <div id="bar"><i></i></div>
+  <div id="err"></div>
+</div>
+
+<script type="importmap">
+{"imports":{
+  "three":"/node_modules/three/build/three.module.js",
+  "three/addons/":"/node_modules/three/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const MODELS = ['hulkbuster', 'ironman'];
+const slug = new URLSearchParams(location.search).get('model') || MODELS[0];
+const $ = (id) => document.getElementById(id);
+
+// ---------- 视角预设：单位球方向 ----------
+const VIEWS = {
+  ISO:   [ 1,  0.75,  1],
+  '3/4F':[ 0.6, 0.35, 1],
+  FRONT: [ 0,  0,     1],
+  SIDE:  [ 1,  0,     0],
+  PLAN:  [ 0,  1,     0.001],
+  REAR:  [ 0,  0.2,  -1],
+};
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.5;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0c0f);
+
+// 正交相机：追求工程图观感，无透视畸变
+const FRUSTUM = 1.5;
+const FIT_MARGIN = 1.12;          // 取景留边
+let aspect = innerWidth / innerHeight;
+const camera = new THREE.OrthographicCamera(
+  -FRUSTUM * aspect / 2, FRUSTUM * aspect / 2, FRUSTUM / 2, -FRUSTUM / 2, -50, 50);
+camera.position.set(1, 0.75, 1).normalize().multiplyScalar(3);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(0, 0, 0);
+controls.enableZoom = false;   // 缩放自管：否则 controls 的 change 事件会把
+                               // 我们自己的取景动画误判成用户输入，形成反馈环
+renderer.domElement.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  state.userZoom = THREE.MathUtils.clamp(
+    state.userZoom * Math.pow(0.999, e.deltaY), 0.25, 8);
+}, { passive: false });
+
+// 技术制图式打光：主光 + 侧补光 + 顶部轮廓光，不用环境贴图
+scene.add(new THREE.HemisphereLight(0x8fa8c0, 0x14181d, 1.1));
+const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(3, 5, 4); scene.add(key);
+const fill = new THREE.DirectionalLight(0x88a4c8, 0.9); fill.position.set(-4, 1, -3); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffd9c0, 0.7); rim.position.set(0, 4, -5); scene.add(rim);
+// 跟随相机的补光：装甲是开放壳体，爆炸后会大量露出背光的内表面
+const headlight = new THREE.DirectionalLight(0xdfe8f2, 1.4);
+scene.add(headlight);
+
+// ---------- 状态 ----------
+const state = {
+  explode: 0, targetExplode: 0, showDebris: false, userZoom: 1,
+  mode: 'groupSpread',
+  zoomFit: 1, zoomFitFull: 1,
+  targetAssembled: new THREE.Vector3(), targetFull: new THREE.Vector3(),
+  viewDir: new THREE.Vector3(1, 0.75, 1).normalize(),
+  tweening: false,
+};
+let parts = [];          // {obj, basePos, dirLocal, meta}
+let baseObjs = [];       // 地面碎石
+let root = null;
+let plan = null;         // <slug>.explode.json
+let modelScale = 1;
+let loadStart = performance.now();
+
+// ---------- 加载 ----------
+async function loadModel(name) {
+  $('load').classList.remove('done');
+  $('err').textContent = '';
+  loadStart = performance.now();
+
+  const [manifest, explodePlan] = await Promise.all([
+    fetch(`/assets/manifests/${name}.json`).then(r => {
+      if (!r.ok) throw new Error(`manifest ${r.status}`); return r.json();
+    }),
+    fetch(`/assets/manifests/${name}.explode.json`).then(r => {
+      if (!r.ok) throw new Error(`explode plan ${r.status}`); return r.json();
+    }),
+  ]);
+  plan = explodePlan;
+  state.mode = plan.defaultMode || 'groupSpread';
+
+  const loader = new GLTFLoader();
+  const gltf = await loader.loadAsync(`/assets/raw/${name}/scene.gltf`, (e) => {
+    if (e.lengthComputable) {
+      const p = e.loaded / e.total;
+      $('pct').textContent = String(Math.round(p * 100)).padStart(2, '0') + '%';
+      $('bar').firstElementChild.style.width = (p * 100) + '%';
+    }
+  });
+
+  if (root) { scene.remove(root); disposeTree(root); }
+  root = new THREE.Group();
+  root.add(gltf.scene);
+  scene.add(root);
+
+  // 按 node 索引取对象 —— manifest 用索引做键，因为节点名有重复
+  parts = []; baseObjs = [];
+  for (const meta of manifest.parts) {
+    const obj = await gltf.parser.getDependency('node', meta.node);
+    if (!obj) continue;
+    if (meta.flag === 'base') { baseObjs.push(obj); obj.visible = false; continue; }
+    parts.push({ obj, meta, basePos: obj.position.clone(), dirLocal: new THREE.Vector3() });
+  }
+
+  // 归一化：以可用部件（不含碎石）的包围盒把模型缩放到高度 1、居中到原点
+  root.updateMatrixWorld(true);
+  const box = new THREE.Box3();
+  for (const p of parts) box.expandByObject(p.obj);
+  const size = new THREE.Vector3(); box.getSize(size);
+  const center = new THREE.Vector3(); box.getCenter(center);
+  modelScale = 1 / Math.max(size.y, 1e-6);
+  root.scale.setScalar(modelScale);
+  root.position.copy(center).multiplyScalar(-modelScale);
+  root.updateMatrixWorld(true);
+
+  buildVectors(gltf.scene);
+  currentBox = box.clone(); currentCenter = center.clone();
+  computeFraming(currentBox, currentCenter);
+  buildModeButtons();
+
+  $('modelName').textContent =
+    `${name.toUpperCase()} · ${parts.length} PARTS · ${manifest.usableParts} USABLE`;
+  $('pc').textContent = parts.length;
+  $('gc').textContent = Object.keys(plan.groups || {}).length;
+  $('lt').textContent = Math.round(performance.now() - loadStart) + 'ms';
+  $('tri').textContent = renderer.info.render.triangles.toLocaleString();
+  applyDebris();
+  $('load').classList.add('done');
+
+  window.__ready = true;
+  window.__stats = {
+    model: name, parts: parts.length, base: baseObjs.length,
+    loadMs: Math.round(performance.now() - loadStart),
+    geometries: renderer.info.memory.geometries,
+    textures: renderer.info.memory.textures,
+  };
+}
+
+// 位移向量以「模型高度的分数」为单位，且自带幅度，所以不能用会归一化的
+// transformDirection。取矩阵的 3x3 线性部分，旋转与缩放一并正确带上。
+function buildVectors(gltfScene) {
+  const H = plan.height;
+  const M = new THREE.Matrix4();
+  const m3 = new THREE.Matrix3();
+  for (const p of parts) {
+    const entry = plan.parts[String(p.meta.node)];
+    p.vecLocal = {};
+    if (!entry) continue;
+    M.copy(p.obj.parent.matrixWorld).invert().multiply(gltfScene.matrixWorld);
+    m3.setFromMatrix4(M);
+    for (const mode of plan.modes) {
+      const v = entry[mode];
+      if (!v) continue;
+      p.vecLocal[mode] = new THREE.Vector3(v[0], v[1], v[2])
+        .multiplyScalar(H).applyMatrix3(m3);
+    }
+  }
+}
+
+// 取景：分别算「装配态」与「完全爆炸态」需要的正交缩放和视点，帧循环里按进度插值
+function computeFraming(assembledBox, assembledCenter) {
+  const fit = (lo, hi) => {
+    const w = (hi[0] - lo[0]) * modelScale;
+    const h = (hi[1] - lo[1]) * modelScale;
+    const d = (hi[2] - lo[2]) * modelScale;
+    // 任意视角下最坏情况：水平方向可能看到宽或深
+    const horiz = Math.max(w, d);
+    const need = Math.max(h, horiz / aspect) * FIT_MARGIN;
+    return FRUSTUM / Math.max(need, 1e-6);
+  };
+  const aLo = assembledBox.min.toArray(), aHi = assembledBox.max.toArray();
+  state.zoomFit = fit(aLo, aHi);
+
+  const fb = plan.boundsAtFull?.[state.mode];
+  if (fb) {
+    state.zoomFitFull = fit(fb.min, fb.max);
+    // 爆炸后包围盒中心相对装配态中心的偏移，换算到世界空间
+    const fc = new THREE.Vector3(
+      (fb.min[0] + fb.max[0]) / 2, (fb.min[1] + fb.max[1]) / 2, (fb.min[2] + fb.max[2]) / 2);
+    state.targetFull.copy(fc).sub(assembledCenter).multiplyScalar(modelScale);
+  } else {
+    state.zoomFitFull = state.zoomFit;
+    state.targetFull.set(0, 0, 0);
+  }
+  state.targetAssembled.set(0, 0, 0);
+}
+
+function disposeTree(o) {
+  o.traverse((n) => {
+    n.geometry?.dispose();
+    const m = n.material;
+    if (!m) return;
+    for (const mm of Array.isArray(m) ? m : [m]) {
+      for (const k of Object.keys(mm)) if (mm[k]?.isTexture) mm[k].dispose();
+      mm.dispose();
+    }
+  });
+}
+
+function applyDebris() {
+  for (const o of baseObjs) o.visible = state.showDebris;
+  $('btnDebris').setAttribute('aria-pressed', String(state.showDebris));
+}
+
+// ---------- 爆炸 ----------
+function applyExplode(t) {
+  for (const p of parts) {
+    const v = p.vecLocal?.[state.mode];
+    if (v) p.obj.position.copy(p.basePos).addScaledVector(v, t);
+    else p.obj.position.copy(p.basePos);
+  }
+}
+
+// ---------- UI ----------
+const viewsEl = $('views');
+for (const [name, dir] of Object.entries(VIEWS)) {
+  const b = document.createElement('button');
+  b.textContent = name;
+  b.onclick = () => setView(name);
+  viewsEl.appendChild(b);
+}
+function setView(name) {
+  state.viewDir.set(...VIEWS[name]).normalize();
+  state.tweening = true;
+  for (const b of viewsEl.children) b.setAttribute('aria-pressed', String(b.textContent === name));
+}
+setView('ISO');
+
+function buildModeButtons() {
+  const el = $('modes');
+  el.innerHTML = '';
+  for (const m of plan.modes) {
+    const b = document.createElement('button');
+    b.textContent = m;
+    b.setAttribute('aria-pressed', String(m === state.mode));
+    b.onclick = () => {
+      state.mode = m;
+      for (const x of el.children) x.setAttribute('aria-pressed', String(x.textContent === m));
+      computeFraming(currentBox, currentCenter);
+      applyExplode(state.explode);
+    };
+    el.appendChild(b);
+  }
+}
+let currentBox = null, currentCenter = null;
+
+$('slider').oninput = (e) => {
+  state.targetExplode = Number(e.target.value);
+  $('btnParts').setAttribute('aria-pressed', String(state.targetExplode > 0.001));
+};
+$('btnParts').onclick = () => {
+  state.targetExplode = state.targetExplode > 0.001 ? 0 : 1;
+  $('slider').value = state.targetExplode;
+  $('btnParts').setAttribute('aria-pressed', String(state.targetExplode > 0.001));
+};
+$('btnDebris').onclick = () => { state.showDebris = !state.showDebris; applyDebris(); };
+$('btnModel').onclick = () => {
+  const next = MODELS[(MODELS.indexOf(slug) + 1) % MODELS.length];
+  location.search = '?model=' + next;
+};
+
+addEventListener('resize', () => {
+  aspect = innerWidth / innerHeight;
+  camera.left = -FRUSTUM * aspect / 2; camera.right = FRUSTUM * aspect / 2;
+  camera.top = FRUSTUM / 2; camera.bottom = -FRUSTUM / 2;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// ---------- 帧循环 ----------
+function renderOnce() { renderer.render(scene, camera); }
+window.__renderOnce = renderOnce;
+window.__info = () => ({
+  triangles: renderer.info.render.triangles,
+  calls: renderer.info.render.calls,
+  geometries: renderer.info.memory.geometries,
+  textures: renderer.info.memory.textures,
+});
+
+const sph = new THREE.Spherical();
+let frames = 0, fpsT = performance.now(), fps = 0;
+const fpsHistory = [];
+
+function tick() {
+  requestAnimationFrame(tick);
+
+  // 视角补间
+  if (state.tweening) {
+    const want = state.viewDir.clone().multiplyScalar(3);
+    camera.position.lerp(want, 0.12);
+    if (camera.position.distanceTo(want) < 0.002) { camera.position.copy(want); state.tweening = false; }
+    camera.lookAt(controls.target);
+  }
+
+  // 爆炸补间
+  if (Math.abs(state.explode - state.targetExplode) > 0.0004) {
+    state.explode += (state.targetExplode - state.explode) * 0.1;
+    applyExplode(state.explode);
+  }
+
+  // 按爆炸进度在「装配态取景」与「完全爆炸取景」之间插值
+  const wantZoom = THREE.MathUtils.lerp(state.zoomFit, state.zoomFitFull, state.explode);
+  camera.zoom += (wantZoom * state.userZoom - camera.zoom) * 0.12;
+  camera.updateProjectionMatrix();
+  controls.target.lerpVectors(state.targetAssembled, state.targetFull, state.explode);
+
+  controls.update();
+  headlight.position.copy(camera.position);
+  renderOnce();
+
+  // 遥测
+  frames++;
+  const now = performance.now();
+  if (now - fpsT >= 500) {
+    fps = Math.round(frames * 1000 / (now - fpsT));
+    frames = 0; fpsT = now;
+    fpsHistory.push(fps);
+    if (fpsHistory.length > 200) fpsHistory.shift();
+    window.__fpsHistory = fpsHistory;
+    $('fps').textContent = fps;
+    $('tri').textContent = renderer.info.render.triangles.toLocaleString();
+    $('dc').textContent = renderer.info.render.calls;
+  }
+  sph.setFromVector3(camera.position);
+  $('az').textContent = (THREE.MathUtils.radToDeg(sph.theta)).toFixed(1) + '°';
+  $('el').textContent = (90 - THREE.MathUtils.radToDeg(sph.phi)).toFixed(1) + '°';
+  $('zm').textContent = camera.zoom.toFixed(2);
+  $('ex').textContent = Math.round(state.explode * 100) + '%';
+}
+
+loadModel(slug).then(tick).catch((e) => {
+  $('err').textContent = '加载失败:\n' + (e?.stack || e);
+  $('pct').textContent = 'ERR';
+  window.__ready = 'error';
+  window.__error = String(e?.message || e);
+});
+
+window.__setExplode = (v) => { state.targetExplode = v; $('slider').value = v; };
+window.__setView = setView;
+window.__setMode = (m) => {
+  if (!plan.modes.includes(m)) throw new Error('unknown mode ' + m);
+  state.mode = m;
+  for (const x of $('modes').children) x.setAttribute('aria-pressed', String(x.textContent === m));
+  computeFraming(currentBox, currentCenter);
+  applyExplode(state.explode);
+};
+window.__state = state;
+</script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+{
+  "models": {
+    "hulkbuster": {
+      "author": "o0ozexo0o (sketchfab.com/dadndan0091)",
+      "files": {
+        "ATTRIBUTION.txt": {
+          "sha256": "cc7a8f05bacea49566894405aa7dfe1b2ce0f246a8873aa1c5f7a9d87eff4813",
+          "size": 283
+        },
+        "license.txt": {
+          "sha256": "54f9bca85ca17a35941930c83178eade886827e870a4468bf655e80dcfdb7bf2",
+          "size": 660
+        },
+        "scene.bin": {
+          "sha256": "6968f778b1effd5512e0d88b6a169ed4a1874c722d7f59510abdcac50a0625aa",
+          "size": 29874368
+        },
+        "scene.gltf": {
+          "sha256": "47a58e81a6074671ea17a25852712797e06572a54363a3cc01d1b0a99f212912",
+          "size": 304645
+        },
+        "textures/Torsi_metallicRoughness.png": {
+          "sha256": "c08f48cccbdc89c24283b8bef0936abd2a4565e8c8a92635a299898cf71da39d",
+          "size": 2268158
+        }
+      },
+      "license": "CC-BY-4.0",
+      "source": "https://sketchfab.com/3d-models/iron-man-11645b0747db4e9bbe4f56568802e01a",
+      "uid": "11645b0747db4e9bbe4f56568802e01a"
+    },
+    "ironman": {
+      "author": "Vfx Boy (sketchfab.com/saini.hitesh16061980)",
+      "files": {
+        "ATTRIBUTION.txt": {
+          "sha256": "bed1ec6de8966c9bc8463e8ac6803200228dfef28c2c3937ef1ae8a445defb9f",
+          "size": 264
+        },
+        "license.txt": {
+          "sha256": "ee67cc6addee1569c8138cd3cd977a480b2cd432ec1ed1b0f910bb12b9bcc0a4",
+          "size": 674
+        },
+        "scene.bin": {
+          "sha256": "dc19187e77c85390d5d230bb18b14e2d1d2978359509e77cf2930d1dc5fb2966",
+          "size": 10639688
+        },
+        "scene.gltf": {
+          "sha256": "8faa19027de4f474c5f9fcd2961eba313028b7e7d38283c6df7b5db02d2a7241",
+          "size": 179071
+        },
+        "textures/default_baseColor.jpeg": {
+          "sha256": "0f50607552f6ee94a4abb420d373ffca915a0dbf69cc72bea0723d294b0c7f32",
+          "size": 7784765
+        },
+        "textures/default_emissive.jpeg": {
+          "sha256": "f9d59b8519637ff47fbc41e738cf7de5c780b57e917612f30c6c79dbadd6a34a",
+          "size": 285394
+        },
+        "textures/default_metallicRoughness.png": {
+          "sha256": "4330246838024eb4fbc9ffa5fe482d6f9582993e6945354214cecce373d5213b",
+          "size": 2131
+        }
+      },
+      "license": "CC-BY-4.0",
+      "source": "https://sketchfab.com/3d-models/iron-man-1a21e1b8f2844956a30d28838d5f816a",
+      "uid": "1a21e1b8f2844956a30d28838d5f816a"
+    }
+  }
+}
