@@ -10,10 +10,14 @@
 ```bash
 npm install
 python3 scripts/fetch_models.py     # 下载 3D 资源，需要 Sketchfab token
+node scripts/compress_models.mjs    # 压缩：49MB -> 4.5MB（可选但推荐）
 npm run dev                         # http://localhost:8732/
 ```
 
-`?model=hulkbuster` 或 `?model=ironman` 切换模型，页面右下角有 SWITCH 按钮。
+URL 参数：`?model=hulkbuster|ironman`、`?src=auto|raw|meshopt|draco`。
+
+交互：拖拽旋转、滚轮缩放、**点击任一部件钻取该子装配体**、ESC 取消。
+底部有视角预设、爆炸模式与爆炸进度滑块。
 
 ### Sketchfab token
 
@@ -43,7 +47,8 @@ python3 scripts/fetch_models.py --relock   # 确认上游确实变了，重写�
 scripts/
   fetch_models.py      从 Sketchfab 下载 + 校验和锁定
   analyze_parts.py     glTF -> 部件分类 manifest（四层机制，见下）
-  explode_plan.py      manifest -> 爆炸位移规划（四种模式 + 分离指标）
+  explode_plan.py      manifest -> 爆炸位移规划（五种模式 + 分离指标）
+  compress_models.mjs  几何与贴图压缩 + 节点结构指纹校验
   test_classifier.py   分类器回归测试
   test_explode.py      爆炸规划回归测试（含姿态无关性）
   serve.mjs            本地静态服务器
@@ -54,9 +59,11 @@ assets/
   assets.lock.json     资源校验和锁文件（入库）
   manifests/           部件与爆炸规划（入库，需要可 diff）
   raw/                 下载缓存（不入库）
+  dist/                压缩产物（不入库，可重建）
 
 docs/
-  explode-design.md    爆炸图设计记录，含失败路径
+  explode-design.md    爆炸图与钻取交互设计记录，含失败路径
+  pipeline.md          压缩管线与两层校验
   shots/               对比截图
 model-survey.md        3D 模型调研记录
 ```
@@ -78,7 +85,13 @@ model-survey.md        3D 模型调研记录
 ### 爆炸规划（`explode_plan.py`）
 
 实测这些零件是深度嵌套互穿的壳层，**任何基于质心的位移场都无法分离它们**。
-改为按语义组作刚体整块分离。完整推导与失败路径见 [docs/explode-design.md](docs/explode-design.md)。
+改为按语义组作刚体整块分离，组内展开留给钻取交互。
+完整推导与失败路径见 [docs/explode-design.md](docs/explode-design.md)。
+
+### 压缩（`compress_models.mjs`）
+
+49 MB → 4.5 MB。因为 manifest 以 glTF node 索引为键，管线带**结构指纹校验**，
+节点一旦被重排就拒绝产出。详见 [docs/pipeline.md](docs/pipeline.md)。
 
 ## 测试
 

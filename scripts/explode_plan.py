@@ -53,6 +53,11 @@ UNKNOWN_DIST = 0.14           # 未分类部件的径向退路
 RADIAL_DIST = 0.12            # 基线模式的恒定径向幅度
 DILATE = 0.30                 # semantic 模式的组内均匀膨胀系数
 GROUP_SPREAD = 0.14           # groupSpread 模式分配给每组的组内总展开量（占身高）
+
+# 钻取模式：单独查看某一组时的组内展开总量（占身高）。
+# 间距按各零件在组轴上的自身厚度分配 —— 大零件给大间隙 —— 再归一化到这个总量，
+# 这样 39 个手指的组不会拉成一条无限长的线。
+DRILL_TOTAL = 0.55
 FIXED_FLAGS = ("base", "body_shell")   # 不参与爆炸，保持原位作参考基准
 CLEAR_VISIBLE = 0.35          # 净间隙 / 自身尺度，超过此值才看得出明显分开
 
@@ -150,25 +155,35 @@ def plan(man, parts, height, front_override=None):
     groups = build_groups(parts)
     body = np.array(man["bodyCenter"], dtype=float)
 
-    modes = ("radial", "semantic", "group", "groupSpread")
+    modes = ("radial", "semantic", "group", "groupSpread", "drill")
     vecs = {m: {} for m in modes}
 
-    # 组内按秩排序：投影到组轴上的「远端角」，使外层壳先走，且不交叉
-    rank_of = {}
+    # 组内排序：按「远端角在组轴上的投影」，使外层壳先走且不交叉。
+    # 同时算两种组内偏移量：
+    #   rank_of  —— 等距（groupSpread 用），秩 / 最大秩
+    #   cum_of   —— 按各零件在轴上的厚度分配后归一化（drill 用）
+    rank_of, cum_of, axis_of = {}, {}, {}
     for key, grp in groups.items():
         part, side = key
         axis, _ = semantic_axis(part, side, up, lat, depth, up_sign, front_sign)
         if axis is None:
             axis = unit(grp["centroid"] - body)
-        keys = []
+        axis_of[key] = axis
+        rows = []
         for m in grp["members"]:
             c = np.array(m["center"], dtype=float)
-            s = np.array(m["size"], dtype=float)
-            # 远端角在轴向上的投影：中心投影 + 半尺寸在轴向的绝对投影
-            far = float(np.dot(c - body, axis) + 0.5 * float(np.dot(np.abs(s), np.abs(axis))))
-            keys.append((far, m["node"]))
-        for r, (_, node) in enumerate(sorted(keys)):
-            rank_of[node] = (r, max(len(keys) - 1, 1))
+            sz = np.array(m["size"], dtype=float)
+            far = float(np.dot(c - body, axis) + 0.5 * float(np.dot(np.abs(sz), np.abs(axis))))
+            thick = float(np.dot(np.abs(sz), np.abs(axis)))   # 该零件在组轴上的厚度
+            rows.append((far, m["node"], thick))
+        rows.sort()
+        n = len(rows)
+        total = sum(t for _, _, t in rows)
+        acc = 0.0
+        for r, (_, node, thick) in enumerate(rows):
+            rank_of[node] = (r, max(n - 1, 1))
+            cum_of[node] = (acc / total) if total > 1e-9 else 0.0
+            acc += thick
 
     for p in parts:
         node = p["node"]
@@ -198,12 +213,16 @@ def plan(man, parts, height, front_override=None):
         r, rmax = rank_of[node]
         vecs["groupSpread"][node] = axis * (dist + (r / rmax) * GROUP_SPREAD)
 
+        # 钻取：组刚体 + 组内按厚度分配的展开（仅在单独查看某组时使用）
+        vecs["drill"][node] = axis * (dist + cum_of[node] * DRILL_TOTAL)
+
     meta = {
         "upAxis": AXES[up], "latAxis": AXES[lat], "depthAxis": AXES[depth],
         "upSign": up_sign, "frontSign": front_sign, "frontDetectedBy": how,
-        "unit": "模型高度的分数", "dilate": DILATE, "groupSpread": GROUP_SPREAD,
+        "unit": "模型高度的分数", "dilate": DILATE,
+        "groupSpread": GROUP_SPREAD, "drillTotal": DRILL_TOTAL,
     }
-    return vecs, meta, groups
+    return vecs, meta, groups, axis_of
 
 
 # ---------- 指标 ----------
@@ -250,6 +269,50 @@ def summarize(clear, total):
     }
 
 
+def group_metadata(groups, vecs, height, axis_of):
+    """给每个子装配体生成信息面板与相机取景所需的数据。"""
+    out = {}
+    for key, grp in sorted(groups.items()):
+        part, side = key
+        ms = grp["members"]
+        mats, emissive = [], 0
+        for m in ms:
+            mat = m.get("material")
+            if mat and mat not in mats:
+                mats.append(mat)
+            if m.get("emissive"):
+                emissive += 1
+
+        def bounds_at(mode):
+            lo = np.full(3, np.inf); hi = np.full(3, -np.inf)
+            for m in ms:
+                c = np.array(m["center"], dtype=float) + vecs[mode][m["node"]] * height
+                h = np.array(m["size"], dtype=float) / 2
+                lo = np.minimum(lo, c - h); hi = np.maximum(hi, c + h)
+            return lo, hi
+
+        g_lo, g_hi = bounds_at("group")
+        d_lo, d_hi = bounds_at("drill")
+        hs = [m["h"] for m in ms]
+        out[f"{part}/{side}"] = {
+            "part": part, "side": side,
+            "nodes": [m["node"] for m in ms],
+            "count": len(ms),
+            "tris": sum(m["tris"] for m in ms),
+            "materials": mats,
+            "emissive": emissive,
+            "hRange": [round(min(hs), 3), round(max(hs), 3)],
+            "axis": [round(float(x), 4) for x in axis_of[key]],
+            "bounds": {"min": [round(float(x), 4) for x in grp["min"]],
+                       "max": [round(float(x), 4) for x in grp["max"]]},
+            "groupBounds": {"min": [round(float(x), 4) for x in g_lo],
+                            "max": [round(float(x), 4) for x in g_hi]},
+            "drillBounds": {"min": [round(float(x), 4) for x in d_lo],
+                            "max": [round(float(x), 4) for x in d_hi]},
+        }
+    return out
+
+
 def exploded_bounds(parts, vecs, mode, height):
     lo = np.full(3, np.inf); hi = np.full(3, -np.inf)
     for p in parts:
@@ -279,7 +342,7 @@ def main():
     up_i = AXES.index(man["upAxis"])
     height = float(man["bounds"]["max"][up_i] - man["bounds"]["min"][up_i])
 
-    vecs, meta, groups = plan(man, parts, height, a.front)
+    vecs, meta, groups, axis_of = plan(man, parts, height, a.front)
 
     print(f"manifest  : {mpath.name}")
     print(f"规范坐标系: 上={meta['upAxis']}({meta['upSign']:+.0f}) "
@@ -331,7 +394,7 @@ def main():
         "manifest": mpath.name, "frame": meta, "height": round(height, 5),
         "modes": list(vecs), "defaultMode": "group",
         "boundsAtFull": bounds,
-        "groups": {f"{k[0]}/{k[1]}": len(v["members"]) for k, v in sorted(groups.items())},
+        "groups": group_metadata(groups, vecs, height, axis_of),
         "parts": {
             str(p["node"]): {
                 "part": p["part"], "side": p["side"], "flag": p.get("flag"),

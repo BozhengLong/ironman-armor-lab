@@ -14,6 +14,16 @@
     font:11px/1.5 var(--mono);letter-spacing:.06em;overflow:hidden}
   canvas{display:block;position:fixed;inset:0}
   .panel{position:fixed;z-index:2}
+  /* 幽灵态下模型会压到遥测文字上，加一层与背景同色的柔和衬底保证可读性 */
+  .scrim{position:fixed;z-index:1;pointer-events:none}
+  #scrimR{top:0;right:0;width:320px;height:340px;
+    background:radial-gradient(120% 100% at 100% 0%,
+      rgba(10,12,15,.94) 0%, rgba(10,12,15,.80) 45%, rgba(10,12,15,0) 100%)}
+  #scrimL{top:0;left:0;width:340px;height:400px;
+    background:radial-gradient(120% 100% at 0% 0%,
+      rgba(10,12,15,.94) 0%, rgba(10,12,15,.80) 45%, rgba(10,12,15,0) 100%)}
+  #scrimB{bottom:0;left:0;width:560px;height:170px;
+    background:linear-gradient(0deg, rgba(10,12,15,.92) 0%, rgba(10,12,15,0) 100%)}
   .lbl{color:var(--dim);font-size:9px;letter-spacing:.18em}
   .val{font-size:13px;color:var(--fg)}
   .hd{position:fixed;top:16px;left:20px;z-index:2}
@@ -32,6 +42,17 @@
   button:hover{border-color:var(--dim);color:var(--fg)}
   button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
   input[type=range]{width:190px;accent-color:var(--accent)}
+  #inspect{left:20px;top:70px;display:none;min-width:210px;max-width:260px;
+    border-left:1px solid var(--accent);padding:2px 0 2px 12px}
+  #inspect .insName{font-size:15px;letter-spacing:.18em;margin:2px 0 8px;color:var(--fg)}
+  #inspect .r{display:flex;justify-content:space-between;gap:14px;padding:1px 0}
+  #inspect .r span:first-child{color:var(--dim);font-size:9px;letter-spacing:.14em}
+  #inspect .mats{color:var(--dim);font-size:9px;margin-top:6px;line-height:1.6;
+    word-break:break-all}
+  #inspect .emis{color:var(--accent)}
+  #insClose{margin-top:10px}
+  canvas{cursor:default}
+  canvas.pickable{cursor:pointer}
   #load{position:fixed;inset:0;z-index:9;background:var(--bg);display:grid;
     place-content:center;text-align:center;gap:8px;transition:opacity .4s}
   #load.done{opacity:0;pointer-events:none}
@@ -41,6 +62,10 @@
 </style>
 </head>
 <body>
+<div class="scrim" id="scrimL"></div>
+<div class="scrim" id="scrimR"></div>
+<div class="scrim" id="scrimB"></div>
+
 <div class="hd">
   <h1>ARMOR LAB</h1>
   <div class="sub" id="modelName">—</div>
@@ -55,6 +80,7 @@
     <div class="row"><span>FPS</span><span class="val" id="fps">—</span></div>
     <div class="row"><span>TRIANGLES</span><span class="val" id="tri">—</span></div>
     <div class="row"><span>DRAW CALLS</span><span class="val" id="dc">—</span></div>
+    <div class="row"><span>SOURCE</span><span class="val" id="sc">—</span></div>
     <div class="row"><span>GROUPS</span><span class="val" id="gc">—</span></div>
     <div class="row"><span>PARTS</span><span class="val" id="pc">—</span></div>
     <div class="row"><span>LOAD</span><span class="val" id="lt">—</span></div>
@@ -71,6 +97,13 @@
     <button id="btnDebris" aria-pressed="false">DEBRIS</button>
     <button id="btnModel">SWITCH</button>
   </div>
+</div>
+
+<div class="panel" id="inspect">
+  <div class="lbl" id="insKicker">SUBASSEMBLY</div>
+  <div class="insName" id="insName">—</div>
+  <div id="insRows"></div>
+  <button id="insClose">CLOSE  ESC</button>
 </div>
 
 <div id="load">
@@ -90,9 +123,27 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 const MODELS = ['hulkbuster', 'ironman'];
-const slug = new URLSearchParams(location.search).get('model') || MODELS[0];
+const params = new URLSearchParams(location.search);
+const slug = params.get('model') || MODELS[0];
+const srcPref = params.get('src') || 'auto';   // auto | raw | meshopt | draco
+
+// 优先用压缩产物，缺失则回退到未压缩的 scene.gltf
+async function resolveSource(name) {
+  const tryList = srcPref === 'raw' ? []
+    : srcPref === 'auto' ? ['meshopt', 'draco'] : [srcPref];
+  for (const mode of tryList) {
+    const url = `/assets/dist/${name}/model.${mode}.glb`;
+    try {
+      const r = await fetch(url, { method: 'HEAD' });
+      if (r.ok) return { url, mode, bytes: Number(r.headers.get('content-length') || 0) };
+    } catch { /* 继续尝试下一个 */ }
+  }
+  return { url: `/assets/raw/${name}/scene.gltf`, mode: 'raw', bytes: 0 };
+}
 const $ = (id) => document.getElementById(id);
 
 // ---------- 视角预设：单位球方向 ----------
@@ -117,7 +168,7 @@ scene.background = new THREE.Color(0x0a0c0f);
 
 // 正交相机：追求工程图观感，无透视畸变
 const FRUSTUM = 1.5;
-const FIT_MARGIN = 1.12;          // 取景留边
+const FIT_MARGIN = 1.06;          // 取景留边（对角线取景已偏保守）
 let aspect = innerWidth / innerHeight;
 const camera = new THREE.OrthographicCamera(
   -FRUSTUM * aspect / 2, FRUSTUM * aspect / 2, FRUSTUM / 2, -FRUSTUM / 2, -50, 50);
@@ -148,6 +199,8 @@ scene.add(headlight);
 const state = {
   explode: 0, targetExplode: 0, showDebris: false, userZoom: 1,
   mode: 'groupSpread',
+  selected: null, drill: 0, targetDrill: 0,
+  zoomFitDrill: 1, targetDrillPos: new THREE.Vector3(),
   zoomFit: 1, zoomFitFull: 1,
   targetAssembled: new THREE.Vector3(), targetFull: new THREE.Vector3(),
   viewDir: new THREE.Vector3(1, 0.75, 1).normalize(),
@@ -157,6 +210,9 @@ let parts = [];          // {obj, basePos, dirLocal, meta}
 let baseObjs = [];       // 地面碎石
 let root = null;
 let plan = null;         // <slug>.explode.json
+let groupIndex = {};     // "部位/左右" -> 组元数据
+let partsByGroup = new Map();
+let pickTargets = [];    // 可拾取的 Mesh
 let modelScale = 1;
 let loadStart = performance.now();
 
@@ -177,8 +233,14 @@ async function loadModel(name) {
   plan = explodePlan;
   state.mode = plan.defaultMode || 'groupSpread';
 
+  const source = await resolveSource(name);
   const loader = new GLTFLoader();
-  const gltf = await loader.loadAsync(`/assets/raw/${name}/scene.gltf`, (e) => {
+  const dracoLoader = new DRACOLoader();
+  dracoLoader.setDecoderPath('/node_modules/three/examples/jsm/libs/draco/');
+  loader.setDRACOLoader(dracoLoader);
+  loader.setMeshoptDecoder(MeshoptDecoder);
+
+  const gltf = await loader.loadAsync(source.url, (e) => {
     if (e.lengthComputable) {
       const p = e.loaded / e.total;
       $('pct').textContent = String(Math.round(p * 100)).padStart(2, '0') + '%';
@@ -212,12 +274,20 @@ async function loadModel(name) {
   root.updateMatrixWorld(true);
 
   buildVectors(gltf.scene);
+  buildGroups();
+  buildLocalBoxes();
+  state.selected = null; state.drill = 0; state.targetDrill = 0;
+  renderInspector();
   currentBox = box.clone(); currentCenter = center.clone();
   computeFraming(currentBox, currentCenter);
   buildModeButtons();
 
+  const srcLabel = source.mode.toUpperCase() +
+    (source.bytes ? ` ${(source.bytes / 1048576).toFixed(2)}MB` : '');
   $('modelName').textContent =
-    `${name.toUpperCase()} · ${parts.length} PARTS · ${manifest.usableParts} USABLE`;
+    `${name.toUpperCase()} · ${parts.length} PARTS · ${srcLabel}`;
+  $('sc').textContent = srcLabel;
+  window.__source = source;
   $('pc').textContent = parts.length;
   $('gc').textContent = Object.keys(plan.groups || {}).length;
   $('lt').textContent = Math.round(performance.now() - loadStart) + 'ms';
@@ -256,16 +326,20 @@ function buildVectors(gltfScene) {
 }
 
 // 取景：分别算「装配态」与「完全爆炸态」需要的正交缩放和视点，帧循环里按进度插值
+// 用包围盒对角线（即外接球直径）取景。取 max(w,d) 会低估斜视角下的投影宽度 ——
+// 3/4 视角时对角方向的实际跨度可达 1.4 倍，导致零件被裁到画面外。
+// 对角线是方向无关的上界，用户任意旋转都不会裁切。
+function fitZoom(lo, hi) {
+  const w = (hi[0] - lo[0]) * modelScale;
+  const h = (hi[1] - lo[1]) * modelScale;
+  const d = (hi[2] - lo[2]) * modelScale;
+  const diag = Math.hypot(w, h, d);
+  const need = Math.max(diag, diag / aspect) * FIT_MARGIN;
+  return FRUSTUM / Math.max(need, 1e-6);
+}
+
 function computeFraming(assembledBox, assembledCenter) {
-  const fit = (lo, hi) => {
-    const w = (hi[0] - lo[0]) * modelScale;
-    const h = (hi[1] - lo[1]) * modelScale;
-    const d = (hi[2] - lo[2]) * modelScale;
-    // 任意视角下最坏情况：水平方向可能看到宽或深
-    const horiz = Math.max(w, d);
-    const need = Math.max(h, horiz / aspect) * FIT_MARGIN;
-    return FRUSTUM / Math.max(need, 1e-6);
-  };
+  const fit = fitZoom;
   const aLo = assembledBox.min.toArray(), aHi = assembledBox.max.toArray();
   state.zoomFit = fit(aLo, aHi);
 
@@ -281,6 +355,45 @@ function computeFraming(assembledBox, assembledCenter) {
     state.targetFull.set(0, 0, 0);
   }
   state.targetAssembled.set(0, 0, 0);
+}
+
+const EMISSIVE_COLOR = new THREE.Color(0x7fd4ff);
+
+function matList(mesh) {
+  return Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+}
+
+// 材质在多个节点间共享（hulkbuster 是 19 个材质配 155 个节点），
+// 直接改会牵连其它零件，所以每个 mesh 克隆一份自己的。
+// 贴图在克隆时按引用共享，不额外占显存。
+function buildGroups() {
+  groupIndex = plan.groups || {};
+  partsByGroup = new Map();
+  pickTargets = [];
+  for (const p of parts) {
+    const key = `${p.meta.part}/${p.meta.side}`;
+    p.groupKey = key;
+    if (!partsByGroup.has(key)) partsByGroup.set(key, []);
+    partsByGroup.get(key).push(p);
+
+    p.meshes = [];
+    p.obj.traverse((n) => {
+      if (!n.isMesh) return;
+      n.material = Array.isArray(n.material)
+        ? n.material.map((m) => m.clone()) : n.material.clone();
+      n.userData.part = p;
+      p.meshes.push(n);
+      pickTargets.push(n);
+    });
+
+    if (p.meta.emissive) {
+      for (const m of p.meshes) for (const mm of matList(m)) {
+        if (!mm.emissive) continue;
+        mm.emissive.copy(EMISSIVE_COLOR);
+        mm.emissiveIntensity = 2.4;
+      }
+    }
+  }
 }
 
 function disposeTree(o) {
@@ -301,11 +414,55 @@ function applyDebris() {
 }
 
 // ---------- 爆炸 ----------
-function applyExplode(t) {
+const _a = new THREE.Vector3(), _b = new THREE.Vector3();
+
+// 非选中组: base + 组向量 × 爆炸进度
+// 选中组:   base + lerp(组向量 × 爆炸进度, 钻取向量, 钻取进度)
+//           —— d=0 时行为不变，d=1 时无论爆炸进度多少都到达钻取位姿
+function applyTransforms() {
+  const e = state.explode, d = state.drill, sel = state.selected;
   for (const p of parts) {
     const v = p.vecLocal?.[state.mode];
-    if (v) p.obj.position.copy(p.basePos).addScaledVector(v, t);
-    else p.obj.position.copy(p.basePos);
+    if (!v) { p.obj.position.copy(p.basePos); continue; }
+    if (sel && p.groupKey === sel && p.vecLocal.drill) {
+      _a.copy(v).multiplyScalar(e).lerp(_b.copy(p.vecLocal.drill), d);
+      p.obj.position.copy(p.basePos).add(_a);
+    } else {
+      p.obj.position.copy(p.basePos).addScaledVector(v, e);
+    }
+  }
+}
+
+// 幽灵态：透明相关的属性改动会触发着色器重编译，所以只在选择变化时设一次，
+// 每帧只改 opacity（不需要 needsUpdate）。
+function setGhostMode(on) {
+  for (const p of parts) {
+    const ghost = on && p.groupKey !== state.selected;
+    for (const m of p.meshes) for (const mm of matList(m)) {
+      const wantT = ghost;
+      if (mm.transparent !== wantT) {
+        mm.transparent = wantT;
+        mm.depthWrite = !wantT;   // 嵌套壳层叠加透明会有排序问题，关掉深度写入
+        // Three.js 自 r155 起对「双面 + 透明」材质做两遍渲染（先背面后正面）。
+        // 实测幽灵化 132 个网格会额外产生 43.5 万面。幽灵透明度只有 0.06，
+        // 两遍带来的排序改善看不出来，强制单遍。
+        mm.forceSinglePass = wantT;
+        mm.needsUpdate = true;
+      }
+      if (!ghost) mm.opacity = 1;
+      mm.userData_ghost = ghost;
+    }
+  }
+}
+
+function updateGhostOpacity() {
+  if (!state.selected && state.drill < 0.001) return;
+  const o = THREE.MathUtils.lerp(1, 0.06, state.drill);
+  for (const p of parts) {
+    if (p.groupKey === state.selected) continue;
+    for (const m of p.meshes) for (const mm of matList(m)) {
+      if (mm.transparent) mm.opacity = o;
+    }
   }
 }
 
@@ -324,10 +481,151 @@ function setView(name) {
 }
 setView('ISO');
 
+// ---------- 拾取与选择 ----------
+const raycaster = new THREE.Raycaster();
+const ndc = new THREE.Vector2();
+const DRAG_SLOP = 5;        // 位移超过此像素数即判为拖拽旋转，不算点击
+let downAt = null, hovered = null, lastHoverAt = 0;
+
+// 直接对 147 个 mesh、54 万面做三角形求交实测要 5.7ms/次，悬停时会掉帧。
+// 改成两阶段：先用包围盒筛出候选并按入射距离排序，再按序做精确求交，
+// 一旦已命中的距离小于下一候选的盒入射距离即可提前结束。
+let boxesDirty = true;
+const _box = new THREE.Box3(), _pt = new THREE.Vector3(), _m = new THREE.Matrix4();
+
+function buildLocalBoxes() {
+  for (const p of parts) {
+    p.obj.updateWorldMatrix(true, false);
+    const lb = new THREE.Box3();
+    for (const mesh of p.meshes) {
+      if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+      mesh.updateWorldMatrix(true, false);
+      _m.copy(p.obj.matrixWorld).invert().multiply(mesh.matrixWorld);
+      lb.union(mesh.geometry.boundingBox.clone().applyMatrix4(_m));
+    }
+    p.localBox = lb;
+    p.worldBox = new THREE.Box3();
+  }
+  boxesDirty = true;
+}
+
+function refreshWorldBoxes() {
+  for (const p of parts) {
+    if (!p.localBox) continue;
+    p.obj.updateWorldMatrix(true, false);
+    p.worldBox.copy(p.localBox).applyMatrix4(p.obj.matrixWorld);
+  }
+  boxesDirty = false;
+}
+
+function pickAt(clientX, clientY) {
+  if (!pickTargets.length) return null;
+  const r = renderer.domElement.getBoundingClientRect();
+  ndc.set(((clientX - r.left) / r.width) * 2 - 1,
+          -((clientY - r.top) / r.height) * 2 + 1);
+  raycaster.setFromCamera(ndc, camera);
+  if (boxesDirty) refreshWorldBoxes();
+
+  const cand = [];
+  for (const p of parts) {
+    if (!p.worldBox || p.worldBox.isEmpty()) continue;
+    if (raycaster.ray.intersectBox(p.worldBox, _pt)) {
+      cand.push([raycaster.ray.origin.distanceTo(_pt), p]);
+    }
+  }
+  if (!cand.length) return null;
+  cand.sort((a, b) => a[0] - b[0]);
+
+  let best = Infinity, bestKey = null, tested = 0;
+  for (const [boxDist, p] of cand) {
+    if (boxDist > best) break;          // 后续候选的盒都比已命中更远
+    tested++;
+    const hits = raycaster.intersectObjects(p.meshes, false);
+    if (hits.length && hits[0].distance < best) {
+      best = hits[0].distance;
+      bestKey = p.groupKey;
+    }
+  }
+  pickAt.lastStats = { candidates: cand.length, tested, total: parts.length };
+  return bestKey;
+}
+
+function selectGroup(key) {
+  if (key && !groupIndex[key]) return;
+  if (state.selected === key) return;
+  state.selected = key;
+  state.targetDrill = key ? 1 : 0;
+  setGhostMode(!!key);
+  computeDrillFraming();
+  renderInspector();
+  applyTransforms();
+}
+
+function computeDrillFraming() {
+  const g = state.selected && groupIndex[state.selected];
+  if (!g) { state.zoomFitDrill = state.zoomFit; state.targetDrillPos.set(0, 0, 0); return; }
+  const lo = g.drillBounds.min, hi = g.drillBounds.max;
+  state.zoomFitDrill = fitZoom(lo, hi);
+  state.targetDrillPos
+    .set((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2)
+    .sub(currentCenter).multiplyScalar(modelScale);
+}
+
+function renderInspector() {
+  const el = $('inspect');
+  const key = state.selected;
+  if (!key) { el.style.display = 'none'; return; }
+  const g = groupIndex[key];
+  const sideText = { L: 'LEFT', R: 'RIGHT', C: 'CENTER' }[g.side] || g.side;
+  $('insName').textContent = g.part.replace(/_/g, ' ').toUpperCase();
+  $('insKicker').textContent = `SUBASSEMBLY · ${sideText}`;
+  const rows = [
+    ['PARTS', g.count],
+    ['TRIANGLES', g.tris.toLocaleString()],
+    ['HEIGHT', `${(g.hRange[0] * 100).toFixed(0)}–${(g.hRange[1] * 100).toFixed(0)}%`],
+  ];
+  if (g.emissive) rows.push(['EMISSIVE', `${g.emissive} ACTIVE`]);
+  $('insRows').innerHTML =
+    rows.map(([k, v]) => `<div class="r"><span>${k}</span>` +
+      `<span class="val${k === 'EMISSIVE' ? ' emis' : ''}">${v}</span></div>`).join('') +
+    (g.materials.length
+      ? `<div class="mats">MATERIALS<br>${g.materials.join(' · ')}</div>` : '');
+  el.style.display = 'block';
+}
+
+renderer.domElement.addEventListener('pointerdown', (e) => {
+  downAt = { x: e.clientX, y: e.clientY };
+});
+renderer.domElement.addEventListener('pointerup', (e) => {
+  if (!downAt) return;
+  const moved = Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y);
+  downAt = null;
+  if (moved > DRAG_SLOP) return;      // 是拖拽旋转，不是点击
+  selectGroup(pickAt(e.clientX, e.clientY));
+});
+// 单次拾取实测约 3.8ms（两阶段筛选后），连续悬停会顶掉帧预算。
+// 光标反馈并不需要高频，改成指针停下来之后再拾取一次。
+let hoverTimer = 0;
+renderer.domElement.addEventListener('pointermove', (e) => {
+  clearTimeout(hoverTimer);
+  if (hovered !== null) {
+    hovered = null;
+    renderer.domElement.classList.remove('pickable');
+  }
+  if (downAt) return;                    // 正在拖拽旋转，不做拾取
+  const { clientX, clientY } = e;
+  hoverTimer = setTimeout(() => {
+    hovered = pickAt(clientX, clientY);
+    renderer.domElement.classList.toggle('pickable', !!hovered);
+  }, 120);
+});
+addEventListener('keydown', (e) => { if (e.key === 'Escape') selectGroup(null); });
+$('insClose').onclick = () => selectGroup(null);
+
 function buildModeButtons() {
   const el = $('modes');
   el.innerHTML = '';
-  for (const m of plan.modes) {
+  for (const m of plan.modes.filter((x) => x !== 'drill')) {
     const b = document.createElement('button');
     b.textContent = m;
     b.setAttribute('aria-pressed', String(m === state.mode));
@@ -335,7 +633,7 @@ function buildModeButtons() {
       state.mode = m;
       for (const x of el.children) x.setAttribute('aria-pressed', String(x.textContent === m));
       computeFraming(currentBox, currentCenter);
-      applyExplode(state.explode);
+      applyTransforms();
     };
     el.appendChild(b);
   }
@@ -390,17 +688,26 @@ function tick() {
     camera.lookAt(controls.target);
   }
 
-  // 爆炸补间
+  // 爆炸与钻取补间
+  let dirty = false;
   if (Math.abs(state.explode - state.targetExplode) > 0.0004) {
     state.explode += (state.targetExplode - state.explode) * 0.1;
-    applyExplode(state.explode);
+    dirty = true;
   }
+  if (Math.abs(state.drill - state.targetDrill) > 0.0004) {
+    state.drill += (state.targetDrill - state.drill) * 0.12;
+    dirty = true;
+  }
+  if (dirty) { applyTransforms(); updateGhostOpacity(); boxesDirty = true; }
 
-  // 按爆炸进度在「装配态取景」与「完全爆炸取景」之间插值
-  const wantZoom = THREE.MathUtils.lerp(state.zoomFit, state.zoomFitFull, state.explode);
+  // 取景两层插值：先按爆炸进度，再按钻取进度收拢到选中组
+  const baseZoom = THREE.MathUtils.lerp(state.zoomFit, state.zoomFitFull, state.explode);
+  const wantZoom = THREE.MathUtils.lerp(baseZoom, state.zoomFitDrill, state.drill);
   camera.zoom += (wantZoom * state.userZoom - camera.zoom) * 0.12;
   camera.updateProjectionMatrix();
-  controls.target.lerpVectors(state.targetAssembled, state.targetFull, state.explode);
+  _a.lerpVectors(state.targetAssembled, state.targetFull, state.explode);
+  _a.lerp(state.targetDrillPos, state.drill);
+  controls.target.lerp(_a, 0.15);
 
   controls.update();
   headlight.position.copy(camera.position);
@@ -440,9 +747,83 @@ window.__setMode = (m) => {
   state.mode = m;
   for (const x of $('modes').children) x.setAttribute('aria-pressed', String(x.textContent === m));
   computeFraming(currentBox, currentCenter);
-  applyExplode(state.explode);
+  applyTransforms();
 };
 window.__state = state;
+window.__select = selectGroup;
+window.__groups = () => Object.keys(groupIndex);
+// 结构指纹只能证明节点没被重排；这里进一步验证运行时按 node 索引取到的
+// 对象，确实是 manifest 里记录的那个零件 —— 比对各自的世界包围盒中心。
+// 对照用：把各零件绑定的 manifest 记录整体错位 shift 格，模拟 node 索引被打乱。
+// 若 __verifyManifest 有效，错位后偏差必须显著变大 —— 否则该校验是空的。
+window.__scrambleMeta = (shift = 1) => {
+  const metas = parts.map((p) => p.meta);
+  const n = metas.length;
+  parts.forEach((p, i) => { p.meta = metas[(i + shift) % n]; });
+  return n;
+};
+
+window.__verifyManifest = () => {
+  if (boxesDirty) refreshWorldBoxes();
+  const c = new THREE.Vector3();
+  let worst = 0, worstName = null, n = 0;
+  const devs = [];
+  const median = (a) => { const b = [...a].sort((x, y) => x - y);
+    return b.length ? b[Math.floor(b.length / 2)] : 0; };
+  const H = plan.height;
+  for (const p of parts) {
+    if (!p.worldBox || p.worldBox.isEmpty()) continue;
+    p.worldBox.getCenter(c);
+    // manifest 的 center 在模型空间；换算到当前世界空间
+    const exp = new THREE.Vector3(...p.meta.center)
+      .sub(currentCenter).multiplyScalar(modelScale);
+    // 期望位移必须用 plan 里的原始向量（gltf 场景空间），不能用 p.vecLocal ——
+    // 后者已被 Matrix3 变换到各自父节点的局部空间，与 meta.center 不同空间。
+    // 根节点只有缩放与平移、无旋转，所以场景空间方向乘 modelScale 即为世界空间。
+    const entry = plan.parts[String(p.meta.node)];
+    const raw = entry?.[state.mode];
+    if (raw) {
+      const off = new THREE.Vector3(...raw).multiplyScalar(H * state.explode);
+      if (state.selected && p.groupKey === state.selected && entry.drill) {
+        off.lerp(new THREE.Vector3(...entry.drill).multiplyScalar(H), state.drill);
+      }
+      exp.addScaledVector(off, modelScale);
+    }
+    const d = c.distanceTo(exp) / modelScale / H;   // 以身高为单位
+    if (!Number.isFinite(d)) continue;
+    devs.push(d);
+    if (d > worst) { worst = d; worstName = p.meta.name; }
+    n++;
+  }
+  return { parts: n, maxDeviationInHeights: +worst.toFixed(6),
+           medianDeviation: +median(devs).toFixed(6), worstPart: worstName };
+};
+
+window.__debugScene = () => {
+  let tris = 0, meshes = 0, hiddenTris = 0, dsTransparent = 0, dsTransTris = 0;
+  scene.traverse((n) => {
+    if (!n.isMesh || !n.geometry?.index) return;
+    const t = n.geometry.index.count / 3;
+    let vis = n.visible;
+    n.traverseAncestors((a) => { if (!a.visible) vis = false; });
+    if (!vis) { hiddenTris += t; return; }
+    meshes++; tris += t;
+    for (const mm of matList(n)) {
+      if (mm.transparent && mm.side === THREE.DoubleSide && !mm.forceSinglePass) {
+        dsTransparent++; dsTransTris += t; break;
+      }
+    }
+  });
+  return { visibleMeshes: meshes, visibleTris: tris, hiddenTris,
+           doubleSidedTransparentMeshes: dsTransparent, theirTris: dsTransTris,
+           predictedRenderTris: tris + dsTransTris, reported: renderer.info.render.triangles };
+};
+window.__pickStats = () => pickAt.lastStats;
+window.__pickCost = (n = 200) => {
+  const t0 = performance.now();
+  for (let i = 0; i < n; i++) pickAt(innerWidth * 0.5, innerHeight * 0.45);
+  return +((performance.now() - t0) / n).toFixed(3);
+};
 </script>
 </body>
 </html>

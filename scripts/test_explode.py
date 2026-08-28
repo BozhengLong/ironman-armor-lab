@@ -53,7 +53,7 @@ def make_manifest(rows, poser=lambda c: c):
         parts.append({"node": i, "name": name, "part": part, "side": side,
                       "flag": None, "center": list(c), "size": list(s),
                       "material": "face" if name == "faceplate" else "iron",
-                      "h": 0.0, "lat": 0.0})
+                      "tris": 100, "emissive": False, "h": 0.0, "lat": 0.0})
     C = np.array([p["center"] for p in parts]); S = np.array([p["size"] for p in parts])
     lo = (C - S / 2).min(axis=0); hi = (C + S / 2).max(axis=0)
     return {"upAxis": "y", "latAxis": "x",
@@ -64,7 +64,7 @@ def make_manifest(rows, poser=lambda c: c):
 
 def run(man):
     height = man["bounds"]["max"][1] - man["bounds"]["min"][1]
-    vecs, meta, groups = ep.plan(man, man["parts"], height)
+    vecs, meta, groups, axis_of = ep.plan(man, man["parts"], height)
     return vecs, meta, groups, height
 
 
@@ -110,6 +110,22 @@ def main():
     # 外层（z 更大）应走得更远
     check(np.linalg.norm(sa) > np.linalg.norm(sb),
           "groupSpread 应让外层壳走得更远（按远端角排秩）")
+
+    # --- drill 模式：组内间距应按零件在组轴上的厚度分配，且总量有界 ---
+    D = vecs["drill"]
+    # chest 组两片：外层(z=0.06,厚0.10) 与内层(z=-0.02,厚0.08)
+    d_out, d_in = D[by_name["chest_out"]], D[by_name["chest_in"]]
+    check(not np.allclose(d_out, d_in), "drill 模式下同组成员应分开")
+    check(np.linalg.norm(d_out) > np.linalg.norm(d_in),
+          "drill 应让外层壳走得更远")
+    # 秩最小者的组内偏移为 0，即其位移应等于 group 模式
+    inner_is_first = np.allclose(d_in, G[by_name["chest_in"]])
+    check(inner_is_first, "drill 中排序最靠内的一件不应有组内偏移")
+    # 组内展开总量不应超过设定上限
+    for name in ("chest_out", "chest_in"):
+        extra = np.linalg.norm(D[by_name[name]]) - np.linalg.norm(G[by_name[name]])
+        check(extra <= ep.DRILL_TOTAL + 1e-6,
+              f"{name} 的组内展开 {extra:.3f} 超过上限 {ep.DRILL_TOTAL}")
 
     # --- 固定件不动 ---
     man2 = make_manifest(STANDING)
