@@ -14,7 +14,7 @@ node scripts/compress_models.mjs    # 压缩：49MB -> 4.5MB（可选但推荐�
 npm run dev                         # http://localhost:8732/
 ```
 
-URL 参数：`?model=hulkbuster|ironman`、`?src=auto|raw|meshopt|draco`。
+URL 参数：`?model=hulkbuster|ironman|samurai`、`?src=auto|raw|meshopt|draco`。
 
 交互：拖拽旋转、滚轮缩放、**点击任一部件钻取该子装配体**、
 **← → 逐件浏览组内零件**、ESC 逐级退出。
@@ -50,6 +50,8 @@ scripts/
   fetch_models.py      从 Sketchfab 下载 + 校验和锁定
   analyze_parts.py     glTF -> 部件分类 manifest（四层机制，见下）
   explode_plan.py      manifest -> 爆炸位移规划（五种模式 + 分离指标）
+  build_index.py       汇总模型元数据 -> index.json，前端据此渲染清单
+  backup_assets.py     仓库外备份，打包后解出来按锁文件验证还原
   compress_models.mjs  几何与贴图压缩 + 节点结构指纹校验
   test_classifier.py   分类器回归测试
   test_explode.py      爆炸规划回归测试（含姿态无关性）
@@ -115,3 +117,33 @@ npm run plan    # 重算爆炸规划并打印分离指标
 本项目是非商业的粉丝向 WebGL 实验，用于研究 Web 上的交互式 3D 表达。
 Iron Man 及相关角色的权利归各自权利人所有。本项目与 Marvel、Disney 无任何关联，
 未获其认可或授权。
+
+## Agent 工具层
+
+这个项目最初的命题是「Agent 能把 Web 当作表达介质做到什么程度」。
+场景的每种状态变化都是一个纯粹的原语，收成带 schema 的命令集后，
+LLM 就能用自然语言意图驱动它，而不需要懂 Three.js。
+
+页面自身不调用任何 LLM —— 它只暴露命令面与 schema，由外部决定调用序列。
+
+```js
+window.armorLab.schema()          // function-calling 格式的工具定义
+window.armorLab.call('listGroups')
+await window.armorLab.run([       // 「展示胸甲的内部结构」
+  { tool: 'setExplodeMode', args: { mode: 'group' } },
+  { tool: 'setView',        args: { name: '3/4F' } },
+  { tool: 'setExplode',     args: { value: 0.45 } },
+  { tool: 'focusGroup',     args: { key: 'chest/C' } },
+  { tool: 'focusPart',      args: { index: 2 } },
+])
+```
+
+共 10 个命令：`listModels` `loadModel` `listGroups` `setView` `setExplode`
+`setExplodeMode` `focusGroup` `focusPart` `playAssemble` `getState`。
+
+## 泛化检验
+
+前两个模型上调出的所有参数，用第三个**完全没调过**的模型验证过一遍。
+它暴露了一个级联失败（连体内衬判据只看跨度大小、不看跨在哪里），
+也确认了材质提示的高度相容性检查确实拦住了误导性的材质名。
+过程与数据见 [docs/explode-design.md](docs/explode-design.md)。
