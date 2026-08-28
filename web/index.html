@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ARMOR LAB — 最小验证</title>
+<title>ARMOR LAB</title>
 <style>
   :root{
     --bg:#0a0c0f; --fg:#c8d2dc; --dim:#5a6672; --accent:#e8541f; --line:#1b2128;
@@ -12,7 +12,28 @@
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);
     font:11px/1.5 var(--mono);letter-spacing:.06em;overflow:hidden}
-  canvas{display:block;position:fixed;inset:0}
+  canvas{display:block;position:fixed;inset:0;touch-action:none}
+  /* 移动端紧凑布局：390px 宽的屏幕放不下桌面版 HUD */
+  @media (max-width:820px){
+    html,body{font-size:10px}
+    .hd h1{font-size:11px;letter-spacing:.24em}
+    #tele{top:10px;right:12px;min-width:0}
+    #tele .perf{display:none}          /* 性能读数在手机上不是重点 */
+    #roster{left:12px;top:56px}
+    #roster #rosterList{display:flex;gap:6px}
+    #roster .item img{width:26px;height:32px;margin-left:4px}
+    #roster .nm{font-size:10px}
+    #roster .sub,#roster .no{display:none}
+    #inspect{left:12px;top:120px;max-width:min(58vw,220px);padding-left:9px}
+    #inspect .insName{font-size:13px}
+    #ctl{left:12px;right:12px;bottom:12px;gap:8px}
+    #views,#ctl .grp{flex-wrap:wrap}
+    button{padding:7px 9px}            /* 触摸目标不小于约 30px */
+    input[type=range]{width:min(46vw,190px)}
+    #scrimL{width:60vw;height:44vh}
+    #scrimR{width:44vw;height:30vh}
+    #scrimB{width:100vw;height:26vh}
+  }
   .panel{position:fixed;z-index:2}
   /* 幽灵态下模型会压到遥测文字上，加一层与背景同色的柔和衬底保证可读性 */
   .scrim{position:fixed;z-index:1;pointer-events:none}
@@ -42,6 +63,18 @@
   button:hover{border-color:var(--dim);color:var(--fg)}
   button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
   input[type=range]{width:190px;accent-color:var(--accent)}
+  #roster{left:20px;top:74px;display:none}
+  #roster .item{display:flex;gap:9px;align-items:center;padding:5px 6px 5px 0;
+    cursor:pointer;border-left:1px solid transparent}
+  #roster .item:hover{border-left-color:var(--dim)}
+  #roster .item[aria-current="true"]{border-left-color:var(--accent)}
+  #roster .item img{width:34px;height:42px;object-fit:cover;background:#12161b;
+    padding-left:0;margin-left:8px;filter:saturate(.85)}
+  #roster .item[aria-current="true"] img{filter:none}
+  #roster .no{color:var(--dim);font-size:9px;width:16px;text-align:right}
+  #roster .nm{font-size:12px;letter-spacing:.14em}
+  #roster .sub{color:var(--dim);font-size:9px;letter-spacing:.1em}
+  #roster .item[aria-current="true"] .nm{color:var(--accent)}
   #inspect{left:20px;top:70px;display:none;min-width:210px;max-width:260px;
     border-left:1px solid var(--accent);padding:2px 0 2px 12px}
   #inspect .insName{font-size:15px;letter-spacing:.18em;margin:2px 0 8px;color:var(--fg)}
@@ -56,12 +89,19 @@
   #load{position:fixed;inset:0;z-index:9;background:var(--bg);display:grid;
     place-content:center;text-align:center;gap:8px;transition:opacity .4s}
   #load.done{opacity:0;pointer-events:none}
+  #loadName{font-size:17px;letter-spacing:.26em}
+  #loadStage{margin-top:4px}
   #bar{width:220px;height:1px;background:var(--line);margin:0 auto}
   #bar i{display:block;height:100%;width:0;background:var(--accent)}
   #err{color:var(--accent);max-width:60ch;text-align:left;white-space:pre-wrap}
 </style>
 </head>
 <body>
+<div class="panel" id="roster">
+  <div class="lbl">ARMOR ARCHIVE</div>
+  <div id="rosterList"></div>
+</div>
+
 <div class="scrim" id="scrimL"></div>
 <div class="scrim" id="scrimR"></div>
 <div class="scrim" id="scrimB"></div>
@@ -77,7 +117,7 @@
   <div class="row"><span>ORTHO ZOOM</span><span class="val" id="zm">1.00</span></div>
   <div class="row"><span>EXPLODE</span><span class="val" id="ex">0%</span></div>
   <div class="row"><span>MOTION</span><span class="val" id="mo">IDLE</span></div>
-  <div class="sect">
+  <div class="sect perf">
     <div class="row"><span>FPS</span><span class="val" id="fps">—</span></div>
     <div class="row"><span>TRIANGLES</span><span class="val" id="tri">—</span></div>
     <div class="row"><span>DRAW CALLS</span><span class="val" id="dc">—</span></div>
@@ -97,7 +137,7 @@
     <button id="btnParts" aria-pressed="false">PARTS</button>
     <button id="btnAssemble">ASSEMBLE</button>
     <button id="btnDebris" aria-pressed="false">DEBRIS</button>
-    <button id="btnModel">SWITCH</button>
+
   </div>
 </div>
 
@@ -109,9 +149,11 @@
 </div>
 
 <div id="load">
-  <div class="lbl">LOADING</div>
-  <div class="val" id="pct">00%</div>
+  <div class="lbl" id="loadKicker">ARMOR ARCHIVE</div>
+  <div class="val" id="loadName">—</div>
   <div id="bar"><i></i></div>
+  <div class="lbl" id="loadStage">INITIALIZING</div>
+  <div class="val" id="pct">00%</div>
   <div id="err"></div>
 </div>
 
@@ -128,7 +170,17 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
-const MODELS = ['hulkbuster', 'ironman'];
+// 模型清单由 scripts/build_index.py 生成，不写死在前端
+let MODELS = ['hulkbuster', 'ironman'];   // index.json 加载前的兜底
+let MODEL_INDEX = [];
+async function loadIndex() {
+  try {
+    const r = await fetch('./assets/manifests/index.json');
+    if (!r.ok) return;
+    MODEL_INDEX = (await r.json()).models || [];
+    if (MODEL_INDEX.length) MODELS = MODEL_INDEX.map((m) => m.slug);
+  } catch { /* 用兜底清单 */ }
+}
 const params = new URLSearchParams(location.search);
 const slug = params.get('model') || MODELS[0];
 const srcPref = params.get('src') || 'auto';   // auto | raw | meshopt | draco
@@ -164,12 +216,32 @@ const VIEWS = {
   REAR:  [ 0,  0.2,  -1],
 };
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+function showFatal(msg, detail) {
+  const el = $('err');
+  if (el) el.textContent = msg + (detail ? '\n\n' + detail : '');
+  const pct = $('pct');
+  if (pct) pct.textContent = '—';
+  $('load')?.classList.remove('done');
+}
+
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+} catch (e) {
+  showFatal('这个浏览器无法创建 WebGL 上下文，页面需要 WebGL2。\n'
+    + '可尝试：更新浏览器、在设置里启用硬件加速、或换一台设备。', String(e));
+  throw e;
+}
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.5;
 document.body.appendChild(renderer.domElement);
+// 显卡驱动重置或标签页长时间后台会丢上下文，静默变黑最难排查
+renderer.domElement.addEventListener('webglcontextlost', (e) => {
+  e.preventDefault();
+  showFatal('WebGL 上下文丢失（通常是显卡驱动重置或标签页长时间后台）。\n刷新页面即可恢复。');
+});
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0a0c0f);
@@ -234,6 +306,10 @@ async function loadModel(name) {
   $('err').textContent = '';
   loadStart = performance.now();
 
+  const disp = (MODEL_INDEX.find((m) => m.slug === name) || {});
+  $('loadName').textContent = disp.name || name.toUpperCase();
+  $('loadKicker').textContent = disp.subtitle ? `ARMOR ARCHIVE · ${disp.subtitle}` : 'ARMOR ARCHIVE';
+  $('loadStage').textContent = 'READING DRAWING INDEX';
   const [manifest, explodePlan] = await Promise.all([
     fetch(`./assets/manifests/${name}.json`).then(r => {
       if (!r.ok) throw new Error(`manifest ${r.status}`); return r.json();
@@ -245,7 +321,10 @@ async function loadModel(name) {
   plan = explodePlan;
   state.mode = plan.defaultMode || 'groupSpread';
 
+  $('loadStage').textContent = 'RESOLVING GEOMETRY SOURCE';
   const source = await resolveSource(name);
+  $('loadStage').textContent = `STREAMING ${source.mode.toUpperCase()}`
+    + (source.bytes ? ` · ${(source.bytes / 1048576).toFixed(2)} MB` : '');
   const loader = new GLTFLoader();
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath('./node_modules/three/examples/jsm/libs/draco/');
@@ -285,6 +364,7 @@ async function loadModel(name) {
   root.position.copy(center).multiplyScalar(-modelScale);
   root.updateMatrixWorld(true);
 
+  $('loadStage').textContent = 'INDEXING SUBASSEMBLIES';
   buildVectors(gltf.scene);
   buildGroups();
   buildLocalBoxes();
@@ -293,18 +373,21 @@ async function loadModel(name) {
   currentBox = box.clone(); currentCenter = center.clone();
   computeFraming(currentBox, currentCenter);
   buildModeButtons();
+  buildRoster();
 
   const srcLabel = source.mode.toUpperCase() +
     (source.bytes ? ` ${(source.bytes / 1048576).toFixed(2)}MB` : '');
   $('modelName').textContent =
     `${name.toUpperCase()} · ${parts.length} PARTS · ${srcLabel}`;
   $('sc').textContent = srcLabel;
+  document.title = `ARMOR LAB — ${name.toUpperCase()}`;
   window.__source = source;
   $('pc').textContent = parts.length;
   $('gc').textContent = Object.keys(plan.groups || {}).length;
   $('lt').textContent = Math.round(performance.now() - loadStart) + 'ms';
   $('tri').textContent = renderer.info.render.triangles.toLocaleString();
   applyDebris();
+  $('loadStage').textContent = 'SYSTEM ONLINE';
   $('load').classList.add('done');
 
   window.__ready = true;
@@ -564,7 +647,8 @@ setView('ISO');
 // ---------- 拾取与选择 ----------
 const raycaster = new THREE.Raycaster();
 const ndc = new THREE.Vector2();
-const DRAG_SLOP = 5;        // 位移超过此像素数即判为拖拽旋转，不算点击
+// 位移超过此像素数即判为拖拽旋转，不算点击。触摸比鼠标抖，阈值放宽。
+const DRAG_SLOP_MOUSE = 5, DRAG_SLOP_TOUCH = 12;
 let downAt = null, hovered = null, lastHoverAt = 0;
 
 // 直接对 147 个 mesh、54 万面做三角形求交实测要 5.7ms/次，悬停时会掉帧。
@@ -656,7 +740,7 @@ function computeDrillFraming() {
 function renderInspector() {
   const el = $('inspect');
   const key = state.selected;
-  if (!key) { el.style.display = 'none'; return; }
+  if (!key) { el.style.display = 'none'; buildRoster(); return; }
   const g = groupIndex[key];
   const list = partsByGroup.get(key) || [];
   const focused = state.focus >= 0 ? list.find((p) => p.focusIndex === state.focus) : null;
@@ -686,16 +770,18 @@ function renderInspector() {
           ? `<div class="mats">MATERIALS<br>${g.materials.join(' · ')}</div>`
             + '<div class="mats">← → 逐件浏览</div>' : ''));
   el.style.display = 'block';
+  $('roster').style.display = 'none';
 }
 
 renderer.domElement.addEventListener('pointerdown', (e) => {
-  downAt = { x: e.clientX, y: e.clientY };
+  downAt = { x: e.clientX, y: e.clientY, touch: e.pointerType !== 'mouse' };
 });
 renderer.domElement.addEventListener('pointerup', (e) => {
   if (!downAt) return;
   const moved = Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y);
+  const slop = downAt.touch ? DRAG_SLOP_TOUCH : DRAG_SLOP_MOUSE;
   downAt = null;
-  if (moved > DRAG_SLOP) return;      // 是拖拽旋转，不是点击
+  if (moved > slop) return;           // 是拖拽旋转，不是点击
   selectGroup(pickAt(e.clientX, e.clientY));
 });
 // 单次拾取实测约 3.8ms（两阶段筛选后），连续悬停会顶掉帧预算。
@@ -748,6 +834,28 @@ function stopAssemble(complete) {
   applyTransforms();
 }
 
+function buildRoster() {
+  const el = $('rosterList');
+  const panel = $('roster');
+  if (MODEL_INDEX.length < 2) { panel.style.display = 'none'; return; }
+  el.innerHTML = '';
+  MODEL_INDEX.forEach((m, i) => {
+    const row = document.createElement('div');
+    row.className = 'item';
+    row.setAttribute('aria-current', String(m.slug === slug));
+    row.title = `${m.parts} 件 / ${m.groups} 组 / ${m.tris.toLocaleString()} 面`
+              + `\n${m.author} · ${m.license}`;
+    row.innerHTML =
+      `<span class="no">${String(i + 1).padStart(2, '0')}</span>` +
+      `<img src="${m.preview}" alt="" loading="lazy">` +
+      `<span><span class="nm">${m.name}</span><br>` +
+      `<span class="sub">${m.subtitle} · ${m.parts} PARTS</span></span>`;
+    if (m.slug !== slug) row.onclick = () => { location.search = `?model=${m.slug}`; };
+    el.appendChild(row);
+  });
+  panel.style.display = 'block';
+}
+
 function buildModeButtons() {
   const el = $('modes');
   el.innerHTML = '';
@@ -781,10 +889,7 @@ $('btnParts').onclick = () => {
   $('btnParts').setAttribute('aria-pressed', String(state.targetExplode > 0.001));
 };
 $('btnDebris').onclick = () => { state.showDebris = !state.showDebris; applyDebris(); };
-$('btnModel').onclick = () => {
-  const next = MODELS[(MODELS.indexOf(slug) + 1) % MODELS.length];
-  location.search = '?model=' + next;
-};
+
 
 addEventListener('resize', () => {
   aspect = innerWidth / innerHeight;
@@ -883,7 +988,7 @@ function tick() {
     ? `ASSEMBLE ${Math.round(state.assembleT * 100)}%` : 'IDLE';
 }
 
-loadModel(slug).then(tick).catch((e) => {
+loadIndex().then(() => loadModel(slug)).then(tick).catch((e) => {
   $('err').textContent = '加载失败:\n' + (e?.stack || e);
   $('pct').textContent = 'ERR';
   window.__ready = 'error';
@@ -892,6 +997,133 @@ loadModel(slug).then(tick).catch((e) => {
 
 window.__setExplode = (v) => { state.targetExplode = v; $('slider').value = v; };
 window.__setView = setView;
+// ---------------------------------------------------------------------------
+// Agent 工具层
+//
+// 这个项目最初的命题是「Agent 能把 Web 当作表达介质做到什么程度」。
+// 场景的每一种状态变化都已经是一个纯函数式的原语，把它们收成带 schema 的
+// 命令集，LLM 就能用自然语言意图驱动这个场景，而不需要懂 Three.js。
+//
+// 页面自身不调用任何 LLM。它只暴露命令面与 schema；
+// 由外部（agent、脚本、控制台）来决定调用序列。
+// ---------------------------------------------------------------------------
+const AGENT_TOOLS = {
+  listModels: {
+    描述: '列出可用的装甲模型及其部件与组数',
+    参数: {},
+    run: () => (MODEL_INDEX.length ? MODEL_INDEX : MODELS.map((s) => ({ slug: s }))),
+  },
+  loadModel: {
+    描述: '切换到指定模型（会重新加载页面）',
+    参数: { slug: '模型标识，取自 listModels' },
+    run: ({ slug }) => { location.search = `?model=${encodeURIComponent(slug)}`; },
+  },
+  listGroups: {
+    描述: '列出当前模型的所有子装配体及其部件数、三角面数、发光件数',
+    参数: {},
+    run: () => Object.entries(groupIndex).map(([key, g]) => ({
+      key, part: g.part, side: g.side, parts: g.count, tris: g.tris,
+      emissive: g.emissive, hRange: g.hRange,
+    })),
+  },
+  setView: {
+    描述: '切换正交视角',
+    参数: { name: `六选一: ${Object.keys(VIEWS).join(' / ')}` },
+    run: ({ name }) => { setView(name); return { view: name }; },
+  },
+  setExplode: {
+    描述: '设置爆炸进度，0 为装配态，1 为完全展开',
+    参数: { value: '0 到 1 的小数' },
+    run: ({ value }) => {
+      const v = THREE.MathUtils.clamp(Number(value), 0, 1);
+      if (state.assembling) stopAssemble(false);
+      state.targetExplode = v; $('slider').value = v;
+      $('btnParts').setAttribute('aria-pressed', String(v > 0.001));
+      return { explode: v };
+    },
+  },
+  setExplodeMode: {
+    描述: '切换爆炸算法',
+    参数: { mode: `四选一: ${['radial','semantic','group','groupSpread'].join(' / ')}` },
+    run: ({ mode }) => { window.__setMode(mode); return { mode }; },
+  },
+  focusGroup: {
+    描述: '钻取某个子装配体：其余幽灵化、该组组内展开、相机对焦',
+    参数: { key: '组标识，形如 chest/C，取自 listGroups；传 null 取消' },
+    run: ({ key }) => { selectGroup(key ?? null); return { selected: state.selected }; },
+  },
+  focusPart: {
+    描述: '在已钻取的组内聚焦某一个零件',
+    参数: { index: '组内序号，从 0 开始；传 -1 取消聚焦' },
+    run: ({ index }) => {
+      if (!state.selected) throw new Error('先用 focusGroup 选中一个组');
+      setFocus(Number(index));
+      const list = partsByGroup.get(state.selected) || [];
+      const f = list.find((p) => p.focusIndex === state.focus);
+      return { index: state.focus, name: f?.meta.name ?? null, tris: f?.meta.tris ?? null };
+    },
+  },
+  playAssemble: {
+    描述: '播放组装动画：按穿戴顺序逐组归位，收尾点亮发光件',
+    参数: {},
+    run: () => { startAssemble(); return { duration: ASSEMBLE_SECONDS }; },
+  },
+  getState: {
+    描述: '读取当前场景状态，用于决定下一步',
+    参数: {},
+    run: () => ({
+      model: slug, source: window.__source?.mode ?? null,
+      view: [...viewsEl.children].find((b) => b.getAttribute('aria-pressed') === 'true')?.textContent ?? null,
+      mode: state.mode, explode: +state.explode.toFixed(3),
+      selected: state.selected, focus: state.focus,
+      assembling: state.assembling,
+      azimuth: +THREE.MathUtils.radToDeg(sph.theta).toFixed(1),
+      elevation: +(90 - THREE.MathUtils.radToDeg(sph.phi)).toFixed(1),
+      groups: Object.keys(groupIndex).length,
+    }),
+  },
+};
+
+// 顺序执行一串命令；每步之间等待，让补间动画走完再进入下一步。
+async function runScript(steps) {
+  const log = [];
+  for (const step of steps) {
+    const { tool, args = {}, waitMs = 900 } = step;
+    const t = AGENT_TOOLS[tool];
+    if (!t) { log.push({ tool, error: '未知命令' }); continue; }
+    try {
+      log.push({ tool, args, result: t.run(args) ?? null });
+    } catch (e) {
+      log.push({ tool, args, error: String(e.message || e) });
+    }
+    if (waitMs) await new Promise((r) => setTimeout(r, waitMs));
+  }
+  return log;
+}
+
+window.armorLab = {
+  tools: AGENT_TOOLS,
+  call: (tool, args) => AGENT_TOOLS[tool].run(args || {}),
+  run: runScript,
+  // 给 LLM 用的工具定义，形状对齐常见的 function-calling schema
+  schema: () => Object.entries(AGENT_TOOLS).map(([name, t]) => ({
+    name, description: t.描述,
+    parameters: {
+      type: 'object',
+      properties: Object.fromEntries(
+        Object.entries(t.参数).map(([k, v]) => [k, { type: 'string', description: v }])),
+      required: Object.keys(t.参数),
+    },
+  })),
+};
+
+// 生成清单缩略图时用：隐藏全部 HUD，只留纯净画布
+window.__shotMode = (on = true) => {
+  for (const el of document.querySelectorAll('.panel,.hd,.scrim,#load,#ctl')) {
+    el.style.display = on ? 'none' : '';
+  }
+};
+
 window.__assemble = startAssemble;
 window.__stopAssemble = stopAssemble;
 window.__setMode = (m) => {

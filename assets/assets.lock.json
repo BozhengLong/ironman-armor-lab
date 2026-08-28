@@ -55,6 +55,166 @@
       "license": "CC-BY-4.0",
       "source": "https://sketchfab.com/3d-models/iron-man-1a21e1b8f2844956a30d28838d5f816a",
       "uid": "1a21e1b8f2844956a30d28838d5f816a"
+    },
+    "samurai": {
+      "author": "johnnykaddissi (sketchfab.com/johnnykaddissi)",
+      "files": {
+        "license.txt": {
+          "sha256": "d6d1f2a90dd02ac0c994eeb0504480e8e7c880b853511febe947bc1c05ea05e9",
+          "size": 734
+        },
+        "scene.bin": {
+          "sha256": "143cef63308fd3cec3807da012a8bb63ef0bc3d6fce1d461c705b58bb6e42ab3",
+          "size": 22655688
+        },
+        "scene.gltf": {
+          "sha256": "22e12cc01b369381fc1dbe7fc487479c5bb35f0c234f5ab516040c58940ab868",
+          "size": 57943
+        },
+        "textures/aiStandardSurface29_baseColor.png": {
+          "sha256": "ad3bbccfc30c5b294816fde08e9b8a35e49f91c28d064a56c2739bfd44b11076",
+          "size": 4623984
+        },
+        "textures/aiStandardSurface29_metallicRoughness.png": {
+          "sha256": "64a3bd03e539caa53250c62489c66c4cc3c33e9c8464b56821bfef204608c035",
+          "size": 3716712
+        },
+        "textures/aiStandardSurface29_normal.png": {
+          "sha256": "1952c2a05479a4af06469c8fa0d939e06d97a8ebf6fe589ae9b6047c66cc9fa3",
+          "size": 5237793
+        },
+        "textures/aiStandardSurface32_baseColor.png": {
+          "sha256": "07676ca00a37b17570c187da63c8285089a72236841aea6bc6d36e776742b482",
+          "size": 6270960
+        },
+        "textures/aiStandardSurface32_metallicRoughness.png": {
+          "sha256": "0b329e72bc441c9c4037b0859c0a097815859f21d2d935c3afdb8e2b69d1fdbd",
+          "size": 3309116
+        },
+        "textures/aiStandardSurface32_normal.png": {
+          "sha256": "42e335436429d9f391f228caa681a0a7595d8468aa528fd4777ba38778a0ea08",
+          "size": 3881773
+        },
+        "textures/aiStandardSurface40_baseColor.png": {
+          "sha256": "0f95b9facc7167771a275ca241c6078feff4d5e9582e85bbf617174218a1a84b",
+          "size": 310949
+        },
+        "textures/before_duplicating_helmetaiStandardSurface28_baseColor.png": {
+          "sha256": "92f2b25c3ed875cb1d27fd9a16d808869b3cb6da5f9006f63e185e2bbc414284",
+          "size": 4410100
+        },
+        "textures/before_duplicating_helmetaiStandardSurface28_metallicRoughness.png": {
+          "sha256": "c83ed9356eb6f825b45f35c2968f35d10c48b5fdc8ee8400d77970938a57267e",
+          "size": 2906243
+        },
+        "textures/before_duplicating_helmetaiStandardSurface28_normal.png": {
+          "sha256": "36313ea014cf47ee012b1bbeeca2e6647409cb24324335b5149f3d6104b7d8c8",
+          "size": 3580576
+        },
+        "textures/before_duplicating_helmetaiStandardSurface31_baseColor.png": {
+          "sha256": "129e5bbf027f4b032e7321a76cdd78e9acd1075bdf9ad1ec0f4f65754d1389fe",
+          "size": 658163
+        },
+        "textures/before_duplicating_helmetaiStandardSurface31_metallicRoughness.png": {
+          "sha256": "0b7a098651defd77bdf14f8cf9f8abdd5aaabf9a0eda5966c75c723d4f079ce8",
+          "size": 2061158
+        },
+        "textures/before_duplicating_helmetaiStandardSurface31_normal.png": {
+          "sha256": "845abe5e66cf576f1fe084967c5ceb23c9057967db84a626251819a12ae80c37",
+          "size": 4078478
+        },
+        "textures/before_duplicating_helmetaiStandardSurface33_baseColor.png": {
+          "sha256": "2e22df5389b5f46589ebb7826fd901f1c328a671c780ac437dfa9847dd725b97",
+          "size": 4464882
+        },
+        "textures/before_duplicating_helmetaiStandardSurface33_metallicRoughness.png": {
+          "sha256": "34d58b31912fa6291335c87a1ef41c47690dce84e7cee3c2b3517a22353a6190",
+          "size": 2564152
+        },
+        "textures/before_duplicating_helmetaiStandardSurface33_normal.png": {
+          "sha256": "6d4177f0f0e7954c93161794ddaa5d0c860b51b36130fa3643d5c43a42893241",
+          "size": 3253176
+        },
+        "textures/before_duplicating_helmetaiStandardSurface34_baseColor.png": {
+          "sha256": "ce405f20aa6bf586f04ccd7fcfe0788fe272ced3704e9a35ae8bb518c012536d",
+          "size": 2584161
+        },
+        "textures/before_duplicating_helmetaiStandardSurface34_metallicRoughness.png": {
+          "sha256": "9e511f2555c9447d0b16e0a78375a54d54e2e6a808467eccc7364af2dd4abf1e",
+          "size": 2616315
+        },
+        "textures/before_duplicating_helmetaiStandardSurface34_normal.png": {
+          "sha256": "267c788b84b7994ae254b316ab59d0e4745cb56f7d587d60f25615f9473ac389",
+          "size": 4675594
+        },
+        "textures/before_duplicating_helmetaiStandardSurface35_baseColor.png": {
+          "sha256": "02c9013498323ad8e1a1742e80d2a7b304094eb33a76fdd23ad6cf7fb8cc67b9",
+          "size": 1960177
+        },
+        "textures/before_duplicating_helmetaiStandardSurface35_metallicRoughness.png": {
+          "sha256": "9548b1959cf1d0a96bdc7fe2052efbb50647fb5f114c79925e4a2abb1a5acb92",
+          "size": 1994734
+        },
+        "textures/before_duplicating_helmetaiStandardSurface36_baseColor.png": {
+          "sha256": "046b5f7c30b5505010a7735a23112814617897805c737ac312ed0e686492facc",
+          "size": 3637572
+        },
+        "textures/before_duplicating_helmetaiStandardSurface36_metallicRoughness.png": {
+          "sha256": "a1af6abcb9a5baec682a75f009c49278983dc622e7f5b3babeacd9a6362ce4b3",
+          "size": 3084193
+        },
+        "textures/before_duplicating_helmetaiStandardSurface36_normal.png": {
+          "sha256": "28180a2d19d5a2bdd602f1e192b2c0895d6c9a47dbe1f16fa6b52208948f3e49",
+          "size": 2555162
+        },
+        "textures/before_duplicating_helmetaiStandardSurface37_baseColor.png": {
+          "sha256": "b793256ef0303b43609810cbb800befb00ee2fc88a416f1578de473f7ef8760d",
+          "size": 2173139
+        },
+        "textures/before_duplicating_helmetaiStandardSurface37_metallicRoughness.png": {
+          "sha256": "3a013ce26969abc07938f20a05b3189d604e9a07fa623e14879fdc75ec3a8a57",
+          "size": 2302677
+        },
+        "textures/before_duplicating_helmetaiStandardSurface39_baseColor.png": {
+          "sha256": "815c7b2bb15dbf37494bd71dc7f29919ddd48e0731a1bdc2e290f61075eff60a",
+          "size": 4295245
+        },
+        "textures/before_duplicating_helmetaiStandardSurface39_metallicRoughness.png": {
+          "sha256": "b64d66b861d99569563502f456e5f87a5ca073db52405c458190423b0e3e4101",
+          "size": 2548491
+        },
+        "textures/before_duplicating_helmetaiStandardSurface39_normal.png": {
+          "sha256": "8add174c5873ea550afefa693bea1dcea7df3a70861a6d90f78b6ed196c100fc",
+          "size": 3081275
+        },
+        "textures/before_duplicating_helmetaiStandardSurface40_baseColor.png": {
+          "sha256": "ef4c6b486e099f95394467366fc3c8c7ecd0e652444d3982017fb281ce024260",
+          "size": 1068543
+        },
+        "textures/before_duplicating_helmetaiStandardSurface40_metallicRoughness.png": {
+          "sha256": "d856022512ac1d36d186de06190b05d02c75a2e3c3f00494c309bbdcd5b2389c",
+          "size": 2181948
+        },
+        "textures/before_duplicating_helmetaiStandardSurface40_normal.png": {
+          "sha256": "b1b5bbc3ee07006a60f349ae2dda9dea29373eab28c1d0421329ab33855334c3",
+          "size": 4166670
+        },
+        "textures/render_swordsaiStandardSurface30_baseColor.png": {
+          "sha256": "4b6d5e1a19022194d6c62c46ee9b09e408c7f2bd9f80793c51626abd39ae8e15",
+          "size": 1338072
+        },
+        "textures/render_swordsaiStandardSurface30_metallicRoughness.png": {
+          "sha256": "e0ab01f4627f2ee47188168bddd57ebb7198ae8411a3e15d09ec2510c234b860",
+          "size": 1569307
+        },
+        "textures/render_swordsaiStandardSurface30_normal.png": {
+          "sha256": "66a0af2a22ce25df827af9833776775dbf873e33c34fd9b8e7eaddfc483bb9cb",
+          "size": 3367908
+        }
+      },
+      "license": "CC-BY-4.0",
+      "source": "https://sketchfab.com/3d-models/high-poly-samurai-mech-43cfb1207bc046b89a106e740f2f826e",
+      "uid": "43cfb1207bc046b89a106e740f2f826e"
     }
   }
 }

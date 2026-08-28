@@ -1,0 +1,638 @@
+{
+  "source": "assets/raw/samurai/scene.gltf",
+  "upAxis": "y",
+  "latAxis": "x",
+  "bodyCenter": [
+    0.0,
+    8.95017,
+    6.83876
+  ],
+  "bounds": {
+    "min": [
+      -12.66675,
+      -0.55436,
+      1.79975
+    ],
+    "max": [
+      7.87903,
+      18.45471,
+      11.87778
+    ]
+  },
+  "skipped": [],
+  "usableParts": 22,
+  "parts": [
+    {
+      "node": 29,
+      "name": "polySurface507_before_duplicating_helmet:aiStandardSurface39_0",
+      "part": "helmet",
+      "side": "C",
+      "flag": null,
+      "h": 0.9318,
+      "lat": 0.0131,
+      "tris": 5516,
+      "center": [
+        0.06305,
+        17.1581,
+        9.21076
+      ],
+      "size": [
+        2.48906,
+        2.59322,
+        2.69026
+      ],
+      "explodeDir": [
+        0.0074,
+        0.9607,
+        0.2776
+      ],
+      "material": "before_duplicating_helmetaiStandardSurface39"
+    },
+    {
+      "node": 45,
+      "name": "polySurface592_before_duplicating_helmet:aiStandardSurface40_0",
+      "part": "helmet",
+      "side": "C",
+      "flag": null,
+      "h": 0.9142,
+      "lat": 0.0611,
+      "tris": 4,
+      "center": [
+        0.29443,
+        16.82395,
+        8.15889
+      ],
+      "size": [
+        0.06306,
+        0.37432,
+        0.13711
+      ],
+      "explodeDir": [
+        0.0369,
+        0.9856,
+        0.1652
+      ],
+      "material": "before_duplicating_helmetaiStandardSurface40"
+    },
+    {
+      "node": 26,
+      "name": "polySurface520_before_duplicating_helmet:aiStandardSurface36_0",
+      "part": "helmet",
+      "side": "C",
+      "flag": null,
+      "h": 0.8949,
+      "lat": 0.011,
+      "tris": 122268,
+      "center": [
+        0.05315,
+        16.4576,
+        9.60102
+      ],
+      "size": [
+        1.576,
+        2.03,
+        1.99135
+      ],
+      "explodeDir": [
+        0.0066,
+        0.9385,
+        0.3453
+      ],
+      "material": "before_duplicating_helmetaiStandardSurface36"
+    },
+    {
+      "node": 27,
+      "name": "polySurface520_before_duplicating_helmet:aiStandardSurface36_0",
+      "part": "helmet",
+      "side": "C",
+      "flag": null,
+      "h": 0.8943,
+      "lat": -0.0183,
+      "tris": 79856,
+      "center": [
+        -0.08801,
+        16.44504,
+        9.60424
+      ],
+      "size": [
+        1.50628,
+        1.99186,
+        1.95191
+      ],
+      "explodeDir": [
+        -0.011,
+        0.9381,
+        0.3461
+      ],
+      "material": "before_duplicating_helmetaiStandardSurface36"
+    },
+    {
+      "node": 25,
+      "name": "polySurface520_before_duplicating_helmet:aiStandardSurface37_0",
+      "part": "helmet",
+      "side": "C",
+      "flag": null,
+      "h": 0.8658,
+      "lat": 0.0,
+      "tris": 15568,
+      "center": [
+        3e-05,
+        15.90358,
+        9.8689
+      ],
+      "size": [
+        0.91112,
+        0.45886,
+        1.04219
+      ],
+      "explodeDir": [
+        0.0,
+        0.9167,
+        0.3995
+      ],
+      "material": "before_duplicating_helmetaiStandardSurface37"
+    },
+    {
+      "node": 46,
+      "name": "polySurface592_before_duplicating_helmet:aiStandardSurface37_0",
+      "part": "helmet",
+      "side": "C",
+      "flag": null,
+      "h": 0.8522,
+      "lat": 0.0,
+      "tris": 1400,
+      "center": [
+        0.0,
+        15.64497,
+        10.09659
+      ],
+      "size": [
+        1.76365,
+        1.09902,
+        0.89786
+      ],
+      "explodeDir": [
+        0.0,
+        0.8992,
+        0.4376
+      ],
+      "material": "before_duplicating_helmetaiStandardSurface37"
+    },
+    {
+      "node": 54,
+      "name": "polySurface579_before_duplicating_helmet:aiStandardSurface40_0",
+      "part": "helmet",
+      "side": "C",
+      "flag": null,
+      "h": 0.8432,
+      "lat": -0.1063,
+      "tris": 4400,
+      "center": [
+        -0.51227,
+        15.47338,
+        9.32966
+      ],
+      "size": [
+        2.33753,
+        1.29878,
+        1.55609
+      ],
+      "explodeDir": [
+        -0.0732,
+        0.9317,
+        0.3558
+      ],
+      "material": "before_duplicating_helmetaiStandardSurface40"
+    },
+    {
+      "node": 56,
+      "name": "polySurface591_aiStandardSurface40_0",
+      "part": "helmet",
+      "side": "C",
+      "flag": null,
+      "h": 0.8432,
+      "lat": 0.1063,
+      "tris": 4400,
+      "center": [
+        0.51227,
+        15.47338,
+        9.32966
+      ],
+      "size": [
+        2.33753,
+        1.29878,
+        1.55609
+      ],
+      "explodeDir": [
+        0.0732,
+        0.9317,
+        0.3558
+      ],
+      "material": "aiStandardSurface40"
+    },
+    {
+      "node": 44,
+      "name": "polySurface592_before_duplicating_helmet:aiStandardSurface34_0",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.7621,
+      "lat": 0.0,
+      "tris": 32596,
+      "center": [
+        0.0,
+        13.93315,
+        9.73926
+      ],
+      "size": [
+        6.38822,
+        3.28961,
+        2.96648
+      ],
+      "explodeDir": [
+        0.0,
+        0.8642,
+        0.5031
+      ],
+      "review": "材质 'before_duplicating_helmetaiStandardSurface34' 指向 helmet（合理高度 0.90–1.01），但实际 h=0.76，位置判定为 chest",
+      "material": "before_duplicating_helmetaiStandardSurface34"
+    },
+    {
+      "node": 58,
+      "name": "polySurface267_before_duplicating_helmet:aiStandardSurface35_0",
+      "part": "chest",
+      "side": "C",
+      "flag": null,
+      "h": 0.7583,
+      "lat": 0.0,
+      "tris": 3584,
+      "center": [
+        0.0,
+        13.86046,
+        7.70511
+      ],
+      "size": [
+        5.48279,
+        4.55376,
+        2.03005
+      ],
+      "explodeDir": [
+        0.0,
+        0.9848,
+        0.1738
+      ],
+      "review": "材质 'before_duplicating_helmetaiStandardSurface35' 指向 helmet（合理高度 0.90–1.01），但实际 h=0.76，位置判定为 chest",
+      "material": "before_duplicating_helmetaiStandardSurface35"
+    },
+    {
+      "node": 31,
+      "name": "polySurface433_aiStandardSurface32_0",
+      "part": "chest",
+      "side": "R",
+      "flag": null,
+      "h": 0.7384,
+      "lat": 0.4488,
+      "tris": 29502,
+      "center": [
+        2.16269,
+        13.48264,
+        7.2671
+      ],
+      "size": [
+        3.30429,
+        5.7963,
+        7.85511
+      ],
+      "explodeDir": [
+        0.4291,
+        0.8993,
+        0.085
+      ],
+      "review": "材质 'aiStandardSurface32' 指向 helmet（合理高度 0.90–1.01），但实际 h=0.74，位置判定为 chest",
+      "material": "aiStandardSurface32"
+    },
+    {
+      "node": 38,
+      "name": "polySurface558_before_duplicating_helmet:aiStandardSurface32_0",
+      "part": "chest",
+      "side": "L",
+      "flag": null,
+      "h": 0.7384,
+      "lat": -0.4488,
+      "tris": 29474,
+      "center": [
+        -2.16269,
+        13.48264,
+        7.2671
+      ],
+      "size": [
+        3.30429,
+        5.7963,
+        7.85511
+      ],
+      "explodeDir": [
+        -0.4291,
+        0.8993,
+        0.085
+      ],
+      "review": "材质 'before_duplicating_helmetaiStandardSurface32' 指向 helmet（合理高度 0.90–1.01），但实际 h=0.74，位置判定为 chest",
+      "material": "before_duplicating_helmetaiStandardSurface32"
+    },
+    {
+      "node": 47,
+      "name": "polySurface592_before_duplicating_helmet:aiStandardSurface33_0",
+      "part": "abdomen",
+      "side": "C",
+      "flag": null,
+      "h": 0.6645,
+      "lat": 0.0,
+      "tris": 5748,
+      "center": [
+        0.0,
+        12.0764,
+        9.68481
+      ],
+      "size": [
+        3.85662,
+        1.37031,
+        2.48502
+      ],
+      "explodeDir": [
+        0.0,
+        0.7395,
+        0.6732
+      ],
+      "review": "材质 'before_duplicating_helmetaiStandardSurface33' 指向 helmet（合理高度 0.90–1.01），但实际 h=0.66，位置判定为 abdomen",
+      "material": "before_duplicating_helmetaiStandardSurface33"
+    },
+    {
+      "node": 51,
+      "name": "polySurface208_before_duplicating_helmet:aiStandardSurface38_0",
+      "part": "abdomen",
+      "side": "C",
+      "flag": null,
+      "h": 0.6401,
+      "lat": 0.0,
+      "tris": 23388,
+      "center": [
+        0.0,
+        11.61314,
+        10.452
+      ],
+      "size": [
+        1.80912,
+        1.98373,
+        0.33764
+      ],
+      "explodeDir": [
+        0.0,
+        0.5933,
+        0.805
+      ],
+      "review": "材质 'before_duplicating_helmetaiStandardSurface38' 指向 helmet（合理高度 0.90–1.01），但实际 h=0.64，位置判定为 abdomen",
+      "material": "before_duplicating_helmetaiStandardSurface38"
+    },
+    {
+      "node": 52,
+      "name": "polySurface208_before_duplicating_helmet:aiStandardSurface40_0",
+      "part": "abdomen",
+      "side": "C",
+      "flag": null,
+      "h": 0.6339,
+      "lat": -0.0,
+      "tris": 664,
+      "center": [
+        -0.0,
+        11.49479,
+        10.6965
+      ],
+      "size": [
+        1.88413,
+        1.75495,
+        0.34226
+      ],
+      "explodeDir": [
+        -0.0,
+        0.5506,
+        0.8348
+      ],
+      "review": "材质 'before_duplicating_helmetaiStandardSurface40' 指向 helmet（合理高度 0.90–1.01），但实际 h=0.63，位置判定为 abdomen",
+      "material": "before_duplicating_helmetaiStandardSurface40"
+    },
+    {
+      "node": 49,
+      "name": "polySurface569_before_duplicating_helmet:aiStandardSurface33_0",
+      "part": "abdomen",
+      "side": "C",
+      "flag": null,
+      "h": 0.5839,
+      "lat": 0.0,
+      "tris": 16720,
+      "center": [
+        0.0,
+        10.54556,
+        9.22421
+      ],
+      "size": [
+        5.1476,
+        9.60279,
+        3.64784
+      ],
+      "explodeDir": [
+        0.0,
+        0.5559,
+        0.8312
+      ],
+      "review": "体积为 abdomen 组中位数的 25 倍",
+      "material": "before_duplicating_helmetaiStandardSurface33"
+    },
+    {
+      "node": 21,
+      "name": "polySurface333_before_duplicating_helmet:aiStandardSurface28_0",
+      "part": "forearm",
+      "side": "L",
+      "flag": null,
+      "h": 0.5611,
+      "lat": -1.0007,
+      "tris": 19486,
+      "center": [
+        -4.82205,
+        10.11241,
+        9.87328
+      ],
+      "size": [
+        6.1855,
+        10.92431,
+        4.009
+      ],
+      "explodeDir": [
+        -0.8293,
+        0.1999,
+        0.5219
+      ],
+      "review": "材质 'before_duplicating_helmetaiStandardSurface28' 指向 helmet（合理高度 0.90–1.01），但实际 h=0.56，位置判定为 forearm",
+      "material": "before_duplicating_helmetaiStandardSurface28"
+    },
+    {
+      "node": 23,
+      "name": "polySurface401_aiStandardSurface28_0",
+      "part": "forearm",
+      "side": "R",
+      "flag": null,
+      "h": 0.5611,
+      "lat": 0.9933,
+      "tris": 19486,
+      "center": [
+        4.78628,
+        10.11241,
+        9.87328
+      ],
+      "size": [
+        6.1855,
+        10.92431,
+        4.009
+      ],
+      "explodeDir": [
+        0.8273,
+        0.2009,
+        0.5245
+      ],
+      "review": "材质 'aiStandardSurface28' 指向 helmet（合理高度 0.90–1.01），但实际 h=0.56，位置判定为 forearm",
+      "material": "aiStandardSurface28"
+    },
+    {
+      "node": 36,
+      "name": "polySurface4_before_duplicating_helmet:aiStandardSurface33_0",
+      "part": "thigh",
+      "side": "L",
+      "flag": null,
+      "h": 0.4529,
+      "lat": -0.2223,
+      "tris": 6636,
+      "center": [
+        -1.07129,
+        8.05519,
+        9.00696
+      ],
+      "size": [
+        1.19463,
+        3.23877,
+        2.64051
+      ],
+      "explodeDir": [
+        -0.4154,
+        -0.3471,
+        0.8408
+      ],
+      "review": "材质 'before_duplicating_helmetaiStandardSurface33' 指向 helmet（合理高度 0.90–1.01），但实际 h=0.45，位置判定为 thigh",
+      "material": "before_duplicating_helmetaiStandardSurface33"
+    },
+    {
+      "node": 17,
+      "name": "polySurface121_before_duplicating_helmet:aiStandardSurface31_0",
+      "part": "hand",
+      "side": "L",
+      "flag": null,
+      "h": 0.4122,
+      "lat": -0.8321,
+      "tris": 536,
+      "center": [
+        -4.0096,
+        7.28166,
+        6.49648
+      ],
+      "size": [
+        1.46071,
+        8.52651,
+        9.39345
+      ],
+      "explodeDir": [
+        -0.9204,
+        -0.383,
+        -0.0786
+      ],
+      "review": "材质 'before_duplicating_helmetaiStandardSurface31' 指向 helmet（合理高度 0.90–1.01），但实际 h=0.41，位置判定为 hand",
+      "material": "before_duplicating_helmetaiStandardSurface31"
+    },
+    {
+      "node": 19,
+      "name": "render_swords:polySurface2785_render_swords:aiStandardSurface30_0",
+      "part": "accessory",
+      "side": "L",
+      "flag": "accessory",
+      "h": 0.3325,
+      "lat": -2.2525,
+      "tris": 4108,
+      "center": [
+        -10.85347,
+        5.76665,
+        10.17554
+      ],
+      "size": [
+        3.62655,
+        12.64202,
+        2.6313
+      ],
+      "explodeDir": [
+        -0.9204,
+        -0.27,
+        0.283
+      ],
+      "material": "render_swordsaiStandardSurface30"
+    },
+    {
+      "node": 35,
+      "name": "polySurface4_before_duplicating_helmet:aiStandardSurface29_0",
+      "part": "thigh",
+      "side": "L",
+      "flag": null,
+      "h": 0.3149,
+      "lat": -0.4325,
+      "tris": 22141,
+      "center": [
+        -2.08412,
+        5.43221,
+        8.80196
+      ],
+      "size": [
+        3.82351,
+        10.92829,
+        6.13874
+      ],
+      "explodeDir": [
+        -0.4595,
+        -0.7756,
+        0.4328
+      ],
+      "review": "材质 'before_duplicating_helmetaiStandardSurface29' 指向 helmet（合理高度 0.90–1.01），但实际 h=0.31，位置判定为 thigh",
+      "material": "before_duplicating_helmetaiStandardSurface29"
+    },
+    {
+      "node": 33,
+      "name": "polySurface55_aiStandardSurface29_0",
+      "part": "thigh",
+      "side": "R",
+      "flag": null,
+      "h": 0.3143,
+      "lat": 0.432,
+      "tris": 29577,
+      "center": [
+        2.08169,
+        5.42069,
+        8.80196
+      ],
+      "size": [
+        3.81866,
+        10.92829,
+        6.13874
+      ],
+      "explodeDir": [
+        0.4582,
+        -0.7768,
+        0.4321
+      ],
+      "review": "材质 'aiStandardSurface29' 指向 helmet（合理高度 0.90–1.01），但实际 h=0.31，位置判定为 thigh",
+      "material": "aiStandardSurface29"
+    }
+  ]
+}

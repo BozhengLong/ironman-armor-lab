@@ -6330,7 +6330,7 @@
   },
   "299": {
    "part": "base",
-   "side": "C",
+   "side": "L",
    "flag": "base",
    "assembleDelay": 0.0,
    "radial": [
@@ -6361,7 +6361,7 @@
   },
   "298": {
    "part": "base",
-   "side": "C",
+   "side": "R",
    "flag": "base",
    "assembleDelay": 0.0,
    "radial": [
@@ -6392,7 +6392,7 @@
   },
   "296": {
    "part": "base",
-   "side": "C",
+   "side": "R",
    "flag": "base",
    "assembleDelay": 0.0,
    "radial": [
@@ -6454,7 +6454,7 @@
   },
   "293": {
    "part": "base",
-   "side": "C",
+   "side": "R",
    "flag": "base",
    "assembleDelay": 0.0,
    "radial": [
@@ -6516,7 +6516,7 @@
   },
   "290": {
    "part": "base",
-   "side": "C",
+   "side": "L",
    "flag": "base",
    "assembleDelay": 0.0,
    "radial": [

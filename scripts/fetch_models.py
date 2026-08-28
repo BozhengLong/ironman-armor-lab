@@ -38,6 +38,16 @@ MODELS = {
         "url": "https://sketchfab.com/3d-models/iron-man-11645b0747db4e9bbe4f56568802e01a",
         "license": "CC-BY-4.0",
     },
+    # 第三个模型：用于检验整套管线在「没调过参」的数据上是否成立。
+    # 选它的理由：35 个独立命名节点（class C）、命名是 Maya 默认的 polySurfaceNNN
+    # 不含语义、风格与前两者迥异，且带两把刀 —— 人体计划之外的物件是好的压力测试。
+    "samurai": {
+        "uid": "43cfb1207bc046b89a106e740f2f826e",
+        "title": "High Poly Samurai Mech",
+        "author": "johnnykaddissi (sketchfab.com/johnnykaddissi)",
+        "url": "https://sketchfab.com/3d-models/high-poly-samurai-mech-43cfb1207bc046b89a106e740f2f826e",
+        "license": "CC-BY-4.0",
+    },
     "ironman": {
         "uid": "1a21e1b8f2844956a30d28838d5f816a",
         "title": "Iron Man",

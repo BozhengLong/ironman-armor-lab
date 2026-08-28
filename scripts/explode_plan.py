@@ -70,7 +70,7 @@ ASSEMBLE_INTRA = 0.06     # 组内错峰幅度上限：外层壳后到，才能�
 # 组内错峰会被压到不超过组间间隔的这个比例 —— 否则一组的最外层会晚于
 # 下一组起步（例如肩甲先于它所覆盖的胸甲到位），穿戴顺序就错了。
 ASSEMBLE_INTRA_MAX_RATIO = 0.8
-FIXED_FLAGS = ("base", "body_shell")   # 不参与爆炸，保持原位作参考基准
+FIXED_FLAGS = ("base", "body_shell", "accessory")   # 不参与爆炸，保持原位作参考基准
 CLEAR_VISIBLE = 0.35          # 净间隙 / 自身尺度，超过此值才看得出明显分开
 
 

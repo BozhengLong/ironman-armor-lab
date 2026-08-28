@@ -1,0 +1,40 @@
+{
+ "models": [
+  {
+   "slug": "hulkbuster",
+   "name": "HULKBUSTER",
+   "subtitle": "MARK 44",
+   "parts": 147,
+   "groups": 24,
+   "tris": 694736,
+   "author": "o0ozexo0o (sketchfab.com/dadndan0091)",
+   "license": "CC-BY-4.0",
+   "source": "https://sketchfab.com/3d-models/iron-man-11645b0747db4e9bbe4f56568802e01a",
+   "preview": "./assets/previews/hulkbuster.jpg"
+  },
+  {
+   "slug": "ironman",
+   "name": "IRON MAN",
+   "subtitle": "MARK VI",
+   "parts": 61,
+   "groups": 19,
+   "tris": 140226,
+   "author": "Vfx Boy (sketchfab.com/saini.hitesh16061980)",
+   "license": "CC-BY-4.0",
+   "source": "https://sketchfab.com/3d-models/iron-man-1a21e1b8f2844956a30d28838d5f816a",
+   "preview": "./assets/previews/ironman.jpg"
+  },
+  {
+   "slug": "samurai",
+   "name": "SAMURAI",
+   "subtitle": "MECH FRAME",
+   "parts": 22,
+   "groups": 10,
+   "tris": 477058,
+   "author": "johnnykaddissi (sketchfab.com/johnnykaddissi)",
+   "license": "CC-BY-4.0",
+   "source": "https://sketchfab.com/3d-models/high-poly-samurai-mech-43cfb1207bc046b89a106e740f2f826e",
+   "preview": "./assets/previews/samurai.jpg"
+  }
+ ]
+}

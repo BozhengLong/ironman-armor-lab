@@ -66,3 +66,11 @@ node scripts/compress_models.mjs --tex 1024           # 贴图上限改 1024
 
 若部署到 GitHub Pages，注意 Pages 不解析 Git LFS 指针 —— 本项目未用 LFS，
 资源需在 CI 构建时由 `fetch_models.py` + `compress_models.mjs` 生成后发布。
+
+## 贴图预算需要按模型给
+
+samurai 有 35 张贴图，2048px 下压完仍有 17.56 MB，对首屏太重。
+降到 1024 后是 7.08 MB。
+
+`compress_models.mjs --tex N` 支持按模型指定。三个模型的实际取值：
+hulkbuster / ironman 用 2048，samurai 用 1024。

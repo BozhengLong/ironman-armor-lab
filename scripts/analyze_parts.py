@@ -156,11 +156,22 @@ SIDE_CUTOFF = 0.12      # |lat| 超过此值判左右，否则居中
 # 异常节点判定阈值
 BASE_FLATNESS = 0.15    # 沿上方向的厚度 / 最大水平跨度，低于此值且面积很大 -> 地面/底座
 BASE_SPREAD = 1.5       # 水平跨度需超过中位数的倍数
-SHELL_HEIGHT = 0.55     # 沿上方向跨度 / 整体身高，超过此值 -> 连体内衬，无法归到单一部位
+# 连体内衬的判据：不能只看「跨度多大」，还要看「跨在哪里」。
+# 第三个模型（人形机甲）暴露了这一点：它的腿跨度占全高 0.57、臂占 0.57、
+# 刀占 0.67，都会被单一跨度阈值误判，进而污染高度参考系、让所有分档错位。
+# 真正的连体内衬是「从最底贯到最顶」——ironman 的 Object_6 是 0.00→0.87。
+SHELL_HEIGHT = 0.55     # 沿上方向的跨度下限（占全高）
+SHELL_BOTTOM = 0.12     # 底端须低于此高度
+SHELL_TOP = 0.80        # 顶端须高于此高度（两条同时满足才算贯穿全身）
+
+# 横向远在人形之外的物件（如立在一旁的刀），不属于身体计划。
+# lat 本身按 p95 归一化，所以 1.5 意味着超出 95 分位一半 —— 是统计判据而非拍脑袋。
+# 实测：两个钢铁侠模型最大 |lat| 为 1.02 与 1.10，samurai 的刀为 2.25。
+ACCESSORY_LAT = 1.5
 
 PART_ORDER = ["helmet", "neck", "shoulder", "chest", "abdomen", "pelvis",
               "upper_arm", "forearm", "hand", "thigh", "shin", "foot",
-              "body_shell", "base", "unknown"]
+              "accessory", "body_shell", "base", "unknown"]
 
 
 def robust_up_axis(parts):
@@ -190,7 +201,12 @@ def flag_outliers(parts, up):
     hi = max(p["max"][up] for p in kept)
     H = max(hi - lo, 1e-9)
     for p in kept:
-        if p["size"][up] > SHELL_HEIGHT * H:
+        if p["size"][up] <= SHELL_HEIGHT * H:
+            continue
+        bottom = (p["min"][up] - lo) / H
+        top = (p["max"][up] - lo) / H
+        # 必须同时贴底和贴顶，才算覆盖整个人形，而不是一条长腿或一把刀
+        if bottom < SHELL_BOTTOM and top > SHELL_TOP:
             p["flag"] = "body_shell"
 
 
@@ -261,9 +277,12 @@ def classify(parts, up, lat):
         p["h"] = round(float((p["center"][up] - lo) / h_span), 4)
         p["lat"] = round(float((p["center"][lat] - lat_c) / half_w), 4)
 
+        if p["flag"] is None and abs(p["lat"]) > ACCESSORY_LAT:
+            p["flag"] = "accessory"      # 横向离群：不属于人形本体
         if p["flag"]:
             p["part"] = p["flag"]
-            p["side"] = "C"
+            p["side"] = ("L" if p["lat"] < -SIDE_CUTOFF
+                         else ("R" if p["lat"] > SIDE_CUTOFF else "C"))
         else:
             p["part"] = "unknown"
             for b_lo, b_hi, central, lateral in BANDS:

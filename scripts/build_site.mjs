@@ -124,6 +124,15 @@ for (const f of fs.readdirSync(manDir)) {
   manCount++;
 }
 
+// 清单缩略图
+const prevDir = path.join(ROOT, 'assets', 'previews');
+if (fs.existsSync(prevDir)) {
+  for (const f of fs.readdirSync(prevDir)) {
+    if (!/\.(jpg|jpeg|png|webp)$/i.test(f)) continue;
+    add('缩略图', copy(path.join(prevDir, f), path.join(OUT, 'assets', 'previews', f)));
+  }
+}
+
 // 压缩后的模型
 const distDir = path.join(ROOT, 'assets', 'dist');
 const models = [];
