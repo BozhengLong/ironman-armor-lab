@@ -36,10 +36,16 @@ const modeArg = (() => {
   const i = args.indexOf('--mode');
   return i >= 0 ? args[i + 1] : 'both';
 })();
-const texSize = (() => {
+// 贴图预算按模型给：samurai 有 35 张贴图，2048 下压完仍有 17.56 MB，
+// 降到 1024 是 7.08 MB。写进配置而不是靠调用时记得传 --tex，
+// 否则 CI 用默认值会产出和本地不同的产物。
+const TEX_BUDGET = { samurai: 1024 };
+const TEX_DEFAULT = 2048;
+const texOverride = (() => {
   const i = args.indexOf('--tex');
-  return i >= 0 ? Number(args[i + 1]) : 2048;
+  return i >= 0 ? Number(args[i + 1]) : null;
 })();
+const texFor = (slug) => texOverride ?? TEX_BUDGET[slug] ?? TEX_DEFAULT;
 const slugs = args.filter((a, i) =>
   !a.startsWith('--') && args[i - 1] !== '--mode' && args[i - 1] !== '--tex');
 
@@ -124,7 +130,7 @@ async function run(slug, mode, io) {
     // 降到 2048 转 WebP —— 模型在屏幕上不到 1000px，2048 已远超所需。
     textureCompress({
       encoder: sharp, targetFormat: 'webp',
-      resize: [texSize, texSize], quality: 82,
+      resize: [texFor(slug), texFor(slug)], quality: 82,
     }),
     mode === 'draco'
       ? draco({ method: 'edgebreaker' })
@@ -161,7 +167,8 @@ const targets = slugs.length ? slugs
   : fs.readdirSync(RAW).filter((d) => fs.statSync(path.join(RAW, d)).isDirectory());
 const modes = modeArg === 'both' ? ['meshopt', 'draco'] : [modeArg];
 
-console.log(`模型: ${targets.join(', ')}   编码: ${modes.join(', ')}   贴图上限: ${texSize}px\n`);
+console.log(`模型: ${targets.join(', ')}   编码: ${modes.join(', ')}   贴图上限: `
+  + targets.map((t) => `${t}=${texFor(t)}`).join(' ') + '\n');
 const results = [];
 for (const slug of targets) {
   for (const mode of modes) results.push(await run(slug, mode, io));
