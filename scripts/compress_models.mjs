@@ -167,6 +167,28 @@ for (const slug of targets) {
   for (const mode of modes) results.push(await run(slug, mode, io));
 }
 
+// 每个模型产出 index.json，列出可用编码与体积，供运行时挑最小的
+const byslug = {};
+for (const r of results) {
+  if (r && r.ok) (byslug[r.slug] ||= {})[r.mode] = r.outBytes;
+}
+for (const [slug, modeMap] of Object.entries(byslug)) {
+  const merged = { ...modeMap };
+  const idx = path.join(DIST, slug, 'index.json');
+  if (fs.existsSync(idx)) {              // 单独跑某一种编码时，保留其它已有条目
+    try { Object.assign(merged, JSON.parse(fs.readFileSync(idx, 'utf8')), modeMap); }
+    catch { /* 损坏就整体重写 */ }
+  }
+  // 去掉文件已不存在的条目
+  for (const m of Object.keys(merged)) {
+    if (!fs.existsSync(path.join(DIST, slug, `model.${m}.glb`))) delete merged[m];
+  }
+  fs.writeFileSync(idx, JSON.stringify(merged, null, 1) + '\n');
+  const best = Object.entries(merged).sort((a, b) => a[1] - b[1])[0];
+  console.log(`[index  ] ${slug.padEnd(11)} ${Object.keys(merged).join(', ')}` +
+              `   运行时默认取 ${best[0]} (${MB(best[1])})`);
+}
+
 const bad = results.filter((r) => r && !r.ok);
 if (bad.length) {
   console.error(`\n${bad.length} 项因节点结构变动被拒绝。`);

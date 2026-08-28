@@ -115,8 +115,8 @@
 
 <script type="importmap">
 {"imports":{
-  "three":"/node_modules/three/build/three.module.js",
-  "three/addons/":"/node_modules/three/examples/jsm/"
+  "three":"./node_modules/three/build/three.module.js",
+  "three/addons/":"./node_modules/three/examples/jsm/"
 }}
 </script>
 <script type="module">
@@ -131,18 +131,24 @@ const params = new URLSearchParams(location.search);
 const slug = params.get('model') || MODELS[0];
 const srcPref = params.get('src') || 'auto';   // auto | raw | meshopt | draco
 
-// 优先用压缩产物，缺失则回退到未压缩的 scene.gltf
+// 优先用压缩产物：读 dist/index.json（由 compress_models.mjs 生成）挑体积最小的。
+// 哪种编码更小取决于模型 —— hulkbuster 上 draco 明显更好，ironman 上 meshopt 更好，
+// 所以不能写死顺序。缺失则回退到未压缩的 scene.gltf。
 async function resolveSource(name) {
-  const tryList = srcPref === 'raw' ? []
-    : srcPref === 'auto' ? ['meshopt', 'draco'] : [srcPref];
-  for (const mode of tryList) {
-    const url = `/assets/dist/${name}/model.${mode}.glb`;
-    try {
-      const r = await fetch(url, { method: 'HEAD' });
-      if (r.ok) return { url, mode, bytes: Number(r.headers.get('content-length') || 0) };
-    } catch { /* 继续尝试下一个 */ }
-  }
-  return { url: `/assets/raw/${name}/scene.gltf`, mode: 'raw', bytes: 0 };
+  const raw = { url: `./assets/raw/${name}/scene.gltf`, mode: 'raw', bytes: 0 };
+  if (srcPref === 'raw') return raw;
+  let index = null;
+  try {
+    const r = await fetch(`./assets/dist/${name}/index.json`);
+    if (r.ok) index = await r.json();
+  } catch { /* 无压缩产物，回退 */ }
+  if (!index || !Object.keys(index).length) return raw;
+
+  const pick = srcPref === 'auto'
+    ? Object.entries(index).sort((a, b) => a[1] - b[1])[0]
+    : (index[srcPref] !== undefined ? [srcPref, index[srcPref]] : null);
+  if (!pick) return raw;
+  return { url: `./assets/dist/${name}/model.${pick[0]}.glb`, mode: pick[0], bytes: pick[1] };
 }
 const $ = (id) => document.getElementById(id);
 
@@ -223,10 +229,10 @@ async function loadModel(name) {
   loadStart = performance.now();
 
   const [manifest, explodePlan] = await Promise.all([
-    fetch(`/assets/manifests/${name}.json`).then(r => {
+    fetch(`./assets/manifests/${name}.json`).then(r => {
       if (!r.ok) throw new Error(`manifest ${r.status}`); return r.json();
     }),
-    fetch(`/assets/manifests/${name}.explode.json`).then(r => {
+    fetch(`./assets/manifests/${name}.explode.json`).then(r => {
       if (!r.ok) throw new Error(`explode plan ${r.status}`); return r.json();
     }),
   ]);
@@ -236,7 +242,7 @@ async function loadModel(name) {
   const source = await resolveSource(name);
   const loader = new GLTFLoader();
   const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath('/node_modules/three/examples/jsm/libs/draco/');
+  dracoLoader.setDecoderPath('./node_modules/three/examples/jsm/libs/draco/');
   loader.setDRACOLoader(dracoLoader);
   loader.setMeshoptDecoder(MeshoptDecoder);
 

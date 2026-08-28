@@ -1,0 +1,103 @@
+name: Build & Deploy Pages
+
+# push 只做构建与校验，不发布 —— 发布必须手动触发。
+# 因为 GitHub Pages 站点是公开可访问的（私有 Pages 属 Enterprise 功能），
+# 而本仓库设为 private 正是出于 3D 资源来源不明的考虑。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: '发布到 Pages（站点将公开可访问）'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: npm ci
+      - run: pip install numpy
+
+      # 资源不入库，按 assets.lock.json 的哈希缓存 —— 锁文件变了才重新下载
+      - name: 缓存 3D 资源
+        id: assets-cache
+        uses: actions/cache@v4
+        with:
+          path: assets/raw
+          key: assets-${{ hashFiles('assets/assets.lock.json') }}
+
+      - name: 下载 3D 资源
+        if: steps.assets-cache.outputs.cache-hit != 'true'
+        env:
+          SKETCHFAB_TOKEN: ${{ secrets.SKETCHFAB_TOKEN }}
+        run: |
+          if [ -z "$SKETCHFAB_TOKEN" ]; then
+            echo "::error::缺少 SKETCHFAB_TOKEN secret，且资源缓存未命中，无法获取模型。"
+            echo "::error::设置方式: gh secret set SKETCHFAB_TOKEN"
+            exit 1
+          fi
+          python3 scripts/fetch_models.py
+
+      # 无论走缓存还是新下载，都按锁文件校验字节一致
+      - name: 校验资源校验和
+        run: python3 scripts/fetch_models.py --verify
+
+      - name: 回归测试
+        run: npm test
+
+      - name: 重算部件与爆炸规划并检查与入库版本一致
+        run: |
+          python3 scripts/analyze_parts.py assets/raw/hulkbuster/scene.gltf
+          python3 scripts/analyze_parts.py assets/raw/ironman/scene.gltf
+          python3 scripts/explode_plan.py assets/manifests/hulkbuster.json
+          python3 scripts/explode_plan.py assets/manifests/ironman.json
+          if ! git diff --quiet -- assets/manifests; then
+            echo "::error::重算结果与入库的 manifest 不一致："
+            git diff --stat -- assets/manifests
+            exit 1
+          fi
+          echo "manifest 可复现 ✓"
+
+      - name: 压缩资源
+        run: node scripts/compress_models.mjs
+
+      - name: 组装站点
+        run: node scripts/build_site.mjs
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    # 仅手动触发且勾选 deploy 时才发布
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
