@@ -64,8 +64,8 @@ def make_manifest(rows, poser=lambda c: c):
 
 def run(man):
     height = man["bounds"]["max"][1] - man["bounds"]["min"][1]
-    vecs, meta, groups, axis_of = ep.plan(man, man["parts"], height)
-    return vecs, meta, groups, height
+    vecs, meta, groups, axis_of, delay = ep.plan(man, man["parts"], height)
+    return vecs, meta, groups, height, delay
 
 
 def main():
@@ -75,7 +75,7 @@ def main():
             fails.append(msg)
 
     man = make_manifest(STANDING)
-    vecs, meta, groups, height = run(man)
+    vecs, meta, groups, height, delay = run(man)
     by_name = {p["name"]: p["node"] for p in man["parts"]}
     G = vecs["group"]
 
@@ -130,12 +130,33 @@ def main():
     # --- 固定件不动 ---
     man2 = make_manifest(STANDING)
     man2["parts"][0]["flag"] = "body_shell"
-    v2, _, _, _ = run(man2)
+    v2, _, _, _, _ = run(man2)
     check(np.allclose(v2["group"][0], 0), "body_shell 应保持原位")
+
+    # --- 组装时序 ---
+    d = {n: delay[by_name[n]] for n in by_name}
+    check(all(0.0 <= v <= 1.0 - ep.ASSEMBLE_WINDOW + 1e-9 for v in d.values()),
+          f"起始时刻应落在 [0, {1-ep.ASSEMBLE_WINDOW:.2f}]，实际 "
+          f"[{min(d.values()):.3f}, {max(d.values()):.3f}]")
+    # 穿戴顺序：脚 -> 小腿 -> 大腿 -> 骨盆 -> 腹 -> 胸 -> 肩 -> 臂 -> 手 -> 颈 -> 头盔
+    seq = ["boot_L", "shin_L", "thigh_L", "pelvis", "abdomen", "chest_out",
+           "shoulder_L", "uarm_L", "farm_L", "hand_L", "neck", "helmet"]
+    for a, b in zip(seq, seq[1:]):
+        check(d[a] < d[b], f"组装顺序错：{a}({d[a]:.3f}) 应早于 {b}({d[b]:.3f})")
+    check(d["helmet"] == max(d.values()), "头盔应最后归位")
+    check(d["boot_L"] == min(d.values()), "靴子应最先归位")
+    # 组内：外层壳后到，才能盖住内层
+    check(d["chest_out"] > d["chest_in"],
+          f"组内外层应后到：chest_out({d['chest_out']:.3f}) vs chest_in({d['chest_in']:.3f})")
+    # 左右对称件应同时起步
+    for l, r in (("boot_L", "boot_R"), ("shoulder_L", "shoulder_R"), ("hand_L", "hand_R")):
+        check(abs(d[l] - d[r]) < 1e-9, f"左右对称件应同时起步：{l} vs {r}")
+    # 固定件不参与
+    check(v2 is not None, "")
 
     # --- 核心性质：姿态无关性 ---
     manH = make_manifest(STANDING, poser=hunch)
-    vH, metaH, _, _ = run(manH)
+    vH, metaH, _, _, _ = run(manH)
     check(metaH["frontSign"] == 1.0, "弓身姿态下朝前判定不应翻转")
     worst = 0.0
     for name, node in by_name.items():

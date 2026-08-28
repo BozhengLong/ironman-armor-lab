@@ -58,6 +58,18 @@ GROUP_SPREAD = 0.14           # groupSpread 模式分配给每组的组内总展
 # 间距按各零件在组轴上的自身厚度分配 —— 大零件给大间隙 —— 再归一化到这个总量，
 # 这样 39 个手指的组不会拉成一条无限长的线。
 DRILL_TOTAL = 0.55
+
+# 组装顺序（数字越小越先归位），模拟穿戴过程：脚 -> 腿 -> 躯干 -> 臂 -> 头。
+# 头盔放最后 —— 那是这套动作的收尾镜头。
+ASSEMBLE_ORDER = {
+    "foot": 0, "shin": 1, "thigh": 2, "pelvis": 3, "abdomen": 4, "chest": 5,
+    "shoulder": 6, "upper_arm": 7, "forearm": 8, "hand": 9, "neck": 10, "helmet": 11,
+}
+ASSEMBLE_WINDOW = 0.30    # 单个零件的运动占整条时间轴的比例
+ASSEMBLE_INTRA = 0.06     # 组内错峰幅度上限：外层壳后到，才能盖在内层上
+# 组内错峰会被压到不超过组间间隔的这个比例 —— 否则一组的最外层会晚于
+# 下一组起步（例如肩甲先于它所覆盖的胸甲到位），穿戴顺序就错了。
+ASSEMBLE_INTRA_MAX_RATIO = 0.8
 FIXED_FLAGS = ("base", "body_shell")   # 不参与爆炸，保持原位作参考基准
 CLEAR_VISIBLE = 0.35          # 净间隙 / 自身尺度，超过此值才看得出明显分开
 
@@ -185,6 +197,20 @@ def plan(man, parts, height, front_override=None):
             cum_of[node] = (acc / total) if total > 1e-9 else 0.0
             acc += thick
 
+    # 每个零件的组装起始时刻，归一化到 [0, 1-ASSEMBLE_WINDOW]
+    max_order = max(ASSEMBLE_ORDER.values())
+    spacing = (1.0 - ASSEMBLE_WINDOW) / (max_order + 1)
+    intra = min(ASSEMBLE_INTRA, spacing * ASSEMBLE_INTRA_MAX_RATIO)
+    assemble_delay = {}
+    for p in parts:
+        if p.get("flag") in FIXED_FLAGS:
+            assemble_delay[p["node"]] = 0.0
+            continue
+        order = ASSEMBLE_ORDER.get(p["part"])
+        base = (order if order is not None else max_order / 2) * spacing
+        r, rmax = rank_of[p["node"]]
+        assemble_delay[p["node"]] = round(base + (r / rmax) * intra, 5)
+
     for p in parts:
         node = p["node"]
         if p.get("flag") in FIXED_FLAGS:
@@ -221,8 +247,9 @@ def plan(man, parts, height, front_override=None):
         "upSign": up_sign, "frontSign": front_sign, "frontDetectedBy": how,
         "unit": "模型高度的分数", "dilate": DILATE,
         "groupSpread": GROUP_SPREAD, "drillTotal": DRILL_TOTAL,
+        "assembleWindow": ASSEMBLE_WINDOW,
     }
-    return vecs, meta, groups, axis_of
+    return vecs, meta, groups, axis_of, assemble_delay
 
 
 # ---------- 指标 ----------
@@ -269,7 +296,7 @@ def summarize(clear, total):
     }
 
 
-def group_metadata(groups, vecs, height, axis_of):
+def group_metadata(groups, vecs, height, axis_of, assemble_delay):
     """给每个子装配体生成信息面板与相机取景所需的数据。"""
     out = {}
     for key, grp in sorted(groups.items()):
@@ -294,6 +321,7 @@ def group_metadata(groups, vecs, height, axis_of):
         g_lo, g_hi = bounds_at("group")
         d_lo, d_hi = bounds_at("drill")
         hs = [m["h"] for m in ms]
+        ds = [assemble_delay[m["node"]] for m in ms]
         out[f"{part}/{side}"] = {
             "part": part, "side": side,
             "nodes": [m["node"] for m in ms],
@@ -302,6 +330,8 @@ def group_metadata(groups, vecs, height, axis_of):
             "materials": mats,
             "emissive": emissive,
             "hRange": [round(min(hs), 3), round(max(hs), 3)],
+            "assembleOrder": ASSEMBLE_ORDER.get(part),
+            "assembleDelay": [round(min(ds), 4), round(max(ds), 4)],
             "axis": [round(float(x), 4) for x in axis_of[key]],
             "bounds": {"min": [round(float(x), 4) for x in grp["min"]],
                        "max": [round(float(x), 4) for x in grp["max"]]},
@@ -342,7 +372,7 @@ def main():
     up_i = AXES.index(man["upAxis"])
     height = float(man["bounds"]["max"][up_i] - man["bounds"]["min"][up_i])
 
-    vecs, meta, groups, axis_of = plan(man, parts, height, a.front)
+    vecs, meta, groups, axis_of, assemble_delay = plan(man, parts, height, a.front)
 
     print(f"manifest  : {mpath.name}")
     print(f"规范坐标系: 上={meta['upAxis']}({meta['upSign']:+.0f}) "
@@ -394,10 +424,11 @@ def main():
         "manifest": mpath.name, "frame": meta, "height": round(height, 5),
         "modes": list(vecs), "defaultMode": "group",
         "boundsAtFull": bounds,
-        "groups": group_metadata(groups, vecs, height, axis_of),
+        "groups": group_metadata(groups, vecs, height, axis_of, assemble_delay),
         "parts": {
             str(p["node"]): {
                 "part": p["part"], "side": p["side"], "flag": p.get("flag"),
+                "assembleDelay": assemble_delay[p["node"]],
                 **{m: [round(float(x), 5) for x in vecs[m][p["node"]]] for m in vecs},
             } for p in parts
         },

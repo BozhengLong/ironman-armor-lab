@@ -76,6 +76,7 @@
   <div class="row"><span>ELEVATION</span><span class="val" id="el">0.0°</span></div>
   <div class="row"><span>ORTHO ZOOM</span><span class="val" id="zm">1.00</span></div>
   <div class="row"><span>EXPLODE</span><span class="val" id="ex">0%</span></div>
+  <div class="row"><span>MOTION</span><span class="val" id="mo">IDLE</span></div>
   <div class="sect">
     <div class="row"><span>FPS</span><span class="val" id="fps">—</span></div>
     <div class="row"><span>TRIANGLES</span><span class="val" id="tri">—</span></div>
@@ -94,6 +95,7 @@
     <span class="lbl">EXPLODE</span>
     <input type="range" id="slider" min="0" max="1" step="0.001" value="0">
     <button id="btnParts" aria-pressed="false">PARTS</button>
+    <button id="btnAssemble">ASSEMBLE</button>
     <button id="btnDebris" aria-pressed="false">DEBRIS</button>
     <button id="btnModel">SWITCH</button>
   </div>
@@ -175,6 +177,8 @@ scene.background = new THREE.Color(0x0a0c0f);
 // 正交相机：追求工程图观感，无透视畸变
 const FRUSTUM = 1.5;
 const FIT_MARGIN = 1.06;          // 取景留边（对角线取景已偏保守）
+const ASSEMBLE_SECONDS = 4.2;     // 整条组装时间轴的时长
+const ASSEMBLE_BACK = 1.08;       // 到位时的轻微过冲，读作机械咬合；过大会穿模
 let aspect = innerWidth / innerHeight;
 const camera = new THREE.OrthographicCamera(
   -FRUSTUM * aspect / 2, FRUSTUM * aspect / 2, FRUSTUM / 2, -FRUSTUM / 2, -50, 50);
@@ -206,6 +210,7 @@ const state = {
   explode: 0, targetExplode: 0, showDebris: false, userZoom: 1,
   mode: 'groupSpread',
   selected: null, drill: 0, targetDrill: 0,
+  assembling: false, assembleT: 0,
   zoomFitDrill: 1, targetDrillPos: new THREE.Vector3(),
   zoomFit: 1, zoomFitFull: 1,
   targetAssembled: new THREE.Vector3(), targetFull: new THREE.Vector3(),
@@ -219,6 +224,7 @@ let plan = null;         // <slug>.explode.json
 let groupIndex = {};     // "部位/左右" -> 组元数据
 let partsByGroup = new Map();
 let pickTargets = [];    // 可拾取的 Mesh
+let emissiveMats = [];   // {mat, base} —— 组装收尾时点亮
 let modelScale = 1;
 let loadStart = performance.now();
 
@@ -320,6 +326,7 @@ function buildVectors(gltfScene) {
     const entry = plan.parts[String(p.meta.node)];
     p.vecLocal = {};
     if (!entry) continue;
+    p.assembleDelay = entry.assembleDelay ?? 0;
     M.copy(p.obj.parent.matrixWorld).invert().multiply(gltfScene.matrixWorld);
     m3.setFromMatrix4(M);
     for (const mode of plan.modes) {
@@ -400,6 +407,25 @@ function buildGroups() {
       }
     }
   }
+
+  // 发光材质：manifest 标记的（hulkbuster 的 light 系材质），
+  // 以及自带 emissive 贴图的（ironman 的方舟反应堆）。
+  // 组装期间压到 0，收尾时拉起来 —— 这是这段动作的落点。
+  emissiveMats = [];
+  const seen = new Set();
+  for (const p of parts) {
+    for (const m of p.meshes) for (const mm of matList(m)) {
+      if (seen.has(mm.uuid)) continue;
+      if (!mm.emissive) continue;
+      if (!p.meta.emissive && !mm.emissiveMap) continue;
+      seen.add(mm.uuid);
+      emissiveMats.push({ mat: mm, base: mm.emissiveIntensity ?? 1 });
+    }
+  }
+}
+
+function setEmissiveLevel(x) {
+  for (const e of emissiveMats) e.mat.emissiveIntensity = e.base * x;
 }
 
 function disposeTree(o) {
@@ -421,6 +447,22 @@ function applyDebris() {
 
 // ---------- 爆炸 ----------
 const _a = new THREE.Vector3(), _b = new THREE.Vector3();
+
+// 到位缓动：末段减速并轻微过冲，比线性或纯 easeOut 更像机械咬合
+function easeOutBack(x) {
+  const c = ASSEMBLE_BACK, c3 = c + 1;
+  return 1 + c3 * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2);
+}
+
+// 组装期间每个零件走自己的时间轴：按烘焙好的 assembleDelay 错峰启动。
+// 这是 ASSEMBLE 与「爆炸倒放」的本质区别 —— 靴子先归位、头盔最后。
+function partFactor(p) {
+  if (!state.assembling) return state.explode;
+  const d = p.assembleDelay ?? 0;
+  const w = plan.frame?.assembleWindow ?? 0.30;
+  const local = THREE.MathUtils.clamp((state.assembleT - d) / w, 0, 1);
+  return 1 - easeOutBack(local);
+}
 
 // 非选中组: base + 组向量 × 爆炸进度
 // 选中组:   base + lerp(组向量 × 爆炸进度, 钻取向量, 钻取进度)
@@ -628,6 +670,29 @@ renderer.domElement.addEventListener('pointermove', (e) => {
 addEventListener('keydown', (e) => { if (e.key === 'Escape') selectGroup(null); });
 $('insClose').onclick = () => selectGroup(null);
 
+function startAssemble() {
+  if (!parts.length) return;
+  selectGroup(null);
+  state.assembling = true;
+  state.assembleT = 0;
+  state.explode = 1;            // 取景从全爆炸态起步
+  state.targetExplode = 0;
+  $('slider').value = 0;
+  $('btnParts').setAttribute('aria-pressed', 'false');
+  $('btnAssemble').setAttribute('aria-pressed', 'true');
+  setEmissiveLevel(0);
+  applyTransforms();
+}
+
+function stopAssemble(complete) {
+  state.assembling = false;
+  state.assembleT = 0;
+  $('btnAssemble').setAttribute('aria-pressed', 'false');
+  if (complete) { state.explode = 0; state.targetExplode = 0; }
+  setEmissiveLevel(1);
+  applyTransforms();
+}
+
 function buildModeButtons() {
   const el = $('modes');
   el.innerHTML = '';
@@ -646,11 +711,16 @@ function buildModeButtons() {
 }
 let currentBox = null, currentCenter = null;
 
+$('btnAssemble').onclick = () => {
+  state.assembling ? stopAssemble(false) : startAssemble();
+};
 $('slider').oninput = (e) => {
+  if (state.assembling) stopAssemble(false);
   state.targetExplode = Number(e.target.value);
   $('btnParts').setAttribute('aria-pressed', String(state.targetExplode > 0.001));
 };
 $('btnParts').onclick = () => {
+  if (state.assembling) stopAssemble(false);
   state.targetExplode = state.targetExplode > 0.001 ? 0 : 1;
   $('slider').value = state.targetExplode;
   $('btnParts').setAttribute('aria-pressed', String(state.targetExplode > 0.001));
@@ -694,11 +764,28 @@ function tick() {
     camera.lookAt(controls.target);
   }
 
-  // 爆炸与钻取补间
+  // 组装时间轴
+  const now0 = performance.now();
+  const dt = Math.min((now0 - (tick.last || now0)) / 1000, 0.1);   // 卡顿时钳住步长
+  tick.last = now0;
+
   let dirty = false;
+  if (state.assembling) {
+    state.assembleT += dt / ASSEMBLE_SECONDS;
+    // 取景整体从全爆炸收到装配态；位置由 partFactor 各自的时间轴驱动
+    state.explode = 1 - THREE.MathUtils.smoothstep(state.assembleT, 0, 1);
+    // 收尾 18% 点亮
+    setEmissiveLevel(THREE.MathUtils.smoothstep(state.assembleT, 0.82, 1.0));
+    dirty = true;
+    if (state.assembleT >= 1) stopAssemble(true);
+  }
+
+  // 爆炸与钻取补间
+  if (!state.assembling) {
   if (Math.abs(state.explode - state.targetExplode) > 0.0004) {
     state.explode += (state.targetExplode - state.explode) * 0.1;
     dirty = true;
+  }
   }
   if (Math.abs(state.drill - state.targetDrill) > 0.0004) {
     state.drill += (state.targetDrill - state.drill) * 0.12;
@@ -737,6 +824,8 @@ function tick() {
   $('el').textContent = (90 - THREE.MathUtils.radToDeg(sph.phi)).toFixed(1) + '°';
   $('zm').textContent = camera.zoom.toFixed(2);
   $('ex').textContent = Math.round(state.explode * 100) + '%';
+  $('mo').textContent = state.assembling
+    ? `ASSEMBLE ${Math.round(state.assembleT * 100)}%` : 'IDLE';
 }
 
 loadModel(slug).then(tick).catch((e) => {
@@ -748,6 +837,8 @@ loadModel(slug).then(tick).catch((e) => {
 
 window.__setExplode = (v) => { state.targetExplode = v; $('slider').value = v; };
 window.__setView = setView;
+window.__assemble = startAssemble;
+window.__stopAssemble = stopAssemble;
 window.__setMode = (m) => {
   if (!plan.modes.includes(m)) throw new Error('unknown mode ' + m);
   state.mode = m;

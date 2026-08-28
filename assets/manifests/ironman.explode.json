@@ -10,7 +10,8 @@
   "unit": "模型高度的分数",
   "dilate": 0.3,
   "groupSpread": 0.14,
-  "drillTotal": 0.55
+  "drillTotal": 0.55,
+  "assembleWindow": 0.3
  },
  "height": 2.54332,
  "modes": [
@@ -107,6 +108,11 @@
     0.58,
     0.665
    ],
+   "assembleOrder": 4,
+   "assembleDelay": [
+    0.2333,
+    0.28
+   ],
    "axis": [
     0.0,
     -0.1498,
@@ -167,6 +173,11 @@
     0.607,
     0.656
    ],
+   "assembleOrder": 4,
+   "assembleDelay": [
+    0.2333,
+    0.28
+   ],
    "axis": [
     0.0,
     -0.1498,
@@ -226,6 +237,11 @@
    "hRange": [
     0.607,
     0.656
+   ],
+   "assembleOrder": 4,
+   "assembleDelay": [
+    0.2333,
+    0.28
    ],
    "axis": [
     0.0,
@@ -290,6 +306,11 @@
     0.695,
     0.813
    ],
+   "assembleOrder": 5,
+   "assembleDelay": [
+    0.2917,
+    0.3383
+   ],
    "axis": [
     0.0,
     0.2496,
@@ -351,6 +372,11 @@
     0.681,
     0.84
    ],
+   "assembleOrder": 5,
+   "assembleDelay": [
+    0.2917,
+    0.3383
+   ],
    "axis": [
     0.0,
     0.2496,
@@ -411,6 +437,11 @@
     0.682,
     0.833
    ],
+   "assembleOrder": 5,
+   "assembleDelay": [
+    0.2917,
+    0.3383
+   ],
    "axis": [
     0.0,
     0.2496,
@@ -470,6 +501,11 @@
    "hRange": [
     0.02,
     0.054
+   ],
+   "assembleOrder": 0,
+   "assembleDelay": [
+    0.0,
+    0.0467
    ],
    "axis": [
     -0.3714,
@@ -535,6 +571,11 @@
     0.48,
     0.539
    ],
+   "assembleOrder": 8,
+   "assembleDelay": [
+    0.4667,
+    0.5133
+   ],
    "axis": [
     -1.0,
     0.0,
@@ -595,6 +636,11 @@
    "hRange": [
     0.9,
     0.938
+   ],
+   "assembleOrder": 11,
+   "assembleDelay": [
+    0.6417,
+    0.6883
    ],
    "axis": [
     0.0,
@@ -659,6 +705,11 @@
     0.84,
     0.892
    ],
+   "assembleOrder": 10,
+   "assembleDelay": [
+    0.5833,
+    0.63
+   ],
    "axis": [
     0.0,
     0.9945,
@@ -718,6 +769,11 @@
     0.844,
     0.857
    ],
+   "assembleOrder": 10,
+   "assembleDelay": [
+    0.5833,
+    0.63
+   ],
    "axis": [
     0.0,
     0.9945,
@@ -775,6 +831,11 @@
    "hRange": [
     0.142,
     0.142
+   ],
+   "assembleOrder": 1,
+   "assembleDelay": [
+    0.0583,
+    0.0583
    ],
    "axis": [
     0.0,
@@ -834,6 +895,11 @@
     0.159,
     0.159
    ],
+   "assembleOrder": 1,
+   "assembleDelay": [
+    0.0583,
+    0.0583
+   ],
    "axis": [
     -0.4244,
     -0.9055,
@@ -892,6 +958,11 @@
     0.817,
     0.817
    ],
+   "assembleOrder": 6,
+   "assembleDelay": [
+    0.35,
+    0.35
+   ],
    "axis": [
     -0.867,
     0.4983,
@@ -949,6 +1020,11 @@
    "hRange": [
     0.817,
     0.817
+   ],
+   "assembleOrder": 6,
+   "assembleDelay": [
+    0.35,
+    0.35
    ],
    "axis": [
     0.867,
@@ -1009,6 +1085,11 @@
     0.413,
     0.442
    ],
+   "assembleOrder": 2,
+   "assembleDelay": [
+    0.1167,
+    0.1633
+   ],
    "axis": [
     -0.6,
     -0.8,
@@ -1067,6 +1148,11 @@
    "hRange": [
     0.413,
     0.448
+   ],
+   "assembleOrder": 2,
+   "assembleDelay": [
+    0.1167,
+    0.1633
    ],
    "axis": [
     0.6,
@@ -1127,6 +1213,11 @@
     0.628,
     0.723
    ],
+   "assembleOrder": 7,
+   "assembleDelay": [
+    0.4083,
+    0.455
+   ],
    "axis": [
     -0.9927,
     0.1203,
@@ -1186,6 +1277,11 @@
     0.577,
     0.648
    ],
+   "assembleOrder": 7,
+   "assembleDelay": [
+    0.4083,
+    0.455
+   ],
    "axis": [
     0.9927,
     0.1203,
@@ -1234,6 +1330,7 @@
    "part": "helmet",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.65722,
    "radial": [
     0.0,
     0.1191,
@@ -1264,6 +1361,7 @@
    "part": "helmet",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.67278,
    "radial": [
     -0.00586,
     0.11983,
@@ -1294,6 +1392,7 @@
    "part": "helmet",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.68833,
    "radial": [
     0.00586,
     0.11983,
@@ -1324,6 +1423,7 @@
    "part": "helmet",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.64167,
    "radial": [
     0.0,
     0.11998,
@@ -1354,6 +1454,7 @@
    "part": "neck",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.63,
    "radial": [
     0.0,
     0.11868,
@@ -1384,6 +1485,7 @@
    "part": "neck",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.62067,
    "radial": [
     0.0,
     0.11996,
@@ -1414,6 +1516,7 @@
    "part": "neck",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.61133,
    "radial": [
     0.0,
     0.11991,
@@ -1444,6 +1547,7 @@
    "part": "neck",
    "side": "R",
    "flag": null,
+   "assembleDelay": 0.63,
    "radial": [
     0.02012,
     0.11785,
@@ -1474,6 +1578,7 @@
    "part": "neck",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.602,
    "radial": [
     -0.00636,
     0.11938,
@@ -1504,6 +1609,7 @@
    "part": "neck",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.58333,
    "radial": [
     0.0,
     0.11621,
@@ -1534,6 +1640,7 @@
    "part": "neck",
    "side": "R",
    "flag": null,
+   "assembleDelay": 0.58333,
    "radial": [
     0.02938,
     0.11633,
@@ -1564,6 +1671,7 @@
    "part": "neck",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.59267,
    "radial": [
     0.0,
     0.11954,
@@ -1594,6 +1702,7 @@
    "part": "chest",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.30722,
    "radial": [
     -0.0297,
     0.11625,
@@ -1624,6 +1733,7 @@
    "part": "chest",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.32278,
    "radial": [
     -0.01869,
     0.11677,
@@ -1654,6 +1764,7 @@
    "part": "chest",
    "side": "R",
    "flag": null,
+   "assembleDelay": 0.315,
    "radial": [
     0.01865,
     0.11678,
@@ -1684,6 +1795,7 @@
    "part": "shoulder",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.35,
    "radial": [
     -0.04515,
     0.11115,
@@ -1714,6 +1826,7 @@
    "part": "shoulder",
    "side": "R",
    "flag": null,
+   "assembleDelay": 0.35,
    "radial": [
     0.04515,
     0.11115,
@@ -1744,6 +1857,7 @@
    "part": "chest",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.29167,
    "radial": [
     0.0,
     0.11402,
@@ -1774,6 +1888,7 @@
    "part": "chest",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.301,
    "radial": [
     -0.00063,
     0.11993,
@@ -1804,6 +1919,7 @@
    "part": "chest",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.33833,
    "radial": [
     0.0,
     0.11556,
@@ -1834,6 +1950,7 @@
    "part": "chest",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.31033,
    "radial": [
     0.0,
     0.11893,
@@ -1864,6 +1981,7 @@
    "part": "chest",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.33833,
    "radial": [
     -0.03267,
     0.11249,
@@ -1894,6 +2012,7 @@
    "part": "chest",
    "side": "R",
    "flag": null,
+   "assembleDelay": 0.33833,
    "radial": [
     0.03267,
     0.11249,
@@ -1924,6 +2043,7 @@
    "part": "upper_arm",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.40833,
    "radial": [
     -0.06164,
     0.10272,
@@ -1954,6 +2074,7 @@
    "part": "chest",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.329,
    "radial": [
     0.0,
     0.1089,
@@ -1984,6 +2105,7 @@
    "part": "chest",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.31967,
    "radial": [
     0.01329,
     0.11872,
@@ -2014,6 +2136,7 @@
    "part": "chest",
    "side": "R",
    "flag": null,
+   "assembleDelay": 0.29167,
    "radial": [
     0.03897,
     0.11015,
@@ -2044,6 +2167,7 @@
    "part": "chest",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.29167,
    "radial": [
     -0.03907,
     0.10962,
@@ -2074,6 +2198,7 @@
    "part": "abdomen",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.28,
    "radial": [
     0.0,
     0.10761,
@@ -2104,6 +2229,7 @@
    "part": "abdomen",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.23333,
    "radial": [
     0.0,
     0.11428,
@@ -2134,6 +2260,7 @@
    "part": "abdomen",
    "side": "R",
    "flag": null,
+   "assembleDelay": 0.23333,
    "radial": [
     0.04433,
     0.10721,
@@ -2164,6 +2291,7 @@
    "part": "abdomen",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.23333,
    "radial": [
     -0.04433,
     0.10721,
@@ -2194,6 +2322,7 @@
    "part": "abdomen",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.27333,
    "radial": [
     0.0,
     0.1093,
@@ -2224,6 +2353,7 @@
    "part": "upper_arm",
    "side": "R",
    "flag": null,
+   "assembleDelay": 0.455,
    "radial": [
     0.084,
     0.08525,
@@ -2254,6 +2384,7 @@
    "part": "abdomen",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.24,
    "radial": [
     0.0,
     0.11237,
@@ -2284,6 +2415,7 @@
    "part": "abdomen",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.26667,
    "radial": [
     0.0,
     0.10416,
@@ -2314,6 +2446,7 @@
    "part": "abdomen",
    "side": "R",
    "flag": null,
+   "assembleDelay": 0.28,
    "radial": [
     0.04817,
     0.10385,
@@ -2344,6 +2477,7 @@
    "part": "abdomen",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.28,
    "radial": [
     -0.04817,
     0.10385,
@@ -2374,6 +2508,7 @@
    "part": "upper_arm",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.455,
    "radial": [
     -0.09715,
     0.07019,
@@ -2404,6 +2539,7 @@
    "part": "abdomen",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.25333,
    "radial": [
     0.0,
     0.10808,
@@ -2434,6 +2570,7 @@
    "part": "abdomen",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.25667,
    "radial": [
     -0.05326,
     0.09972,
@@ -2464,6 +2601,7 @@
    "part": "abdomen",
    "side": "R",
    "flag": null,
+   "assembleDelay": 0.25667,
    "radial": [
     0.05326,
     0.09972,
@@ -2494,6 +2632,7 @@
    "part": "abdomen",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.26,
    "radial": [
     0.0,
     0.09714,
@@ -2524,6 +2663,7 @@
    "part": "abdomen",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.24667,
    "radial": [
     0.0,
     0.09554,
@@ -2554,6 +2694,7 @@
    "part": "upper_arm",
    "side": "R",
    "flag": null,
+   "assembleDelay": 0.40833,
    "radial": [
     0.1102,
     0.0472,
@@ -2584,6 +2725,7 @@
    "part": "forearm",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.51333,
    "radial": [
     -0.11756,
     0.02186,
@@ -2614,6 +2756,7 @@
    "part": "forearm",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.48222,
    "radial": [
     -0.11812,
     0.0182,
@@ -2644,6 +2787,7 @@
    "part": "forearm",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.46667,
    "radial": [
     -0.11506,
     0.01488,
@@ -2674,6 +2818,7 @@
    "part": "forearm",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.47444,
    "radial": [
     -0.11963,
     -0.00424,
@@ -2704,6 +2849,7 @@
    "part": "forearm",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.49778,
    "radial": [
     -0.11754,
     -0.00858,
@@ -2734,6 +2880,7 @@
    "part": "forearm",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.49,
    "radial": [
     -0.1196,
     -0.00973,
@@ -2764,6 +2911,7 @@
    "part": "forearm",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.50556,
    "radial": [
     -0.11893,
     -0.01115,
@@ -2794,6 +2942,7 @@
    "part": "thigh",
    "side": "R",
    "flag": null,
+   "assembleDelay": 0.11667,
    "radial": [
     0.06702,
     -0.05717,
@@ -2824,6 +2973,7 @@
    "part": "thigh",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.11667,
    "radial": [
     -0.06539,
     -0.06166,
@@ -2854,6 +3004,7 @@
    "part": "body_shell",
    "side": "C",
    "flag": "body_shell",
+   "assembleDelay": 0.0,
    "radial": [
     0.0,
     0.0,
@@ -2884,6 +3035,7 @@
    "part": "thigh",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.16333,
    "radial": [
     -0.06462,
     -0.09673,
@@ -2914,6 +3066,7 @@
    "part": "thigh",
    "side": "R",
    "flag": null,
+   "assembleDelay": 0.16333,
    "radial": [
     0.06462,
     -0.09673,
@@ -2944,6 +3097,7 @@
    "part": "shin",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.05833,
    "radial": [
     -0.02802,
     -0.11653,
@@ -2974,6 +3128,7 @@
    "part": "shin",
    "side": "C",
    "flag": null,
+   "assembleDelay": 0.05833,
    "radial": [
     0.00634,
     -0.11976,
@@ -3004,6 +3159,7 @@
    "part": "foot",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.0,
    "radial": [
     -0.02336,
     -0.11744,
@@ -3034,6 +3190,7 @@
    "part": "foot",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.02333,
    "radial": [
     -0.02181,
     -0.11799,
@@ -3064,6 +3221,7 @@
    "part": "foot",
    "side": "L",
    "flag": null,
+   "assembleDelay": 0.04667,
    "radial": [
     -0.02239,
     -0.11705,
