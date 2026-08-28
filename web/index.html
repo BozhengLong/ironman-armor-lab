@@ -209,7 +209,7 @@ scene.add(headlight);
 const state = {
   explode: 0, targetExplode: 0, showDebris: false, userZoom: 1,
   mode: 'groupSpread',
-  selected: null, drill: 0, targetDrill: 0,
+  selected: null, drill: 0, targetDrill: 0, focus: -1,
   assembling: false, assembleT: 0,
   zoomFitDrill: 1, targetDrillPos: new THREE.Vector3(),
   zoomFit: 1, zoomFitFull: 1,
@@ -505,13 +505,45 @@ function setGhostMode(on) {
 
 function updateGhostOpacity() {
   if (!state.selected && state.drill < 0.001) return;
-  const o = THREE.MathUtils.lerp(1, 0.06, state.drill);
+  const outside = THREE.MathUtils.lerp(1, 0.06, state.drill);
+  const sibling = THREE.MathUtils.lerp(1, 0.22, state.drill);
   for (const p of parts) {
-    if (p.groupKey === state.selected) continue;
+    const inGroup = p.groupKey === state.selected;
+    // 组内逐件浏览时，非聚焦的同组件半透，聚焦件保持实体
+    const o = inGroup ? (state.focus < 0 || p.focusIndex === state.focus ? 1 : sibling)
+                      : outside;
     for (const m of p.meshes) for (const mm of matList(m)) {
       if (mm.transparent) mm.opacity = o;
     }
   }
+}
+
+// 组内按钻取轴上的位置排序，逐件浏览时顺序才符合拆解层次
+function indexGroupParts(key) {
+  const list = partsByGroup.get(key) || [];
+  const scored = list.map((p) => ({
+    p, k: p.vecLocal?.drill ? p.vecLocal.drill.length() : 0,
+  })).sort((a, b) => a.k - b.k);
+  scored.forEach((x, i) => { x.p.focusIndex = i; });
+  return scored.map((x) => x.p);
+}
+
+function setFocus(i) {
+  const list = partsByGroup.get(state.selected) || [];
+  if (!list.length) return;
+  state.focus = i < 0 ? -1 : ((i % list.length) + list.length) % list.length;
+  // 同组其余件需要参与透明混合，否则聚焦看不出来
+  const on = state.focus >= 0;
+  for (const p of list) for (const m of p.meshes) for (const mm of matList(m)) {
+    const want = on && p.focusIndex !== state.focus;
+    if (mm.transparent !== want) {
+      mm.transparent = want; mm.depthWrite = !want;
+      mm.forceSinglePass = want; mm.needsUpdate = true;
+    }
+    if (!want) mm.opacity = 1;
+  }
+  updateGhostOpacity();
+  renderInspector();
 }
 
 // ---------- UI ----------
@@ -603,7 +635,9 @@ function selectGroup(key) {
   if (state.selected === key) return;
   state.selected = key;
   state.targetDrill = key ? 1 : 0;
+  state.focus = -1;
   setGhostMode(!!key);
+  if (key) indexGroupParts(key);
   computeDrillFraming();
   renderInspector();
   applyTransforms();
@@ -624,6 +658,8 @@ function renderInspector() {
   const key = state.selected;
   if (!key) { el.style.display = 'none'; return; }
   const g = groupIndex[key];
+  const list = partsByGroup.get(key) || [];
+  const focused = state.focus >= 0 ? list.find((p) => p.focusIndex === state.focus) : null;
   const sideText = { L: 'LEFT', R: 'RIGHT', C: 'CENTER' }[g.side] || g.side;
   $('insName').textContent = g.part.replace(/_/g, ' ').toUpperCase();
   $('insKicker').textContent = `SUBASSEMBLY · ${sideText}`;
@@ -633,11 +669,22 @@ function renderInspector() {
     ['HEIGHT', `${(g.hRange[0] * 100).toFixed(0)}–${(g.hRange[1] * 100).toFixed(0)}%`],
   ];
   if (g.emissive) rows.push(['EMISSIVE', `${g.emissive} ACTIVE`]);
+  if (focused) {
+    rows.length = 0;
+    rows.push(['PART', `${state.focus + 1} / ${list.length}`],
+              ['NAME', focused.meta.name.slice(0, 18)],
+              ['TRIANGLES', focused.meta.tris.toLocaleString()],
+              ['MATERIAL', String(focused.meta.material || '—').slice(0, 16)]);
+    if (focused.meta.emissive) rows.push(['EMISSIVE', 'ACTIVE']);
+  }
   $('insRows').innerHTML =
     rows.map(([k, v]) => `<div class="r"><span>${k}</span>` +
       `<span class="val${k === 'EMISSIVE' ? ' emis' : ''}">${v}</span></div>`).join('') +
-    (g.materials.length
-      ? `<div class="mats">MATERIALS<br>${g.materials.join(' · ')}</div>` : '');
+    (focused
+      ? '<div class="mats">← → 浏览组内零件 · ESC 退出</div>'
+      : (g.materials.length
+          ? `<div class="mats">MATERIALS<br>${g.materials.join(' · ')}</div>`
+            + '<div class="mats">← → 逐件浏览</div>' : ''));
   el.style.display = 'block';
 }
 
@@ -667,7 +714,15 @@ renderer.domElement.addEventListener('pointermove', (e) => {
     renderer.domElement.classList.toggle('pickable', !!hovered);
   }, 120);
 });
-addEventListener('keydown', (e) => { if (e.key === 'Escape') selectGroup(null); });
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (state.focus >= 0) setFocus(-1); else selectGroup(null);
+    return;
+  }
+  if (!state.selected) return;
+  if (e.key === 'ArrowRight' || e.key === ']') { e.preventDefault(); setFocus(state.focus + 1); }
+  if (e.key === 'ArrowLeft' || e.key === '[') { e.preventDefault(); setFocus(state.focus - 1); }
+});
 $('insClose').onclick = () => selectGroup(null);
 
 function startAssemble() {
@@ -848,6 +903,7 @@ window.__setMode = (m) => {
 };
 window.__state = state;
 window.__select = selectGroup;
+window.__focus = setFocus;
 window.__groups = () => Object.keys(groupIndex);
 // 结构指纹只能证明节点没被重排；这里进一步验证运行时按 node 索引取到的
 // 对象，确实是 manifest 里记录的那个零件 —— 比对各自的世界包围盒中心。

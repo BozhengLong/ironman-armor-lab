@@ -16,7 +16,8 @@ npm run dev                         # http://localhost:8732/
 
 URL 参数：`?model=hulkbuster|ironman`、`?src=auto|raw|meshopt|draco`。
 
-交互：拖拽旋转、滚轮缩放、**点击任一部件钻取该子装配体**、ESC 取消。
+交互：拖拽旋转、滚轮缩放、**点击任一部件钻取该子装配体**、
+**← → 逐件浏览组内零件**、ESC 逐级退出。
 底部有视角预设、爆炸模式、爆炸进度滑块，以及 **ASSEMBLE 组装动画**
 （按穿戴顺序逐组归位，收尾点亮反应堆）。
 
