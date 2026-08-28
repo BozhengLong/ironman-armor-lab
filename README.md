@@ -65,7 +65,6 @@ docs/
   explode-design.md    爆炸图与钻取交互设计记录，含失败路径
   pipeline.md          压缩管线与两层校验
   shots/               对比截图
-model-survey.md        3D 模型调研记录
 ```
 
 ## 两个核心处理步骤
@@ -105,8 +104,11 @@ npm run plan    # 重算爆炸规划并打印分离指标
 代码采用 MIT。
 
 3D 模型来自 Sketchfab，标注为 CC-BY 4.0，署名见各资源目录下的 `ATTRIBUTION.txt`
-与 `license.txt`。**注意：调研发现 Sketchfab 上存在多个上传者把同一文件各自标为
-自己作品的情况，这些 CC-BY 标注未经独立核实。** 详见 [model-survey.md](model-survey.md)。
+与 `license.txt`。
+
+**注意：这些 CC-BY 标注未经独立核实。** 选型调研中发现，Sketchfab 上存在同一份
+模型文件被多个账号分别上传、各自声明为自有作品的情况（可由三角面数完全相同判定）。
+因此本仓库不分发模型文件本身，只提供获取脚本与校验和；使用前请自行确认授权状况。
 
 本项目是非商业的粉丝向 WebGL 实验，用于研究 Web 上的交互式 3D 表达。
 Iron Man 及相关角色的权利归各自权利人所有。本项目与 Marvel、Disney 无任何关联，
