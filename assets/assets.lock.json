@@ -3,10 +3,6 @@
     "hulkbuster": {
       "author": "o0ozexo0o (sketchfab.com/dadndan0091)",
       "files": {
-        "ATTRIBUTION.txt": {
-          "sha256": "cc7a8f05bacea49566894405aa7dfe1b2ce0f246a8873aa1c5f7a9d87eff4813",
-          "size": 283
-        },
         "license.txt": {
           "sha256": "54f9bca85ca17a35941930c83178eade886827e870a4468bf655e80dcfdb7bf2",
           "size": 660
@@ -31,10 +27,6 @@
     "ironman": {
       "author": "Vfx Boy (sketchfab.com/saini.hitesh16061980)",
       "files": {
-        "ATTRIBUTION.txt": {
-          "sha256": "bed1ec6de8966c9bc8463e8ac6803200228dfef28c2c3937ef1ae8a445defb9f",
-          "size": 264
-        },
         "license.txt": {
           "sha256": "ee67cc6addee1569c8138cd3cd977a480b2cd432ec1ed1b0f910bb12b9bcc0a4",
           "size": 674

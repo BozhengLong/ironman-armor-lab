@@ -47,8 +47,11 @@ MODELS = {
     },
 }
 
-# 校验和之外不入库的本地标记文件
-SKIP_IN_LOCK = {".complete"}
+# 锁文件只锁「来自上游的内容」。本脚本自己产出的文件必须排除 ——
+# 否则改一次这些文件的文案，锁文件就对不上了：CI 全新下载会写出新文案，
+# 而锁里存的是改动前那份的哈希。ATTRIBUTION.txt 正是这样踩过一次。
+# license.txt 来自 Sketchfab 的压缩包，属于上游内容，保留在锁里。
+SKIP_IN_LOCK = {".complete", "ATTRIBUTION.txt", "gltf.zip"}
 
 
 def token() -> str:
