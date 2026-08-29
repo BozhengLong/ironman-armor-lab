@@ -118,6 +118,8 @@ npm run plan    # 重算爆炸规划并打印分离指标
 Iron Man 及相关角色的权利归各自权利人所有。本项目与 Marvel、Disney 无任何关联，
 未获其认可或授权。
 
+当前状态与未决事项见 [docs/STATE.md](docs/STATE.md)。
+
 ## Agent 工具层
 
 这个项目最初的命题是「Agent 能把 Web 当作表达介质做到什么程度」。
