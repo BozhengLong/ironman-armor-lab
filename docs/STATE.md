@@ -7,17 +7,17 @@
 
 ## 当前任务与中断点
 
-上一批（R9）已完成但**尚未发布**：REPULSOR 动作，以及 CI 补上 samurai 的
-manifest 可复现性检查。本地三个模型 × 静止/爆炸/钻取三种叠加态全部验过。
-R8 的 CC-BY 署名已在线上生效。
+上一批（R9）已完成**并已发布**：REPULSOR 动作，以及 CI 补上 samurai 的
+manifest 可复现性检查。线上三个模型都验过 —— 开火正常、后坐峰值 0.98、
+`__verifyManifest` 仍为 2e-6、120fps，且 `__scrambleRepulsor('flip')`
+在线上同样能让校验变红（对照组不是只在本地有效）。见 `docs/shots/live-repulsor.png`。
 
-**中断点：R9 已提交未发布。** 线上还没有 REPULSOR。
-发布：`gh workflow run pages.yml -f deploy=true`
+**中断点：无进行中的工作。** 下一步由未决事项决定。
 
 ## 下一步（按优先级）
 
-1. 发布 R9。
-2. 备份异地、token 轮换 —— 都需要你动手，见下。
+1. 备份异地、token 轮换 —— 都需要你动手，见下。
+2. 朝前判定的第四条启发（唯一剩下的技术欠债，见下）。
 3. 其余为可选。
 
 ## 未决事项
