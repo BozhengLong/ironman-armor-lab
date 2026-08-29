@@ -155,6 +155,11 @@ await window.armorLab.run([       // 「展示胸甲的内部结构」
 共 11 个命令：`listModels` `loadModel` `listGroups` `setView` `setExplode`
 `setExplodeMode` `focusGroup` `focusPart` `playAssemble` `playRepulsor` `getState`。
 
+HUD 上的 `TOUR` 按钮让这套命令集自己驱动一遍场景，并把每条正在执行的指令显示出来。
+它证明的不是「页面会自己动」，而是「场景的每种状态变化都已经是一个可被外部调度的原语」。
+页面不因此引入任何 LLM 依赖 —— 导览只是把一串既定命令交给同一个命令面。
+步骤按当前模型现有的分组挑选，没有发射口的模型不排发射那一步。用户一动手导览即让路。
+
 `playRepulsor` 会在没有可用发射口时抛错而不是静默无动作 —— 发射口由臂链推导，
 手臂没有分离到小臂以下的一侧不存在发射口（ironman 的右臂就是这种情况）。
 

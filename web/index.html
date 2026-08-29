@@ -36,7 +36,7 @@
   #scrimL{top:0;left:0;width:340px;height:400px;
     background:radial-gradient(120% 100% at 0% 0%,
       rgba(10,12,15,.94) 0%, rgba(10,12,15,.80) 45%, rgba(10,12,15,0) 100%)}
-  #scrimB{bottom:0;left:0;width:560px;height:170px;
+  #scrimB{bottom:0;left:0;width:760px;height:190px;
     background:linear-gradient(0deg, rgba(10,12,15,.92) 0%, rgba(10,12,15,0) 100%)}
   /* 署名在右下角，那一带原本没有衬底；幽灵态下模型会压到文字上 */
   #scrimC{bottom:0;right:0;width:380px;height:180px;
@@ -72,6 +72,11 @@
   #credit a{color:var(--fg);text-decoration:none;border-bottom:1px solid var(--line)}
   #credit a:hover{color:var(--accent);border-bottom-color:var(--accent)}
   #credit .sep{color:var(--line);padding:0 3px}
+  /* 与 #credit 同一套策略：桌面端 fixed 叠在其上方，移动端退回流内 */
+  #tour{position:fixed;right:20px;bottom:70px;z-index:2;text-align:right;display:none;
+    max-width:min(46vw,380px);color:var(--dim);font-size:9px;letter-spacing:.1em;
+    line-height:1.8}
+  #tour #tourCmd{color:var(--accent);font-size:11px;word-break:break-all}
   #roster{left:20px;top:74px;display:none}
   #roster .item{display:flex;gap:9px;align-items:center;padding:5px 6px 5px 0;
     cursor:pointer;border-left:1px solid transparent}
@@ -130,11 +135,15 @@
     #views,#ctl .grp{flex-wrap:wrap}
     button{padding:7px 9px}            /* 触摸目标不小于约 30px */
     input[type=range]{width:min(46vw,190px)}
-    #scrimL{width:60vw;height:44vh}
-    #scrimR{width:44vw;height:30vh}
+    /* 顶部通栏：手机上标题、遥测、清单横向排开，角落的径向衬底盖不住 */
+    #scrimL{width:100vw;height:46vh;
+      background:linear-gradient(180deg, rgba(10,12,15,.95) 0%,
+        rgba(10,12,15,.74) 48%, rgba(10,12,15,0) 100%)}
+    #scrimR{display:none}
     #scrimB{width:100vw;height:32vh}   /* 底部多了一行署名，衬底跟着长高 */
     #scrimC{display:none}              /* 已被通栏的 scrimB 覆盖 */
     #credit{position:static;text-align:left;max-width:none;line-height:1.7}
+    #tour{position:static;text-align:left;max-width:none}
   }
 </style>
 </head>
@@ -182,6 +191,7 @@
     <button id="btnDebris" aria-pressed="false">DEBRIS</button>
     <button id="btnRepulsor" aria-pressed="false">REPULSOR</button>
     <button id="btnLink" aria-pressed="false" title="复制当前视图的链接">LINK</button>
+    <button id="btnTour" aria-pressed="false" title="让 Agent 命令集自己驱动一遍场景">TOUR</button>
 
   </div>
 
@@ -189,6 +199,13 @@
        以及 (B) 的「已改动」声明。桌面端定位到右下角，移动端 position:static
        退回流内，成为底部控制栈的最后一行 —— 两种布局下都必须可见，
        它此前只存在于清单项的 title 属性里，触屏设备根本触发不到。 -->
+  <!-- Agent 导览的当前指令。项目的命题就是 Agent 层，但访客得开 devtools
+       才看得到它存在 —— 这块把正在执行的命令显示出来，让命题本身可见。 -->
+  <div id="tour">
+    <div class="lbl"><span id="tourKicker">AGENT</span></div>
+    <div id="tourCmd">—</div>
+  </div>
+
   <div id="credit">
     <div class="lbl">MODEL CREDIT</div>
     <div id="crLine1">—</div>
@@ -355,6 +372,7 @@ const state = {
   selected: null, drill: 0, targetDrill: 0, focus: -1,
   assembling: false, assembleT: 0,
   repulsing: false, repulsorT: 0, repulsorRecoil: 0, repulsorSides: [],
+  touring: false,
   zoomFitDrill: 1, targetDrillPos: new THREE.Vector3(),
   zoomFit: 1, zoomFitFull: 1,
   targetAssembled: new THREE.Vector3(), targetFull: new THREE.Vector3(),
@@ -983,6 +1001,9 @@ renderer.domElement.addEventListener('pointermove', (e) => {
     renderer.domElement.classList.toggle('pickable', !!hovered);
   }, 120);
 });
+// 用户一动手就停：否则导览会和人抢控制权
+renderer.domElement.addEventListener('pointerdown', () => { if (state.touring) stopTour(); });
+
 addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if (state.focus >= 0) setFocus(-1); else selectGroup(null);
@@ -1263,6 +1284,77 @@ function updateRepulsorButton() {
     : '该模型的手臂没有分离到小臂以下，无法定出发射口';
 }
 
+// ---------------------------------------------------------------------------
+// Agent 导览
+//
+// 页面自身不调用任何 LLM —— 它只暴露命令面。导览做的事情是把一串既定的命令
+// 交给同一个命令面执行，并把每一条显示出来。它证明的不是「页面会自己动」，
+// 而是「这个场景的每种状态变化都已经是一个可被外部调度的原语」。
+//
+// 步骤按当前模型现有的组挑选：三个模型的分组差别很大，写死组名会在别的模型上失效。
+function tourSteps() {
+  const has = (k) => !!groupIndex[k];
+  const pick = (...c) => c.find(has) ?? Object.keys(groupIndex)[0] ?? null;
+  const torso = pick('chest/C', 'chest/L', 'abdomen/C');
+  const steps = [
+    { tool: 'setView',        args: { name: 'FRONT' },              wait: 1100 },
+    { tool: 'setExplodeMode', args: { mode: 'groupSpread' },        wait: 800 },
+    { tool: 'setExplode',     args: { value: 1 },                   wait: 1900 },
+    { tool: 'setView',        args: { name: '3/4F' },               wait: 1600 },
+  ];
+  if (torso) {
+    steps.push({ tool: 'focusGroup', args: { key: torso }, wait: 1900 },
+               { tool: 'focusPart',  args: { index: 1 },   wait: 1500 },
+               { tool: 'focusGroup', args: { key: null },  wait: 1000 });
+  }
+  steps.push({ tool: 'setExplode',   args: { value: 0 },  wait: 1200 },
+             { tool: 'playAssemble', args: {},            wait: ASSEMBLE_SECONDS * 1000 + 400 });
+  // 没有发射口的模型（手臂未分离到小臂）就不排这一步，而不是让它抛错
+  if (repulsor && Object.keys(repulsor.sides).length) {
+    steps.push({ tool: 'playRepulsor', args: {}, wait: REPULSOR_SECONDS * 1000 + 300 });
+  }
+  return steps;
+}
+
+let tourToken = null;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function showTourStep(step, i, n) {
+  $('tourKicker').textContent = `AGENT · ${i + 1}/${n}`;
+  const a = JSON.stringify(step.args);
+  $('tourCmd').textContent = `${step.tool}(${a === '{}' ? '' : a})`;
+}
+
+async function startTour() {
+  if (state.touring) { stopTour(); return; }
+  const steps = tourSteps();
+  if (!steps.length) return;
+  const token = {};
+  tourToken = token;
+  state.touring = true;
+  $('btnTour').setAttribute('aria-pressed', 'true');
+  $('tour').style.display = 'block';
+  for (let i = 0; i < steps.length; i++) {
+    if (tourToken !== token) return;              // 已被打断
+    showTourStep(steps[i], i, steps.length);
+    try {
+      AGENT_TOOLS[steps[i].tool].run(steps[i].args);
+    } catch (e) {
+      $('tourCmd').textContent = `${steps[i].tool} —— ${e.message}`;
+    }
+    // 开了「减少动态效果」时不该被一段两分钟的编排绑住，压缩每步停留
+    await sleep(reduceMotion() ? Math.min(steps[i].wait, 450) : steps[i].wait);
+  }
+  if (tourToken === token) stopTour();
+}
+
+function stopTour() {
+  tourToken = null;
+  state.touring = false;
+  $('btnTour').setAttribute('aria-pressed', 'false');
+  $('tour').style.display = 'none';
+}
+
 // CC-BY 3(a)(1) 要求随作品保留：作者、许可声明与其 URI、指向原作的链接；
 // (B) 还要求声明是否改动过 —— 站点分发的是压缩过的几何与贴图，属于有改动。
 // 数据全部来自 index.json，页面不硬编码任何作者信息。
@@ -1365,6 +1457,7 @@ $('btnDebris').onclick = () => {
 $('btnRepulsor').onclick = () => {
   state.repulsing ? stopRepulsor() : startRepulsor('both');
 };
+$('btnTour').onclick = () => startTour();
 $('btnLink').onclick = async () => {
   syncUrl();                       // 先落地，别复制到上一次防抖前的旧地址
   try {
@@ -1602,6 +1695,7 @@ const AGENT_TOOLS = {
       mode: state.mode, explode: +state.explode.toFixed(3),
       selected: state.selected, focus: state.focus,
       assembling: state.assembling,
+      touring: state.touring,
       repulsing: state.repulsing,
       repulsorSides: repulsor ? Object.keys(repulsor.sides) : [],
       azimuth: +THREE.MathUtils.radToDeg(sph.theta).toFixed(1),
@@ -1748,7 +1842,7 @@ window.__verifyCredit = () => {
 // 多一行内容都可能让它们撞在一起，而撞了并不会报错，只是文字叠在一起还能读一半。
 // 这个函数把「没撞」变成可断言的事实。
 window.__verifyHud = () => {
-  const sel = ['.hd', '#tele', '#ctl', '#roster', '#inspect', '#credit'];
+  const sel = ['.hd', '#tele', '#ctl', '#roster', '#inspect', '#credit', '#tour'];
   const boxes = [];
   for (const q of sel) {
     const el = document.querySelector(q);
@@ -1764,7 +1858,9 @@ window.__verifyHud = () => {
     for (let j = i + 1; j < boxes.length; j++) {
       const [qa, a] = boxes[i], [qb, b] = boxes[j];
       // #credit 在移动端是 #ctl 的流内子节点，父子相含不算冲突
-      if ((qa === '#ctl' && qb === '#credit') || (qa === '#credit' && qb === '#ctl')) continue;
+      // #credit / #tour 在移动端是 #ctl 的流内子节点，父子相含不算冲突
+      const child = (x) => x === '#credit' || x === '#tour';
+      if ((qa === '#ctl' && child(qb)) || (qb === '#ctl' && child(qa))) continue;
       if (a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top) continue;
       hits.push({ pair: `${qa} × ${qb}`,
                   overlap: [Math.round(Math.min(a.right, b.right) - Math.max(a.left, b.left)),
@@ -1870,6 +1966,36 @@ window.__stateSnapshot = () => {
     focus: state.focus,
     debris: state.showDebris,
   };
+};
+
+// 衬底覆盖检查。HUD 文字压在模型上，靠 .scrim 那几块与背景同色的衬底保证可读性；
+// 衬底是写死的尺寸，而面板是内容撑开的 —— 加一个按钮就可能让面板长出衬底之外，
+// 而这不会报错，只会让那几个字在幽灵态下变得看不清。加过 LINK / TOUR 后就发生过。
+window.__verifyScrim = () => {
+  const scrims = [...document.querySelectorAll('.scrim')]
+    .filter((e) => getComputedStyle(e).display !== 'none')
+    .map((e) => ({ id: e.id, r: e.getBoundingClientRect() }));
+  const panels = ['.hd', '#tele', '#ctl', '#roster', '#inspect', '#credit', '#tour'];
+  const bad = [];
+  const rows = [];
+  for (const q of panels) {
+    const el = document.querySelector(q);
+    if (!el) continue;
+    const st = getComputedStyle(el);
+    if (st.display === 'none' || st.visibility === 'hidden') continue;
+    const r = el.getBoundingClientRect();
+    if (r.width < 1 || r.height < 1) continue;
+    // 找一块能整个盖住它的衬底。渐变边缘本来就淡，这里只要求落在矩形内。
+    const cover = scrims.find((s) => r.left >= s.r.left - 0.5 && r.right <= s.r.right + 0.5
+                                  && r.top >= s.r.top - 0.5 && r.bottom <= s.r.bottom + 0.5);
+    // 差额要对「最接近能盖住的那块」算，否则会拿不相干的衬底报出个吓人的数字
+    const short = (sr) => Math.max(0, r.right - sr.right, r.bottom - sr.bottom,
+                                      sr.left - r.left, sr.top - r.top);
+    const over = cover ? 0 : Math.min(Infinity, ...scrims.map((x) => short(x.r)));
+    rows.push({ panel: q, scrim: cover?.id ?? null, 超出像素: cover ? 0 : Math.round(over) });
+    if (!cover) bad.push(`${q} 没有任何一块衬底能盖住（最少超出 ${Math.round(over)}px）`);
+  }
+  return { viewport: `${innerWidth}x${innerHeight}`, ok: bad.length === 0, problems: bad, rows };
 };
 
 window.__debugScene = () => {
