@@ -23,7 +23,7 @@ drawing group 而非单个 mesh。所以主模式是把语义组当刚体整块�
 用法:
     python3 scripts/explode_plan.py assets/manifests/ironman.json --metric
 """
-import argparse, json, pathlib, sys
+import argparse, json, pathlib, re, sys
 import numpy as np
 
 AXES = "xyz"
@@ -81,6 +81,12 @@ def unit(v):
 
 # ---------- 规范坐标系 ----------
 
+def material_hint_words(name):
+    """材质名拆词，供朝前判定按词匹配。与 analyze_parts 的做法保持一致。"""
+    s = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", str(name or ""))
+    return {w for w in re.split(r"[^A-Za-z0-9]+", s.lower()) if w}
+
+
 def canonical_frame(man, parts, front_override=None):
     up = AXES.index(man["upAxis"])
     lat = AXES.index(man["latAxis"])
@@ -96,9 +102,11 @@ def canonical_frame(man, parts, front_override=None):
     # 朝前符号，按证据强度依次尝试
     front_sign = how = None
 
-    # (1) 最强：材质名含 face 的零件必在头部前方
+    # (1) 最强：材质名为 face 的零件必在头部前方。
+    # 按词匹配而不是子串 —— "aiStandardSurface" 里的 surface 含 face，
+    # samurai 上实测会命中 22 件，此前只靠下面那句件数比较侥幸挡住。
     face = [p for p in parts if not p.get("flag")
-            and "face" in str(p.get("material") or "").lower()]
+            and material_hint_words(p.get("material")) & {"face"}]
     head = [p for p in parts if p["part"] in ("helmet", "neck") and not p.get("flag")]
     if face and len(head) > len(face):
         rest = [p for p in head if p not in face]
@@ -107,24 +115,58 @@ def canonical_frame(man, parts, front_override=None):
         if abs(fd - hd) > 1e-6:
             front_sign, how = (1.0 if fd > hd else -1.0), "face 材质 vs 头部其余"
 
-    # (2) 面罩使头部质心略前于颈部
-    if front_sign is None:
-        h_d, n_d = centroid({"helmet"}, depth), centroid({"neck"}, depth)
-        if h_d is not None and n_d is not None and abs(h_d - n_d) > 1e-6:
-            front_sign, how = (1.0 if h_d > n_d else -1.0), "helmet vs neck"
-
-    # (3) 脚趾朝前 —— 宽步/错步姿态下不可靠，故排最后
-    if front_sign is None:
-        f_d, s_d = centroid({"foot"}, depth), centroid({"shin"}, depth)
-        if f_d is not None and s_d is not None and abs(f_d - s_d) > 1e-6:
-            front_sign, how = (1.0 if f_d > s_d else -1.0), "foot vs shin"
-
+    # 曾经还有两条几何启发：helmet-vs-neck 与 foot-vs-shin。用三个模型的真值
+    # （从 +z 渲染正视图肉眼确认，见 docs/shots/front-*.png）核对后删掉了：
+    #
+    #   启发              hulkbuster      ironman        samurai
+    #   真值              +1              +1             +1
+    #   face 材质         +1  ✓(1.19%)    不可用          不可用
+    #   helmet vs neck    -1  ✗(-0.74%)   +1 ✓(3.09%)    -1  ✗(-5.02%)
+    #   foot vs shin      -1  ✗(-4.76%)   +1 ✓(3.01%)    不可用
+    #
+    # 两条都是错多于对，只是在 hulkbuster 上被 face 材质压住才没暴露。
+    # 差额大小也救不了：samurai 上 helmet-vs-neck 以 5% 身高的差额给出了错的答案，
+    # 比 face 材质给出正确答案时的差额还大。所以不是调阈值的问题，是判据本身不成立。
+    # 宁可退回默认并如实说「无法判定」，也不要一个自信的错误答案。
     if front_sign is None:
         front_sign, how = 1.0, "默认 +（无法判定）"
     if front_override:
         front_sign = -1.0 if front_override.startswith("-") else 1.0
         how = "手动指定"
     return up, lat, depth, up_sign, front_sign, how
+
+
+def front_evidence(man, parts, depth, height):
+    """三条启发各自的结论与差额（占身高），用于把分歧记录下来。
+
+    实测这三条并不总是一致：hulkbuster 上 face 材质说 +1，而 helmet-vs-neck
+    与 foot-vs-shin 都说 -1，且后者的差额还更大。采信顺序靠的是证据性质
+    （材质名直接说明语义）而不是差额大小，所以差额必须记下来供复核，
+    不能只留一个「依据: face 材质」了事。
+    """
+    def centroid(names):
+        sel = [p for p in parts if p["part"] in names and not p.get("flag")]
+        return float(np.mean([p["center"][depth] for p in sel])) if sel else None
+
+    out = []
+    face = [p for p in parts if not p.get("flag")
+            and material_hint_words(p.get("material")) & {"face"}]
+    head = [p for p in parts if p["part"] in ("helmet", "neck") and not p.get("flag")]
+    if face and len(head) > len(face):
+        rest = [p for p in head if p not in face]
+        fd = float(np.mean([p["center"][depth] for p in face]))
+        hd = float(np.mean([p["center"][depth] for p in rest]))
+        out.append(("face 材质 vs 头部其余", fd - hd))
+    else:
+        out.append(("face 材质 vs 头部其余", None))
+    for label, a, b in (("helmet vs neck", {"helmet"}, {"neck"}),
+                        ("foot vs shin", {"foot"}, {"shin"})):
+        ca, cb = centroid(a), centroid(b)
+        out.append((label, None if ca is None or cb is None else ca - cb))
+    return [{"启发": lab,
+             "结论": None if d is None else (1 if d > 0 else -1),
+             "差额占身高": None if d is None else round(d / height, 5)}
+            for lab, d in out]
 
 
 def semantic_axis(part, side, up, lat, depth, up_sign, front_sign):
@@ -245,6 +287,9 @@ def plan(man, parts, height, front_override=None):
     meta = {
         "upAxis": AXES[up], "latAxis": AXES[lat], "depthAxis": AXES[depth],
         "upSign": up_sign, "frontSign": front_sign, "frontDetectedBy": how,
+        # 三条启发各自的结论与差额。它们并不总是一致 —— 把分歧记下来，
+        # 免得「依据: face 材质」看起来像是全体一致的结论。
+        "frontEvidence": front_evidence(man, parts, depth, height),
         "unit": "模型高度的分数", "dilate": DILATE,
         "groupSpread": GROUP_SPREAD, "drillTotal": DRILL_TOTAL,
         "assembleWindow": ASSEMBLE_WINDOW,

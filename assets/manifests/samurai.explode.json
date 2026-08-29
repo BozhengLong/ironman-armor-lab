@@ -7,6 +7,23 @@
   "upSign": 1.0,
   "frontSign": 1.0,
   "frontDetectedBy": "默认 +（无法判定）",
+  "frontEvidence": [
+   {
+    "启发": "face 材质 vs 头部其余",
+    "结论": null,
+    "差额占身高": null
+   },
+   {
+    "启发": "helmet vs neck",
+    "结论": null,
+    "差额占身高": null
+   },
+   {
+    "启发": "foot vs shin",
+    "结论": null,
+    "差额占身高": null
+   }
+  ],
   "unit": "模型高度的分数",
   "dilate": 0.3,
   "groupSpread": 0.14,
