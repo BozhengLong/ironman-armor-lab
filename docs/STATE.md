@@ -7,29 +7,28 @@
 
 ## 当前任务与中断点
 
-上一批（R8）已完成：CC-BY 可见署名（HUD 署名块 + `CREDITS.txt` +
+上一批（R8）已完成**并已发布**：CC-BY 可见署名（HUD 署名块 + `CREDITS.txt` +
 随产物分发的 `ATTRIBUTION.txt`），以及顺带发现并修复的移动端媒体查询失效。
-本地已构建校验通过。
+线上已按三个模型 × 两种视口验过 `__verifyCredit` / `__verifyHud`，
+`./CREDITS.txt` 在 `/ironman-armor-lab/` 子路径下正确解析（200）。
+见 `docs/shots/live-credit.png`。
 
-**中断点：R8 已提交但尚未发布。** 站点上现在还是旧版本 —— 署名要生效需要
-`gh workflow run pages.yml -f deploy=true`。在此之前站点仍处于署名不合规状态。
+**中断点：无进行中的工作。** 下一步由未决事项决定。
 
 ## 下一步（按优先级）
 
-1. **发布**，让署名真正上线 —— 在此之前义务仍未履行。
-2. REPULSOR 动作（唯一明确列出但未做的功能）。
+1. REPULSOR 动作（唯一明确列出但未做的功能）。
+2. 备份异地、token 轮换 —— 都需要你动手，见下。
 3. 其余为可选。
 
 ## 未决事项
 
-### 1. CC-BY 署名（代码已完成，等发布）
+### 1. CC-BY 署名 —— 已完成并上线（2026-08-29，R8）
 
-三个模型均为 `CC Attribution`，站点公开分发这些 GLB，署名义务因此成立。
-R8 已实现三处署名，内容全部由 `assets/manifests/index.json` 生成：
-HUD 常驻署名块、站点根 `CREDITS.txt`、每个产物目录下的 `ATTRIBUTION.txt`，
-并按 3(a)(1)(B) 声明了「已改动（压缩）」。缺字段时 `build_site.mjs` 拒绝出站点。
-
-**剩下的只有发布这一步。** 线上仍是旧版本。
+留在这里是为了记住约束：**新增模型时署名会自动跟上**（三处内容都由
+`assets/manifests/index.json` 生成），但 `MODELS` 里必须补全
+`title` / `author` / `author_url` / `license` / `license_url` / `url`，
+否则 `build_site.mjs` 会直接拒绝出站点 —— 这是有意的，不要绕过它。
 
 ### 2. 资源备份仍是单点
 
