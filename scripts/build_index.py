@@ -38,7 +38,14 @@ def main() -> int:
             "parts": man["usableParts"],
             "groups": groups,
             "tris": sum(p["tris"] for p in man["parts"]),
-            "author": meta["author"], "license": meta["license"], "source": meta["url"],
+            # 署名字段：站点的可见署名与 CREDITS 都由这里驱动，
+            # 前端不再硬编码任何作者信息。字段缺失会让 build_site.mjs 直接拒绝出站点。
+            "title": meta["title"],
+            "author": meta["author"],
+            "authorUrl": meta["author_url"],
+            "license": meta["license"],
+            "licenseUrl": meta["license_url"],
+            "source": meta["url"],
             "preview": f"./assets/previews/{slug}.jpg",
         })
     out.sort(key=lambda m: -m["parts"])

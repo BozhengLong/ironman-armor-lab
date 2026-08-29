@@ -124,6 +124,28 @@ for (const f of fs.readdirSync(manDir)) {
   manCount++;
 }
 
+// 署名守卫：站点公开分发这些 GLB，CC-BY 要求随作品给出作者、许可与原始链接。
+// 缺字段时必须让构建失败 —— 否则页面上的署名会静默变成空白，
+// 而「站点看起来正常」恰恰是最难发现的违约方式。
+const CREDIT_FIELDS = ['title', 'author', 'authorUrl', 'license', 'licenseUrl', 'source'];
+const indexPath = path.join(ROOT, 'assets', 'manifests', 'index.json');
+if (!fs.existsSync(indexPath)) {
+  console.error('缺少 assets/manifests/index.json —— 先跑 python3 scripts/build_index.py');
+  process.exit(1);
+}
+const INDEX = JSON.parse(fs.readFileSync(indexPath, 'utf8')).models || [];
+{
+  const bad = INDEX
+    .map((m) => [m.slug, CREDIT_FIELDS.filter((k) => !m[k])])
+    .filter(([, missing]) => missing.length);
+  if (bad.length) {
+    console.error('署名字段缺失，拒绝出站点：');
+    for (const [slug, missing] of bad) console.error(`  ${slug}: 缺 ${missing.join(', ')}`);
+    console.error('修 scripts/fetch_models.py 的 MODELS，再跑 python3 scripts/build_index.py');
+    process.exit(1);
+  }
+}
+
 // 清单缩略图
 const prevDir = path.join(ROOT, 'assets', 'previews');
 if (fs.existsSync(prevDir)) {
@@ -146,6 +168,86 @@ if (fs.existsSync(distDir)) {
     models.push(slug);
   }
 }
+
+// 随产物分发的署名。两份，服务两种到达方式：
+//   assets/dist/<slug>/ATTRIBUTION.txt —— 有人直接下走 GLB 时，许可跟着文件走
+//   CREDITS.txt                        —— 页面上「ALL CREDITS」链接的落点
+// 内容一律由 index.json 驱动，不在这里写死任何作者信息。
+const MODIFICATION = 'Draco / meshopt 几何压缩，贴图降采样与重编码；'
+  + '网格拓扑与节点结构未改变。';
+const REPO = 'https://github.com/BozhengLong/ironman-armor-lab';
+
+const perModel = (m) => [
+  `${m.title}`,
+  `by ${m.author}  ${m.authorUrl}`,
+  `Source: ${m.source}`,
+  `License: ${m.license}  ${m.licenseUrl}`,
+  ``,
+  `本文件是经本站改动后的版本。Modified by ARMOR LAB:`,
+  `  ${MODIFICATION}`,
+  `  ${REPO}`,
+  ``,
+  `注意：该资源的 CC-BY 标注由上传者自行声明，来源未经独立核实。`,
+  `Note: this CC-BY designation is self-declared by the uploader and has not`,
+  `been independently verified.`,
+  ``,
+].join('\n');
+
+for (const m of INDEX) {
+  const dir = path.join(OUT, 'assets', 'dist', m.slug);
+  if (!fs.existsSync(dir)) continue;      // 该模型这次没压缩，跳过
+  const f = path.join(dir, 'ATTRIBUTION.txt');
+  fs.writeFileSync(f, perModel(m), 'utf8');
+  add('署名', fs.statSync(f).size);
+}
+
+const creditsText = [
+  'ARMOR LAB — 模型署名 / MODEL CREDITS',
+  REPO,
+  '',
+  '本站展示并分发以下 3D 模型，它们均由各自作者以 CC-BY 4.0 授权发布。',
+  '本站分发的是改动过的版本：' + MODIFICATION,
+  '按 CC BY 4.0 第 3(a)(1)(B) 条，在此声明作品已被改动。',
+  '',
+  'The models below are licensed CC BY 4.0 by their respective authors.',
+  'This site distributes MODIFIED copies: geometry is Draco/meshopt-compressed',
+  'and textures are downscaled and re-encoded. Mesh topology and node structure',
+  'are unchanged.',
+  '',
+  '='.repeat(72),
+  '',
+  ...INDEX.flatMap((m, i) => [
+    `[${i + 1}] ${m.title}`,
+    `    作者 / Author   : ${m.author}`,
+    `                      ${m.authorUrl}`,
+    `    原作 / Source   : ${m.source}`,
+    `    许可 / License  : ${m.license}`,
+    `                      ${m.licenseUrl}`,
+    `    改动 / Modified : ${MODIFICATION}`,
+    `    本站展示名      : ${m.name}${m.subtitle ? ' · ' + m.subtitle : ''}`,
+    '',
+  ]),
+  '='.repeat(72),
+  '',
+  '免责 / Disclaimer',
+  '',
+  '上述 CC-BY 标注由各上传者在 Sketchfab 上自行声明，本站未独立核实其权利来源。',
+  '调研中发现 Sketchfab 上存在同一份模型文件被多个账号分别上传、',
+  '各自声明为自有作品的情况。若您是权利人并认为此处的展示或分发不当，',
+  `请在 ${REPO}/issues 提出，本站会立即下架。`,
+  '',
+  'These CC-BY designations are self-declared by the uploaders and have not been',
+  'independently verified. If you are a rights holder and consider this display or',
+  'distribution improper, please open an issue and it will be taken down.',
+  '',
+  '本项目是非商业的粉丝向 WebGL 实验。Iron Man 及相关角色的权利归各自权利人所有；',
+  '本项目与 Marvel、Disney 无任何关联，未获其认可或授权。',
+  '',
+  '（本文件由 scripts/build_site.mjs 从 assets/manifests/index.json 生成）',
+  '',
+].join('\n');
+fs.writeFileSync(path.join(OUT, 'CREDITS.txt'), creditsText, 'utf8');
+add('署名', fs.statSync(path.join(OUT, 'CREDITS.txt')).size);
 
 // Pages 默认跑 Jekyll，会忽略下划线开头的文件；.nojekyll 关掉它
 fs.writeFileSync(path.join(OUT, '.nojekyll'), '');

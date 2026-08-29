@@ -1,8 +1,9 @@
 name: Build & Deploy Pages
 
 # push 只做构建与校验，不发布 —— 发布必须手动触发。
-# 因为 GitHub Pages 站点是公开可访问的（私有 Pages 属 Enterprise 功能），
-# 而本仓库设为 private 正是出于 3D 资源来源不明的考虑。
+# 仓库与站点现在都是公开的：仓库可见性本来就保护不了模型，一旦部署，
+# GLB 就能被任何人下载。发布仍然要手动确认，因为每次发布都是一次对外分发行为，
+# 署名与来源必须是当时想清楚过的状态。
 on:
   push:
     branches: [main]

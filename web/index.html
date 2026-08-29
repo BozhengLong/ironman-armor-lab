@@ -13,27 +13,6 @@
   html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);
     font:11px/1.5 var(--mono);letter-spacing:.06em;overflow:hidden}
   canvas{display:block;position:fixed;inset:0;touch-action:none}
-  /* 移动端紧凑布局：390px 宽的屏幕放不下桌面版 HUD */
-  @media (max-width:820px){
-    html,body{font-size:10px}
-    .hd h1{font-size:11px;letter-spacing:.24em}
-    #tele{top:10px;right:12px;min-width:0}
-    #tele .perf{display:none}          /* 性能读数在手机上不是重点 */
-    #roster{left:12px;top:56px}
-    #roster #rosterList{display:flex;gap:6px}
-    #roster .item img{width:26px;height:32px;margin-left:4px}
-    #roster .nm{font-size:10px}
-    #roster .sub,#roster .no{display:none}
-    #inspect{left:12px;top:120px;max-width:min(58vw,220px);padding-left:9px}
-    #inspect .insName{font-size:13px}
-    #ctl{left:12px;right:12px;bottom:12px;gap:8px}
-    #views,#ctl .grp{flex-wrap:wrap}
-    button{padding:7px 9px}            /* 触摸目标不小于约 30px */
-    input[type=range]{width:min(46vw,190px)}
-    #scrimL{width:60vw;height:44vh}
-    #scrimR{width:44vw;height:30vh}
-    #scrimB{width:100vw;height:26vh}
-  }
   .panel{position:fixed;z-index:2}
   /* 幽灵态下模型会压到遥测文字上，加一层与背景同色的柔和衬底保证可读性 */
   .scrim{position:fixed;z-index:1;pointer-events:none}
@@ -45,6 +24,10 @@
       rgba(10,12,15,.94) 0%, rgba(10,12,15,.80) 45%, rgba(10,12,15,0) 100%)}
   #scrimB{bottom:0;left:0;width:560px;height:170px;
     background:linear-gradient(0deg, rgba(10,12,15,.92) 0%, rgba(10,12,15,0) 100%)}
+  /* 署名在右下角，那一带原本没有衬底；幽灵态下模型会压到文字上 */
+  #scrimC{bottom:0;right:0;width:380px;height:180px;
+    background:radial-gradient(120% 100% at 100% 100%,
+      rgba(10,12,15,.94) 0%, rgba(10,12,15,.78) 45%, rgba(10,12,15,0) 100%)}
   .lbl{color:var(--dim);font-size:9px;letter-spacing:.18em}
   .val{font-size:13px;color:var(--fg)}
   .hd{position:fixed;top:16px;left:20px;z-index:2}
@@ -63,6 +46,16 @@
   button:hover{border-color:var(--dim);color:var(--fg)}
   button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
   input[type=range]{width:190px;accent-color:var(--accent)}
+  /* 署名块在 DOM 里是 #ctl 的子节点，桌面端 fixed 出流、独占右下角；
+     移动端（见媒体查询）改回 static，自然成为底部控制栈的最后一行。
+     这样两套布局不需要任何 JS 参与。 */
+  #credit{position:fixed;right:20px;bottom:18px;z-index:2;text-align:right;
+    max-width:min(46vw,380px);color:var(--dim);font-size:9px;
+    letter-spacing:.1em;line-height:1.8}
+  #credit .lbl{margin-bottom:2px}
+  #credit a{color:var(--fg);text-decoration:none;border-bottom:1px solid var(--line)}
+  #credit a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+  #credit .sep{color:var(--line);padding:0 3px}
   #roster{left:20px;top:74px;display:none}
   #roster .item{display:flex;gap:9px;align-items:center;padding:5px 6px 5px 0;
     cursor:pointer;border-left:1px solid transparent}
@@ -94,6 +87,39 @@
   #bar{width:220px;height:1px;background:var(--line);margin:0 auto}
   #bar i{display:block;height:100%;width:0;background:var(--accent)}
   #err{color:var(--accent);max-width:60ch;text-align:left;white-space:pre-wrap}
+  /* 媒体查询必须放在所有基础规则之后。
+     此前它在文件开头，与 #tele / #roster / #ctl / #scrim* 同为 id 选择器、
+     特异性相同，而媒体查询本身不增加特异性 —— 后写的基础规则一律胜出，
+     整个移动端布局其实从未生效（只有 html,body 的字号例外，
+     因为那条基础规则写在前面）。 */
+  /* 移动端紧凑布局：390px 宽的屏幕放不下桌面版 HUD */
+  @media (max-width:820px){
+    html,body{font-size:10px}
+    .hd h1{font-size:11px;letter-spacing:.24em}
+    #tele{top:10px;right:12px;min-width:0}
+    #tele .perf{display:none}          /* 性能读数在手机上不是重点 */
+    /* 右上角遥测块在 390 宽下占到 x=260、底边 128。标题与清单都必须让开它：
+       标题限宽并把副标题截断，清单整体挪到遥测块下方。
+       这几个数字由 __verifyHud() 兜底 —— 它在任何视口下检查 HUD 面板两两不重叠。 */
+    .hd{max-width:58vw}
+    .hd .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #roster{left:12px;top:136px}
+    #roster #rosterList{display:flex;gap:6px}
+    #roster .item img{width:26px;height:32px;margin-left:4px}
+    #roster .nm{font-size:10px}
+    #roster .sub,#roster .no{display:none}
+    #inspect{left:12px;top:120px;max-width:min(58vw,220px);padding-left:9px}
+    #inspect .insName{font-size:13px}
+    #ctl{left:12px;right:12px;bottom:12px;gap:8px}
+    #views,#ctl .grp{flex-wrap:wrap}
+    button{padding:7px 9px}            /* 触摸目标不小于约 30px */
+    input[type=range]{width:min(46vw,190px)}
+    #scrimL{width:60vw;height:44vh}
+    #scrimR{width:44vw;height:30vh}
+    #scrimB{width:100vw;height:32vh}   /* 底部多了一行署名，衬底跟着长高 */
+    #scrimC{display:none}              /* 已被通栏的 scrimB 覆盖 */
+    #credit{position:static;text-align:left;max-width:none;line-height:1.7}
+  }
 </style>
 </head>
 <body>
@@ -105,6 +131,7 @@
 <div class="scrim" id="scrimL"></div>
 <div class="scrim" id="scrimR"></div>
 <div class="scrim" id="scrimB"></div>
+<div class="scrim" id="scrimC"></div>
 
 <div class="hd">
   <h1>ARMOR LAB</h1>
@@ -138,6 +165,16 @@
     <button id="btnAssemble">ASSEMBLE</button>
     <button id="btnDebris" aria-pressed="false">DEBRIS</button>
 
+  </div>
+
+  <!-- CC-BY 3(a)(1) 要求的署名：作者、许可（含链接）、原始链接，
+       以及 (B) 的「已改动」声明。桌面端定位到右下角，移动端 position:static
+       退回流内，成为底部控制栈的最后一行 —— 两种布局下都必须可见，
+       它此前只存在于清单项的 title 属性里，触屏设备根本触发不到。 -->
+  <div id="credit">
+    <div class="lbl">MODEL CREDIT</div>
+    <div id="crLine1">—</div>
+    <div id="crLine2">—</div>
   </div>
 </div>
 
@@ -374,6 +411,7 @@ async function loadModel(name) {
   computeFraming(currentBox, currentCenter);
   buildModeButtons();
   buildRoster();
+  renderCredit(name);
 
   const srcLabel = source.mode.toUpperCase() +
     (source.bytes ? ` ${(source.bytes / 1048576).toFixed(2)}MB` : '');
@@ -834,6 +872,38 @@ function stopAssemble(complete) {
   applyTransforms();
 }
 
+// CC-BY 3(a)(1) 要求随作品保留：作者、许可声明与其 URI、指向原作的链接；
+// (B) 还要求声明是否改动过 —— 站点分发的是压缩过的几何与贴图，属于有改动。
+// 数据全部来自 index.json，页面不硬编码任何作者信息。
+// 用 DOM 节点拼而不是 innerHTML：这几段是上游文本，不该有机会被当成标记。
+function renderCredit(name) {
+  const m = MODEL_INDEX.find((x) => x.slug === name);
+  const l1 = $('crLine1'), l2 = $('crLine2');
+  l1.textContent = ''; l2.textContent = ''; l1.style.color = '';
+  const need = ['author', 'authorUrl', 'license', 'licenseUrl', 'source'];
+  const missing = m ? need.filter((k) => !m[k]) : need;
+  if (missing.length) {
+    // 署名是义务不是装饰：数据缺字段时必须显眼地喊出来，不能静默留白
+    l1.style.color = 'var(--accent)';
+    l1.textContent = `MODEL CREDIT MISSING: ${missing.join(', ')}`;
+    return;
+  }
+  const link = (href, text) => {
+    const a = document.createElement('a');
+    a.href = href; a.textContent = text;
+    a.target = '_blank'; a.rel = 'noopener noreferrer';
+    return a;
+  };
+  const sep = () => {
+    const x = document.createElement('span');
+    x.className = 'sep'; x.textContent = '·';
+    return x;
+  };
+  l1.append(`\u201c${m.title || m.name}\u201d by `, link(m.authorUrl, m.author));
+  l2.append(link(m.licenseUrl, m.license), sep(), 'MODIFIED (COMPRESSED)',
+            sep(), link(m.source, 'SOURCE'), sep(), link('./CREDITS.txt', 'ALL CREDITS'));
+}
+
 function buildRoster() {
   const el = $('rosterList');
   const panel = $('roster');
@@ -1182,6 +1252,66 @@ window.__verifyManifest = () => {
   }
   return { parts: n, maxDeviationInHeights: +worst.toFixed(6),
            medianDeviation: +median(devs).toFixed(6), worstPart: worstName };
+};
+
+// 署名的运行时校验。它检查的不是「字符串填进去了」，而是「读者真的看得见」：
+// 尺寸、可见性、是否落在视口内，以及三条必需链接的 href 是否与 index.json 一致。
+// 对照组见 docs/STATE.md 的「失败必须有声」—— 清空 #credit 后本函数必须报错。
+window.__verifyCredit = () => {
+  const el = $('credit');
+  const st = getComputedStyle(el);
+  const r = el.getBoundingClientRect();
+  const text = el.textContent.replace(/\s+/g, ' ').trim();
+  const hrefs = [...el.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+  const m = MODEL_INDEX.find((x) => x.slug === slug) || {};
+  const problems = [];
+
+  if (st.display === 'none' || st.visibility === 'hidden' || Number(st.opacity) === 0)
+    problems.push('署名块被隐藏');
+  if (r.width < 40 || r.height < 10)
+    problems.push(`署名块尺寸异常 ${Math.round(r.width)}x${Math.round(r.height)}`);
+  if (r.right < 0 || r.left > innerWidth || r.bottom < 0 || r.top > innerHeight)
+    problems.push('署名块落在视口外');
+  if (/MISSING/.test(text)) problems.push(text);
+  if (m.author && !text.includes(m.author)) problems.push('正文里没有作者名');
+  if (m.license && !text.includes(m.license)) problems.push('正文里没有许可名');
+  if (!/MODIFIED/.test(text)) problems.push('没有声明作品已被改动');
+  for (const [k, label] of [['authorUrl', '作者主页'], ['licenseUrl', '许可全文'],
+                            ['source', '原始页面']]) {
+    if (m[k] && !hrefs.includes(m[k])) problems.push(`缺少${label}链接`);
+  }
+  return { ok: problems.length === 0, problems, text, hrefs };
+};
+
+// HUD 各面板是各自 fixed 定位的，靠手写坐标互相让开 —— 换视口、改字号、
+// 多一行内容都可能让它们撞在一起，而撞了并不会报错，只是文字叠在一起还能读一半。
+// 这个函数把「没撞」变成可断言的事实。
+window.__verifyHud = () => {
+  const sel = ['.hd', '#tele', '#ctl', '#roster', '#inspect', '#credit'];
+  const boxes = [];
+  for (const q of sel) {
+    const el = document.querySelector(q);
+    if (!el) continue;
+    const st = getComputedStyle(el);
+    if (st.display === 'none' || st.visibility === 'hidden') continue;
+    const b = el.getBoundingClientRect();
+    if (b.width < 1 || b.height < 1) continue;
+    boxes.push([q, b]);
+  }
+  const hits = [];
+  for (let i = 0; i < boxes.length; i++) {
+    for (let j = i + 1; j < boxes.length; j++) {
+      const [qa, a] = boxes[i], [qb, b] = boxes[j];
+      // #credit 在移动端是 #ctl 的流内子节点，父子相含不算冲突
+      if ((qa === '#ctl' && qb === '#credit') || (qa === '#credit' && qb === '#ctl')) continue;
+      if (a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top) continue;
+      hits.push({ pair: `${qa} × ${qb}`,
+                  overlap: [Math.round(Math.min(a.right, b.right) - Math.max(a.left, b.left)),
+                            Math.round(Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top))] });
+    }
+  }
+  return { viewport: `${innerWidth}x${innerHeight}`,
+           panels: boxes.map(([q]) => q), ok: hits.length === 0, overlaps: hits };
 };
 
 window.__debugScene = () => {

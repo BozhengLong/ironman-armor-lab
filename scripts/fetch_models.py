@@ -30,13 +30,22 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 RAW = ROOT / "assets" / "raw"
 LOCK = ROOT / "assets" / "assets.lock.json"
 
+# 署名字段以 Sketchfab v3 接口为准（GET /v3/models/<uid> 的 user.displayName /
+# user.profileUrl / license.url）。CC-BY 要求按作者「指定的方式」署名，
+# Sketchfab 页面上显示的是 displayName 而不是 username —— 早期这里记的是
+# username，站点署名与上游显示不一致，已更正。
 MODELS = {
     "hulkbuster": {
         "uid": "11645b0747db4e9bbe4f56568802e01a",
-        "title": "Iron Man（实为 Mark 44 Hulkbuster）",
-        "author": "o0ozexo0o (sketchfab.com/dadndan0091)",
+        "title": "Iron Man",
+        # 上游标题就叫 Iron Man，但模型实为 Mark 44 Hulkbuster。
+        # 署名必须用上游标题原文，这条注记只用于我们自己的展示名。
+        "note": "实为 Mark 44 Hulkbuster",
+        "author": "o0ozexo0o",
+        "author_url": "https://sketchfab.com/dadndan0091",
         "url": "https://sketchfab.com/3d-models/iron-man-11645b0747db4e9bbe4f56568802e01a",
         "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
     },
     # 第三个模型：用于检验整套管线在「没调过参」的数据上是否成立。
     # 选它的理由：35 个独立命名节点（class C）、命名是 Maya 默认的 polySurfaceNNN
@@ -44,16 +53,22 @@ MODELS = {
     "samurai": {
         "uid": "43cfb1207bc046b89a106e740f2f826e",
         "title": "High Poly Samurai Mech",
-        "author": "johnnykaddissi (sketchfab.com/johnnykaddissi)",
+        "note": "",
+        "author": "Johnny Kaddissi",
+        "author_url": "https://sketchfab.com/johnnykaddissi",
         "url": "https://sketchfab.com/3d-models/high-poly-samurai-mech-43cfb1207bc046b89a106e740f2f826e",
         "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
     },
     "ironman": {
         "uid": "1a21e1b8f2844956a30d28838d5f816a",
         "title": "Iron Man",
-        "author": "Vfx Boy (sketchfab.com/saini.hitesh16061980)",
+        "note": "",
+        "author": "Vfx Boy",
+        "author_url": "https://sketchfab.com/saini.hitesh16061980",
         "url": "https://sketchfab.com/3d-models/iron-man-1a21e1b8f2844956a30d28838d5f816a",
         "license": "CC-BY-4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
     },
 }
 
@@ -158,6 +173,25 @@ def get_json(url: str, tok: str):
         return json.load(r)
 
 
+def attribution_text(meta: dict) -> str:
+    """assets/raw/<slug>/ATTRIBUTION.txt 的内容。
+
+    这份对应的是「未经改动的原始下载」。站点分发的是压缩过的版本，
+    按 CC-BY 3(a)(1)(B) 必须额外声明有改动 —— 那份由 build_site.mjs 生成。
+    """
+    note = f"（{meta['note']}）" if meta.get("note") else ""
+    return (
+        f"{meta['title']}{note}\n"
+        f"by {meta['author']}  {meta['author_url']}\n"
+        f"{meta['url']}\n"
+        f"License: {meta['license']}  {meta['license_url']}\n"
+        f"Sketchfab uid: {meta['uid']}\n"
+        "本目录内为未经改动的原始下载。\n\n"
+        "注意：该资源的 CC-BY 标注由上传者自行声明，来源未经独立核实。\n"
+        "调研发现 Sketchfab 上存在多个上传者把同一文件各自标为自己作品的情况。\n"
+    )
+
+
 def fetch(slug: str, meta: dict, tok: str) -> None:
     out = RAW / slug
     print(f"[get ] {slug} <- {meta['uid']}")
@@ -181,12 +215,7 @@ def fetch(slug: str, meta: dict, tok: str) -> None:
         z.extractall(out)
     zpath.unlink()
 
-    (out / "ATTRIBUTION.txt").write_text(
-        f"{meta['title']}\nby {meta['author']}\n{meta['url']}\n"
-        f"License: {meta['license']}\nSketchfab uid: {meta['uid']}\n\n"
-        "注意：该资源的 CC-BY 标注由上传者自行声明，来源未经独立核实。\n"
-        "调研发现 Sketchfab 上存在多个上传者把同一文件各自标为自己作品的情况。\n",
-        encoding="utf-8")
+    (out / "ATTRIBUTION.txt").write_text(attribution_text(meta), encoding="utf-8")
     (out / ".complete").touch()
     print(f"[ok  ] {slug} -> {out}")
 
@@ -197,12 +226,28 @@ def main() -> int:
     ap.add_argument("--verify", action="store_true", help="只校验本地文件，不下载")
     ap.add_argument("--relock", action="store_true", help="用当前本地文件重写锁文件")
     ap.add_argument("--force", action="store_true", help="即使已存在也重新下载")
+    ap.add_argument("--reattribute", action="store_true",
+                    help="只按当前元数据重写 ATTRIBUTION.txt，不重新下载")
     a = ap.parse_args()
 
     want = a.models or list(MODELS)
     for slug in want:
         if slug not in MODELS:
             sys.exit(f"未知模型 {slug}，可选：{list(MODELS)}")
+
+    if a.reattribute:
+        # ATTRIBUTION.txt 由本脚本生成、且在 SKIP_IN_LOCK 里，改元数据不会自动同步到
+        # 已下载的目录。用这个开关刷新，免得为了改一行署名重下 145 MB。
+        n = 0
+        for slug in want:
+            d = RAW / slug
+            if not (d / ".complete").exists():
+                print(f"[skip] {slug}: 未下载")
+                continue
+            (d / "ATTRIBUTION.txt").write_text(attribution_text(MODELS[slug]), encoding="utf-8")
+            print(f"[ok  ] {slug}/ATTRIBUTION.txt 已重写")
+            n += 1
+        return 0 if n else 1
 
     lock = load_lock()
 

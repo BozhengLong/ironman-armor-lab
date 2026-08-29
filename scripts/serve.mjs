@@ -32,16 +32,22 @@ http.createServer((req, res) => {
     res.writeHead(403).end('forbidden');
     return;
   }
-  fs.stat(file, (err, st) => {
+  // 仓库根找不到时退到 site/：CREDITS.txt 这类只在构建时生成的根文件，
+  // 线上位于站点根、开发时不在仓库根，不退这一步本地链接就是死的。
+  const send = (f) => fs.stat(f, (err, st) => {
     if (err || !st.isFile()) {
+      const built = path.join(ROOT, 'site', rel);
+      if (f !== built && built.startsWith(path.join(ROOT, 'site') + path.sep)
+          && fs.existsSync(built)) return send(built);
       res.writeHead(404, { 'content-type': 'text/plain' }).end('not found: ' + rel);
       return;
     }
     res.writeHead(200, {
-      'content-type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream',
+      'content-type': MIME[path.extname(f).toLowerCase()] || 'application/octet-stream',
       'content-length': st.size,
       'cache-control': 'no-cache',
     });
-    fs.createReadStream(file).pipe(res);
+    fs.createReadStream(f).pipe(res);
   });
+  send(file);
 }).listen(PORT, () => console.log(`ready http://localhost:${PORT}/`));
