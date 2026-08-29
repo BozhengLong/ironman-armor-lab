@@ -95,8 +95,34 @@ fs.mkdirSync(OUT, { recursive: true });
 const tally = {};
 const add = (k, n) => { tally[k] = (tally[k] || 0) + n; };
 
-// 页面
-add('页面', copy(path.join(ROOT, 'web', 'index.html'), path.join(OUT, 'index.html')));
+// 页面。og:image 要求绝对 URL，而绝对地址是部署信息，不写死在 web/index.html 里，
+// 在这里替换。占位符找不到就让构建失败 —— 否则社交预览会静默变成死链，
+// 而「分享出去没有预览图」恰恰是没人会主动去测的那类问题。
+const SITE_URL = process.env.SITE_URL || 'https://bozheng-long.org/ironman-armor-lab';
+{
+  const src = path.join(ROOT, 'web', 'index.html');
+  let html = fs.readFileSync(src, 'utf8');
+  if (!html.includes('__SITE_URL__')) {
+    console.error('web/index.html 里找不到 __SITE_URL__ 占位符 —— 社交预览的绝对地址无法注入。');
+    console.error('若确实要去掉社交预览，请同时删掉 build_site.mjs 里这段替换逻辑。');
+    process.exit(1);
+  }
+  html = html.replaceAll('__SITE_URL__', SITE_URL.replace(/\/$/, ''));
+  const dst = path.join(OUT, 'index.html');
+  fs.mkdirSync(path.dirname(dst), { recursive: true });
+  fs.writeFileSync(dst, html, 'utf8');
+  add('页面', fs.statSync(dst).size);
+}
+
+// 社交预览图
+{
+  const src = path.join(ROOT, 'assets', 'social-preview.jpg');
+  if (!fs.existsSync(src)) {
+    console.error('缺少 assets/social-preview.jpg —— og:image 会指向 404。');
+    process.exit(1);
+  }
+  add('预览图', copy(src, path.join(OUT, 'social-preview.jpg')));
+}
 
 // three 依赖：导入图 + 运行时按 URL 取的资源
 const graph = collectThreeGraph();

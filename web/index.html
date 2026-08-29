@@ -3,6 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="可交互的装甲档案：正交视角、逐件拆解、组装与发射。零件分类与爆炸规划全部由程序从几何推导，没有手工标注。">
+<!-- 社交预览。__SITE_URL__ 由 scripts/build_site.mjs 在出站点时替换成绝对地址 ——
+     og:image 必须是绝对 URL，而绝对地址属于部署信息，不该写死在源文件里。
+     占位符不存在时构建会失败，避免这里被改动后静默失效。 -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ARMOR LAB">
+<meta property="og:title" content="ARMOR LAB — 可交互装甲档案">
+<meta property="og:description" content="正交视角、逐件拆解、组装与发射。零件分类与爆炸规划全部由程序从几何推导，没有手工标注。">
+<meta property="og:url" content="__SITE_URL__/">
+<meta property="og:image" content="__SITE_URL__/social-preview.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="正交视角下的钢铁侠装甲，左手正在发射掌心射流，四周是工程控制台式的遥测读数">
+<meta name="twitter:card" content="summary_large_image">
 <title>ARMOR LAB</title>
 <style>
   :root{
@@ -167,6 +181,7 @@
     <button id="btnAssemble">ASSEMBLE</button>
     <button id="btnDebris" aria-pressed="false">DEBRIS</button>
     <button id="btnRepulsor" aria-pressed="false">REPULSOR</button>
+    <button id="btnLink" aria-pressed="false" title="复制当前视图的链接">LINK</button>
 
   </div>
 
@@ -288,6 +303,10 @@ scene.background = new THREE.Color(0x0a0c0f);
 
 // 正交相机：追求工程图观感，无透视畸变
 const FRUSTUM = 1.5;
+// 系统里开了「减少动态效果」时，动画应当直接给结果而不是过程。
+// 用 matchMedia 实时跟随而不是载入时读一次 —— 用户可能中途改系统设置。
+const reduceMotionMQ = matchMedia('(prefers-reduced-motion: reduce)');
+const reduceMotion = () => reduceMotionMQ.matches;
 const FIT_MARGIN = 1.06;          // 取景留边（对角线取景已偏保守）
 const ASSEMBLE_SECONDS = 4.2;     // 整条组装时间轴的时长
 const ASSEMBLE_BACK = 1.08;       // 到位时的轻微过冲，读作机械咬合；过大会穿模
@@ -311,6 +330,7 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.target.set(0, 0, 0);
+controls.addEventListener('change', () => scheduleUrlSync());
 controls.enableZoom = false;   // 缩放自管：否则 controls 的 change 事件会把
                                // 我们自己的取景动画误判成用户输入，形成反馈环
 renderer.domElement.addEventListener('wheel', (e) => {
@@ -428,6 +448,7 @@ async function loadModel(name) {
   buildModeButtons();
   buildRoster();
   renderCredit(name);
+  window.__urlRestored = restoreFromUrl();   // 供往返测试断言链接确实被用上了
 
   const srcLabel = source.mode.toUpperCase() +
     (source.bytes ? ` ${(source.bytes / 1048576).toFixed(2)}MB` : '');
@@ -686,6 +707,7 @@ function setFocus(i) {
   }
   updateGhostOpacity();
   renderInspector();
+  scheduleUrlSync();
 }
 
 // ---------- UI ----------
@@ -696,12 +718,113 @@ for (const [name, dir] of Object.entries(VIEWS)) {
   b.onclick = () => setView(name);
   viewsEl.appendChild(b);
 }
+// 这两个必须声明在 setView 之前：setView('ISO') 在模块初始化时就会执行一次，
+// 而它会调 scheduleUrlSync —— 声明放在后面会撞进暂时性死区。
+let urlTimer = 0;
+let urlReady = false;          // 还原完成前不要回写，否则会把默认值覆盖掉链接里的值
+
 function setView(name) {
   state.viewDir.set(...VIEWS[name]).normalize();
   state.tweening = true;
   for (const b of viewsEl.children) b.setAttribute('aria-pressed', String(b.textContent === name));
+  scheduleUrlSync();
 }
 setView('ISO');
+
+// ---------------------------------------------------------------------------
+// 可分享的链接
+//
+// 原本只有 ?model 进 URL —— 调出来的状态没法指给别人看，而这个项目的命题
+// 恰恰是「把 Web 当表达介质」。这里把「你看到的是什么」整个编码进查询串。
+//
+// 用 replaceState 不用 pushState：拖动相机会产生几百个中间状态，
+// 塞进历史记录会把后退键变成噪音。
+function scheduleUrlSync() {
+  if (!urlReady) return;
+  clearTimeout(urlTimer);
+  urlTimer = setTimeout(syncUrl, 400);
+}
+function currentStateParams() {
+  const sp = new URLSearchParams();
+  sp.set('model', slug);
+  if (srcPref !== 'auto') sp.set('src', srcPref);
+  const sc = new THREE.Spherical().setFromVector3(camera.position);
+  // 极小的负值经 toFixed 会写成 "-0.0"，分享出去的链接里看着像是坏的，压平掉
+  const flat = (v) => (Math.abs(v) < 0.05 ? 0 : v).toFixed(1);
+  sp.set('az', flat(THREE.MathUtils.radToDeg(sc.theta)));
+  sp.set('el', flat(90 - THREE.MathUtils.radToDeg(sc.phi)));
+  if (Math.abs(state.userZoom - 1) > 0.005) sp.set('z', state.userZoom.toFixed(3));
+  if (state.targetExplode > 0.001) sp.set('ex', state.targetExplode.toFixed(3));
+  if (plan && state.mode !== plan.defaultMode) sp.set('mode', state.mode);
+  if (state.selected) sp.set('g', state.selected);
+  if (state.focus >= 0) sp.set('p', String(state.focus));
+  if (state.showDebris) sp.set('debris', '1');
+  return sp;
+}
+function syncUrl() {
+  if (!plan) return;
+  history.replaceState(null, '', `?${currentStateParams()}`);
+}
+
+// 还原。每一项都要先验证再用 —— 链接是外部输入，坏值必须退回默认而不是让场景崩掉。
+function restoreFromUrl() {
+  const applied = [];
+  const m = params.get('mode');
+  if (m && plan.modes.includes(m) && m !== 'drill') { setMode(m); applied.push('mode'); }
+
+  const az = parseFloat(params.get('az')), el = parseFloat(params.get('el'));
+  if (Number.isFinite(az) && Number.isFinite(el)) {
+    const sc = new THREE.Spherical(3, THREE.MathUtils.degToRad(90 - el),
+                                      THREE.MathUtils.degToRad(az));
+    camera.position.setFromSpherical(sc);
+    state.viewDir.copy(camera.position).normalize();
+    state.tweening = false;
+    camera.lookAt(controls.target);
+    for (const b of viewsEl.children) b.setAttribute('aria-pressed', 'false');
+    applied.push('view');
+  }
+  const z = parseFloat(params.get('z'));
+  if (Number.isFinite(z) && z > 0) {
+    state.userZoom = THREE.MathUtils.clamp(z, 0.2, 8);
+    applied.push('zoom');
+  }
+  const ex = parseFloat(params.get('ex'));
+  if (Number.isFinite(ex)) {
+    state.targetExplode = state.explode = THREE.MathUtils.clamp(ex, 0, 1);
+    $('slider').value = state.explode;
+    $('btnParts').setAttribute('aria-pressed', String(state.explode > 0.001));
+    applied.push('explode');
+  }
+  if (params.get('debris') === '1') {
+    state.showDebris = true;
+    applyDebris();
+    $('btnDebris').setAttribute('aria-pressed', 'true');
+    applied.push('debris');
+  }
+  const g = params.get('g');
+  if (g && groupIndex[g]) {
+    selectGroup(g);
+    state.drill = state.targetDrill;      // 直接到位，别让分享出去的链接自己动一下
+    const pi = parseInt(params.get('p'), 10);
+    if (Number.isFinite(pi)) { setFocus(pi); applied.push('part'); }
+    applied.push('group');
+  }
+  applyTransforms();
+  urlReady = true;
+  return applied;
+}
+
+function flashButton(b, text) {
+  const old = b.dataset.label || b.textContent;
+  b.dataset.label = old;
+  b.textContent = text;
+  b.setAttribute('aria-pressed', 'true');
+  clearTimeout(b._flash);
+  b._flash = setTimeout(() => {
+    b.textContent = b.dataset.label;
+    b.setAttribute('aria-pressed', 'false');
+  }, 1400);
+}
 
 // ---------- 拾取与选择 ----------
 const raycaster = new THREE.Raycaster();
@@ -784,6 +907,7 @@ function selectGroup(key) {
   computeDrillFraming();
   renderInspector();
   applyTransforms();
+  scheduleUrlSync();
 }
 
 function computeDrillFraming() {
@@ -937,6 +1061,13 @@ function disposeRepulsor() {
 
 function buildRepulsor() {
   disposeRepulsor();
+  // 换模型时若还在开火，state 不复位就会拿旧零件的 recoilLocal 继续算。
+  // 今天触发不了（换模型走整页重载），但一旦改成不重载就是真 bug。
+  state.repulsing = false;
+  state.repulsorT = 0;
+  state.repulsorRecoil = 0;
+  state.repulsorSides = [];
+  $('btnRepulsor')?.setAttribute('aria-pressed', 'false');
   for (const p of parts) { p.recoilLocal = null; p.recoilScene = null; }
   const g = plan.groups || {};
   const H = plan.height;
@@ -1186,6 +1317,19 @@ function buildRoster() {
   panel.style.display = 'block';
 }
 
+// 模式切换从按钮回调里抽出来：URL 还原要走同一条路径，
+// 否则「点按钮」和「按链接进来」两条路会慢慢分叉。
+function setMode(m) {
+  if (!plan.modes.includes(m)) return;
+  state.mode = m;
+  for (const x of $('modes').children) {
+    x.setAttribute('aria-pressed', String(x.textContent === m));
+  }
+  computeFraming(currentBox, currentCenter);
+  applyTransforms();
+  scheduleUrlSync();
+}
+
 function buildModeButtons() {
   const el = $('modes');
   el.innerHTML = '';
@@ -1193,12 +1337,7 @@ function buildModeButtons() {
     const b = document.createElement('button');
     b.textContent = m;
     b.setAttribute('aria-pressed', String(m === state.mode));
-    b.onclick = () => {
-      state.mode = m;
-      for (const x of el.children) x.setAttribute('aria-pressed', String(x.textContent === m));
-      computeFraming(currentBox, currentCenter);
-      applyTransforms();
-    };
+    b.onclick = () => setMode(m);
     el.appendChild(b);
   }
 }
@@ -1211,16 +1350,30 @@ $('slider').oninput = (e) => {
   if (state.assembling) stopAssemble(false);
   state.targetExplode = Number(e.target.value);
   $('btnParts').setAttribute('aria-pressed', String(state.targetExplode > 0.001));
+  scheduleUrlSync();
 };
 $('btnParts').onclick = () => {
   if (state.assembling) stopAssemble(false);
   state.targetExplode = state.targetExplode > 0.001 ? 0 : 1;
   $('slider').value = state.targetExplode;
   $('btnParts').setAttribute('aria-pressed', String(state.targetExplode > 0.001));
+  scheduleUrlSync();
 };
-$('btnDebris').onclick = () => { state.showDebris = !state.showDebris; applyDebris(); };
+$('btnDebris').onclick = () => {
+  state.showDebris = !state.showDebris; applyDebris(); scheduleUrlSync();
+};
 $('btnRepulsor').onclick = () => {
   state.repulsing ? stopRepulsor() : startRepulsor('both');
+};
+$('btnLink').onclick = async () => {
+  syncUrl();                       // 先落地，别复制到上一次防抖前的旧地址
+  try {
+    await navigator.clipboard.writeText(location.href);
+    flashButton($('btnLink'), 'COPIED');
+  } catch {
+    // 剪贴板可能被权限或非安全上下文挡下。地址栏已经是对的，如实告知即可。
+    flashButton($('btnLink'), 'SEE URL BAR');
+  }
 };
 
 
@@ -1252,8 +1405,11 @@ function tick() {
   // 视角补间
   if (state.tweening) {
     const want = state.viewDir.clone().multiplyScalar(3);
-    camera.position.lerp(want, 0.12);
-    if (camera.position.distanceTo(want) < 0.002) { camera.position.copy(want); state.tweening = false; }
+    if (reduceMotion()) { camera.position.copy(want); state.tweening = false; }
+    else {
+      camera.position.lerp(want, 0.12);
+      if (camera.position.distanceTo(want) < 0.002) { camera.position.copy(want); state.tweening = false; }
+    }
     camera.lookAt(controls.target);
   }
 
@@ -1263,7 +1419,12 @@ function tick() {
   tick.last = now0;
 
   let dirty = false;
-  if (state.assembling) {
+  if (state.assembling && reduceMotion()) {
+    // 组装是一段 4.2 秒的编排，属于典型的「非必要动效」，直接给终态
+    setEmissiveLevel(1);
+    stopAssemble(true);
+    dirty = true;
+  } else if (state.assembling) {
     state.assembleT += dt / ASSEMBLE_SECONDS;
     // 取景整体从全爆炸收到装配态；位置由 partFactor 各自的时间轴驱动
     state.explode = 1 - THREE.MathUtils.smoothstep(state.assembleT, 0, 1);
@@ -1281,7 +1442,8 @@ function tick() {
       stopRepulsor();
     } else {
       repulsorPh = repulsorPhases(state.repulsorT);
-      state.repulsorRecoil = repulsorPh.recoil;
+      // 发光不是前庭刺激源，位移才是：减少动态时保留充能与放电，去掉后坐
+      state.repulsorRecoil = reduceMotion() ? 0 : repulsorPh.recoil;
       dirty = true;
     }
   }
@@ -1289,12 +1451,14 @@ function tick() {
   // 爆炸与钻取补间
   if (!state.assembling) {
   if (Math.abs(state.explode - state.targetExplode) > 0.0004) {
-    state.explode += (state.targetExplode - state.explode) * 0.1;
+    state.explode = reduceMotion() ? state.targetExplode
+      : state.explode + (state.targetExplode - state.explode) * 0.1;
     dirty = true;
   }
   }
   if (Math.abs(state.drill - state.targetDrill) > 0.0004) {
-    state.drill += (state.targetDrill - state.drill) * 0.12;
+    state.drill = reduceMotion() ? state.targetDrill
+      : state.drill + (state.targetDrill - state.drill) * 0.12;
     dirty = true;
   }
   if (dirty) { applyTransforms(); updateGhostOpacity(); boxesDirty = true; }
@@ -1689,6 +1853,23 @@ window.__repulsorRecoilProbe = () => {
   }
   return { recoil: +state.repulsorRecoil.toFixed(4),
            groups: Object.fromEntries([...by].map(([k, v]) => [k, +v.toFixed(5)])) };
+};
+
+// 链接往返的比对基准。真正的检验不在页面内，而是「拿到链接 -> 重载 -> 两次快照相同」，
+// 那需要一次真实的页面重载，只有外部测试能做。这里只负责给出可比对的量。
+window.__stateSnapshot = () => {
+  const sc = new THREE.Spherical().setFromVector3(camera.position);
+  return {
+    model: slug,
+    az: +THREE.MathUtils.radToDeg(sc.theta).toFixed(1),
+    el: +(90 - THREE.MathUtils.radToDeg(sc.phi)).toFixed(1),
+    zoom: +state.userZoom.toFixed(3),
+    explode: +state.targetExplode.toFixed(3),
+    mode: state.mode,
+    group: state.selected,
+    focus: state.focus,
+    debris: state.showDebris,
+  };
 };
 
 window.__debugScene = () => {
