@@ -152,8 +152,11 @@ await window.armorLab.run([       // 「展示胸甲的内部结构」
 ])
 ```
 
-共 10 个命令：`listModels` `loadModel` `listGroups` `setView` `setExplode`
-`setExplodeMode` `focusGroup` `focusPart` `playAssemble` `getState`。
+共 11 个命令：`listModels` `loadModel` `listGroups` `setView` `setExplode`
+`setExplodeMode` `focusGroup` `focusPart` `playAssemble` `playRepulsor` `getState`。
+
+`playRepulsor` 会在没有可用发射口时抛错而不是静默无动作 —— 发射口由臂链推导，
+手臂没有分离到小臂以下的一侧不存在发射口（ironman 的右臂就是这种情况）。
 
 ## 泛化检验
 

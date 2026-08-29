@@ -45,6 +45,8 @@
     font:inherit;letter-spacing:.12em;padding:5px 9px;cursor:pointer}
   button:hover{border-color:var(--dim);color:var(--fg)}
   button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  button:disabled{opacity:.32;cursor:not-allowed}
+  button:disabled:hover{border-color:var(--line);color:var(--dim)}
   input[type=range]{width:190px;accent-color:var(--accent)}
   /* 署名块在 DOM 里是 #ctl 的子节点，桌面端 fixed 出流、独占右下角；
      移动端（见媒体查询）改回 static，自然成为底部控制栈的最后一行。
@@ -164,6 +166,7 @@
     <button id="btnParts" aria-pressed="false">PARTS</button>
     <button id="btnAssemble">ASSEMBLE</button>
     <button id="btnDebris" aria-pressed="false">DEBRIS</button>
+    <button id="btnRepulsor" aria-pressed="false">REPULSOR</button>
 
   </div>
 
@@ -288,6 +291,17 @@ const FRUSTUM = 1.5;
 const FIT_MARGIN = 1.06;          // 取景留边（对角线取景已偏保守）
 const ASSEMBLE_SECONDS = 4.2;     // 整条组装时间轴的时长
 const ASSEMBLE_BACK = 1.08;       // 到位时的轻微过冲，读作机械咬合；过大会穿模
+
+// ---------- REPULSOR ----------
+// 发射口不能写死在 hand 上：三个模型的臂链长度并不一样（hulkbuster 到 hand，
+// ironman 右臂只分离到 upper_arm，samurai 只有左手）。改为取「臂链上最远的那一节」，
+// 并要求它至少到小臂 —— 从上臂根部开火看起来是错的，宁可这一侧不开火。
+const REPULSOR_SECONDS = 2.4;
+const ARM_CHAIN = ['shoulder', 'upper_arm', 'forearm', 'hand'];   // 近端 -> 远端
+const RECOIL_ATTEN = { hand: 1, forearm: 0.55, upper_arm: 0.28, shoulder: 0.1 };
+const RECOIL_DIST = 0.05;         // 后坐峰值位移，单位为身高
+const BEAM_LEN = 0.55;            // 射流长度，单位为身高
+const BEAM_RADIUS = 0.022;        // 掌心处的半径；向远端扩口
 let aspect = innerWidth / innerHeight;
 const camera = new THREE.OrthographicCamera(
   -FRUSTUM * aspect / 2, FRUSTUM * aspect / 2, FRUSTUM / 2, -FRUSTUM / 2, -50, 50);
@@ -320,6 +334,7 @@ const state = {
   mode: 'groupSpread',
   selected: null, drill: 0, targetDrill: 0, focus: -1,
   assembling: false, assembleT: 0,
+  repulsing: false, repulsorT: 0, repulsorRecoil: 0, repulsorSides: [],
   zoomFitDrill: 1, targetDrillPos: new THREE.Vector3(),
   zoomFit: 1, zoomFitFull: 1,
   targetAssembled: new THREE.Vector3(), targetFull: new THREE.Vector3(),
@@ -409,6 +424,7 @@ async function loadModel(name) {
   renderInspector();
   currentBox = box.clone(); currentCenter = center.clone();
   computeFraming(currentBox, currentCenter);
+  buildRepulsor();
   buildModeButtons();
   buildRoster();
   renderCredit(name);
@@ -450,6 +466,7 @@ function buildVectors(gltfScene) {
     p.assembleDelay = entry.assembleDelay ?? 0;
     M.copy(p.obj.parent.matrixWorld).invert().multiply(gltfScene.matrixWorld);
     m3.setFromMatrix4(M);
+    p.toLocal = m3.clone();   // 场景空间方向 -> 该零件父节点局部空间；后坐位移要用
     for (const mode of plan.modes) {
       const v = entry[mode];
       if (!v) continue;
@@ -590,15 +607,19 @@ function partFactor(p) {
 //           —— d=0 时行为不变，d=1 时无论爆炸进度多少都到达钻取位姿
 function applyTransforms() {
   const e = state.explode, d = state.drill, sel = state.selected;
+  const rr = state.repulsorRecoil;
   for (const p of parts) {
     const v = p.vecLocal?.[state.mode];
-    if (!v) { p.obj.position.copy(p.basePos); continue; }
-    if (sel && p.groupKey === sel && p.vecLocal.drill) {
+    if (!v) {
+      p.obj.position.copy(p.basePos);
+    } else if (sel && p.groupKey === sel && p.vecLocal.drill) {
       _a.copy(v).multiplyScalar(e).lerp(_b.copy(p.vecLocal.drill), d);
       p.obj.position.copy(p.basePos).add(_a);
     } else {
       p.obj.position.copy(p.basePos).addScaledVector(v, e);
     }
+    // 后坐与爆炸/钻取正交，直接叠加在最终位置上
+    if (rr > 0 && p.recoilLocal) p.obj.position.addScaledVector(p.recoilLocal, rr);
   }
 }
 
@@ -872,6 +893,245 @@ function stopAssemble(complete) {
   applyTransforms();
 }
 
+// ---------------------------------------------------------------------------
+// REPULSOR
+//
+// 发射口是推导出来的，不是标注的：模型里没有任何「这里是掌心」的语义，
+// 只有分好的臂链组。取臂链最远一节的包围盒中心，沿「上一节 -> 这一节」的方向
+// 推到该节的最远角点 —— 那就是手掌朝外的那一端。方向也由同一条链给出，
+// 所以整套推导与模型姿态无关，手臂是垂着还是抬着都成立。
+//
+// 视觉上刻意不引入后处理：加 EffectComposer 会改变渲染路径，
+// 而 HUD 上的 DRAW CALLS / TRIANGLES 是如实读 renderer.info 的，
+// 为了一个特效让那两个读数失真不划算。用叠加混合的 sprite + 点光源 + 光束达成。
+let repulsor = null;
+const _rbox = new THREE.Box3();
+const _rv = new THREE.Vector3();
+
+function glowTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grd.addColorStop(0.00, 'rgba(255,255,255,1)');
+  grd.addColorStop(0.22, 'rgba(190,235,255,0.80)');
+  grd.addColorStop(1.00, 'rgba(120,200,255,0)');
+  g.fillStyle = grd;
+  g.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+function disposeRepulsor() {
+  if (!repulsor) return;
+  for (const s of Object.values(repulsor.sides)) {
+    for (const o of [s.glow, s.light, s.beam]) o.removeFromParent();
+    s.beam.geometry.dispose();
+    s.beam.material.dispose();
+    s.glow.material.dispose();
+  }
+  repulsor.tex.dispose();
+  repulsor = null;
+}
+
+function buildRepulsor() {
+  disposeRepulsor();
+  for (const p of parts) { p.recoilLocal = null; p.recoilScene = null; }
+  const g = plan.groups || {};
+  const H = plan.height;
+  const mid = (b) => new THREE.Vector3((b.min[0] + b.max[0]) / 2,
+                                       (b.min[1] + b.max[1]) / 2,
+                                       (b.min[2] + b.max[2]) / 2);
+  const sides = {};
+  for (const side of ['L', 'R']) {
+    const chain = ARM_CHAIN.filter((c) => g[`${c}/${side}`]);
+    if (!chain.length) continue;
+    const distal = chain[chain.length - 1];
+    if (distal !== 'hand' && distal !== 'forearm') continue;   // 上臂开火不成立
+    const dKey = `${distal}/${side}`;
+    const pKey = chain.length > 1 ? `${chain[chain.length - 2]}/${side}`
+               : (g['chest/C'] ? 'chest/C' : (g['abdomen/C'] ? 'abdomen/C' : null));
+    if (!pKey) continue;
+    // groups 里有三套 bounds，bounds 才是装配态；groupBounds / drillBounds 都已被位移
+    const dc = mid(g[dKey].bounds), pc = mid(g[pKey].bounds);
+    const dirScene = dc.clone().sub(pc);
+    if (dirScene.lengthSq() < 1e-9) continue;
+    dirScene.normalize();
+    // 发射口取末端组沿 dir 投影最远的那个角点，不是几何中心
+    const b = g[dKey].bounds;
+    let reach = -Infinity;
+    for (let i = 0; i < 8; i++) {
+      _rv.set((i & 1 ? b.max : b.min)[0], (i & 2 ? b.max : b.min)[1], (i & 4 ? b.max : b.min)[2]);
+      reach = Math.max(reach, _rv.sub(dc).dot(dirScene));
+    }
+    // 场景方向 -> 世界方向。根节点只有缩放与平移，但用两点差值算更稳，
+    // 将来若给根加了旋转这里不会悄悄错掉。
+    const toWorld = (v) => v.clone().sub(currentCenter).multiplyScalar(modelScale);
+    const worldDir = toWorld(dc.clone().add(dirScene)).sub(toWorld(dc)).normalize();
+    sides[side] = { side, distal: dKey, proximal: pKey, chain, dirScene, worldDir,
+                    reach, emitter: new THREE.Vector3() };
+  }
+  if (!Object.keys(sides).length) { updateRepulsorButton(); return; }
+
+  const tex = glowTexture();
+  const beamLen = BEAM_LEN * H * modelScale;
+  for (const s of Object.values(sides)) {
+    // toneMapped:false 是关键。渲染器开着 ACESFilmic，叠加上去的 0.5 左右会被
+    // 压回灰蓝，实测射流看着像根灰杆子。发光体绕开色调映射才能保住饱和度。
+    s.glow = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: tex, color: EMISSIVE_COLOR, blending: THREE.AdditiveBlending,
+      transparent: true, depthWrite: false, depthTest: false,
+      toneMapped: false, opacity: 0 }));
+    s.glow.visible = false;
+    s.glow.renderOrder = 10;
+
+    // 作用范围压到身高的 0.4：点光源开得太远会把整具装甲照白，
+    // 实测 distance=0.9 / intensity=7 时胸口的红色被冲成粉色，读起来像过曝而不是发光。
+    s.light = new THREE.PointLight(EMISSIVE_COLOR, 0, H * modelScale * 0.4, 2);
+    s.light.visible = false;
+
+    // 沿 +Y 建模再旋到 worldDir。远端扩口而不是收细 —— 等粗的细长圆柱在正交投影下
+    // 读起来是根杆子（实测第一版就是这个毛病），扩口才像喷流。
+    const geo = new THREE.CylinderGeometry(BEAM_RADIUS * H * modelScale * 1.8,
+                                           BEAM_RADIUS * H * modelScale * 0.6,
+                                           beamLen, 14, 12, true);
+    geo.translate(0, beamLen / 2, 0);
+    // 沿长度淡出。叠加混合下「颜色趋于黑」就等于「消失」，所以用顶点色做衰减，
+    // 不需要另写着色器。不加这一步远端是一刀切的断面，看着像根实心管子。
+    {
+      const pos = geo.attributes.position;
+      const col = new Float32Array(pos.count * 3);
+      for (let i = 0; i < pos.count; i++) {
+        const k = Math.pow(Math.max(0, 1 - pos.getY(i) / beamLen), 1.6);
+        col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = k;
+      }
+      geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    }
+    // 双面：开口圆柱只画一面时没有体积感，两面叠加才像一束气流
+    s.beam = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+      color: EMISSIVE_COLOR, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+      vertexColors: true, transparent: true, depthWrite: false,
+      toneMapped: false, opacity: 0 }));
+    s.beam.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), s.worldDir);
+    s.beam.visible = false;
+    scene.add(s.glow, s.light, s.beam);
+  }
+  repulsor = { sides, tex, beamLen };
+  updateRepulsorButton();
+}
+
+// 时间轴：充能 -> 放电 -> 后坐 -> 余辉。t ∈ [0,1]
+const FIRE_AT = 0.42;
+function repulsorPhases(t) {
+  const charge = THREE.MathUtils.smoothstep(t, 0.02, FIRE_AT);
+  const flash = t >= FIRE_AT ? Math.exp(-(t - FIRE_AT) / 0.05) : 0;
+  const bt = (t - FIRE_AT) / 0.20;
+  const beam = bt >= 0 && bt < 1 ? Math.pow(1 - bt, 1.7) : 0;
+  const glow = Math.max(t < FIRE_AT ? charge : charge * Math.exp(-(t - FIRE_AT) / 0.35), flash);
+  // 后坐：12% 内甩到峰值，之后指数回落。峰值恰为 1，不需要额外归一化。
+  const rt = (t - FIRE_AT) / 0.5;
+  const recoil = rt < 0 || rt >= 1 ? 0
+    : rt < 0.12 ? rt / 0.12 : Math.exp(-(rt - 0.12) * 4.2);
+  return { charge, flash, beam, glow, recoil };
+}
+
+function repulsorEmitter(s, out) {
+  const list = partsByGroup.get(s.distal) || [];
+  _rbox.makeEmpty();
+  for (const p of list) if (p.worldBox && !p.worldBox.isEmpty()) _rbox.union(p.worldBox);
+  if (_rbox.isEmpty()) return false;
+  _rbox.getCenter(out);
+  out.addScaledVector(s.worldDir, s.reach * modelScale);
+  return true;
+}
+
+function updateRepulsorVisuals(ph) {
+  if (!repulsor) return;
+  if (boxesDirty) refreshWorldBoxes();
+  const H = plan.height * modelScale;
+  for (const s of Object.values(repulsor.sides)) {
+    const on = state.repulsorSides.includes(s.side);
+    if (!on) continue;
+    if (!repulsorEmitter(s, s.emitter)) continue;
+    // 闪光主要靠 sprite 表达，而不是靠点光源提亮整个模型
+    const size = H * (0.045 + 0.09 * ph.glow + 0.15 * ph.flash);
+    s.glow.position.copy(s.emitter);
+    s.glow.scale.setScalar(size);
+    s.glow.material.opacity = Math.min(1, ph.glow * 1.15);
+    s.glow.visible = ph.glow > 0.004;
+
+    s.light.position.copy(s.emitter);
+    s.light.intensity = ph.glow * 0.5 + ph.flash * 1.7;
+    s.light.visible = s.light.intensity > 0.01;
+
+    s.beam.position.copy(s.emitter);
+    s.beam.material.opacity = ph.beam * 0.8;
+    s.beam.visible = ph.beam > 0.004;
+  }
+}
+
+function hideRepulsorVisuals() {
+  if (!repulsor) return;
+  for (const s of Object.values(repulsor.sides)) {
+    s.glow.visible = s.light.visible = s.beam.visible = false;
+  }
+}
+
+function startRepulsor(side = 'both') {
+  if (!repulsor) return null;
+  const want = side === 'both'
+    ? Object.keys(repulsor.sides)
+    : (repulsor.sides[side] ? [side] : []);
+  if (!want.length) return null;
+  if (state.assembling) stopAssemble(false);
+  state.repulsing = true;
+  state.repulsorT = 0;
+  state.repulsorRecoil = 0;
+  state.repulsorSides = want;
+  $('btnRepulsor').setAttribute('aria-pressed', 'true');
+
+  // 预算后坐位移。存两份：场景空间那份给 __verifyManifest 复算期望值，
+  // 父节点局部空间那份给 applyTransforms 实际使用 —— 与爆炸向量同一套空间约定。
+  const H = plan.height;
+  for (const p of parts) { p.recoilLocal = null; p.recoilScene = null; }
+  for (const sk of want) {
+    const s = repulsor.sides[sk];
+    for (const c of s.chain) {
+      const atten = RECOIL_ATTEN[c] ?? 0;
+      if (!atten) continue;
+      for (const p of partsByGroup.get(`${c}/${sk}`) || []) {
+        if (!p.toLocal) continue;
+        p.recoilScene = s.dirScene.clone().multiplyScalar(-RECOIL_DIST * H * atten);
+        p.recoilLocal = p.recoilScene.clone().applyMatrix3(p.toLocal);
+      }
+    }
+  }
+  applyTransforms();
+  return { sides: want, duration: REPULSOR_SECONDS };
+}
+
+function stopRepulsor() {
+  state.repulsing = false;
+  state.repulsorT = 0;
+  state.repulsorRecoil = 0;
+  state.repulsorSides = [];
+  $('btnRepulsor').setAttribute('aria-pressed', 'false');
+  for (const p of parts) { p.recoilLocal = null; p.recoilScene = null; }
+  hideRepulsorVisuals();
+  applyTransforms();
+}
+
+function updateRepulsorButton() {
+  const b = $('btnRepulsor');
+  if (!b) return;
+  const n = repulsor ? Object.keys(repulsor.sides).length : 0;
+  b.disabled = n === 0;
+  b.title = n
+    ? `发射口：${Object.values(repulsor.sides).map((s) => s.distal).join(' / ')}`
+    : '该模型的手臂没有分离到小臂以下，无法定出发射口';
+}
+
 // CC-BY 3(a)(1) 要求随作品保留：作者、许可声明与其 URI、指向原作的链接；
 // (B) 还要求声明是否改动过 —— 站点分发的是压缩过的几何与贴图，属于有改动。
 // 数据全部来自 index.json，页面不硬编码任何作者信息。
@@ -959,6 +1219,9 @@ $('btnParts').onclick = () => {
   $('btnParts').setAttribute('aria-pressed', String(state.targetExplode > 0.001));
 };
 $('btnDebris').onclick = () => { state.showDebris = !state.showDebris; applyDebris(); };
+$('btnRepulsor').onclick = () => {
+  state.repulsing ? stopRepulsor() : startRepulsor('both');
+};
 
 
 addEventListener('resize', () => {
@@ -1010,6 +1273,19 @@ function tick() {
     if (state.assembleT >= 1) stopAssemble(true);
   }
 
+  // REPULSOR 时间轴
+  let repulsorPh = null;
+  if (state.repulsing) {
+    state.repulsorT += dt / REPULSOR_SECONDS;
+    if (state.repulsorT >= 1) {
+      stopRepulsor();
+    } else {
+      repulsorPh = repulsorPhases(state.repulsorT);
+      state.repulsorRecoil = repulsorPh.recoil;
+      dirty = true;
+    }
+  }
+
   // 爆炸与钻取补间
   if (!state.assembling) {
   if (Math.abs(state.explode - state.targetExplode) > 0.0004) {
@@ -1022,6 +1298,7 @@ function tick() {
     dirty = true;
   }
   if (dirty) { applyTransforms(); updateGhostOpacity(); boxesDirty = true; }
+  if (repulsorPh) updateRepulsorVisuals(repulsorPh);
 
   // 取景两层插值：先按爆炸进度，再按钻取进度收拢到选中组
   const baseZoom = THREE.MathUtils.lerp(state.zoomFit, state.zoomFitFull, state.explode);
@@ -1055,7 +1332,9 @@ function tick() {
   $('zm').textContent = camera.zoom.toFixed(2);
   $('ex').textContent = Math.round(state.explode * 100) + '%';
   $('mo').textContent = state.assembling
-    ? `ASSEMBLE ${Math.round(state.assembleT * 100)}%` : 'IDLE';
+    ? `ASSEMBLE ${Math.round(state.assembleT * 100)}%`
+    : state.repulsing
+      ? `REPULSOR ${Math.round(state.repulsorT * 100)}%` : 'IDLE';
 }
 
 loadIndex().then(() => loadModel(slug)).then(tick).catch((e) => {
@@ -1138,6 +1417,18 @@ const AGENT_TOOLS = {
     参数: {},
     run: () => { startAssemble(); return { duration: ASSEMBLE_SECONDS }; },
   },
+  playRepulsor: {
+    描述: '发射掌心射流：充能、放电、手臂后坐。发射口由臂链推导，'
+        + '手臂未分离到小臂的一侧不可用',
+    参数: { side: "'L' | 'R' | 'both'，默认 both；该侧无发射口时返回 null" },
+    run: ({ side } = {}) => {
+      const r = startRepulsor(side ?? 'both');
+      if (!r) throw new Error(repulsor
+        ? `该侧没有发射口，可用：${Object.keys(repulsor.sides).join(', ')}`
+        : '当前模型的手臂没有分离到小臂以下，无法定出发射口');
+      return r;
+    },
+  },
   getState: {
     描述: '读取当前场景状态，用于决定下一步',
     参数: {},
@@ -1147,6 +1438,8 @@ const AGENT_TOOLS = {
       mode: state.mode, explode: +state.explode.toFixed(3),
       selected: state.selected, focus: state.focus,
       assembling: state.assembling,
+      repulsing: state.repulsing,
+      repulsorSides: repulsor ? Object.keys(repulsor.sides) : [],
       azimuth: +THREE.MathUtils.radToDeg(sph.theta).toFixed(1),
       elevation: +(90 - THREE.MathUtils.radToDeg(sph.phi)).toFixed(1),
       groups: Object.keys(groupIndex).length,
@@ -1244,6 +1537,10 @@ window.__verifyManifest = () => {
       }
       exp.addScaledVector(off, modelScale);
     }
+    // 后坐也是真实位移，期望值必须含它，否则一开火这个校验就会整片报偏差
+    if (state.repulsorRecoil > 0 && p.recoilScene) {
+      exp.addScaledVector(p.recoilScene, state.repulsorRecoil * modelScale);
+    }
     const d = c.distanceTo(exp) / modelScale / H;   // 以身高为单位
     if (!Number.isFinite(d)) continue;
     devs.push(d);
@@ -1312,6 +1609,86 @@ window.__verifyHud = () => {
   }
   return { viewport: `${innerWidth}x${innerHeight}`,
            panels: boxes.map(([q]) => q), ok: hits.length === 0, overlaps: hits };
+};
+
+// 发射口是推导出来的，错了不会报错、只会「光从胳膊肘冒出来」，肉眼还未必看得准。
+// 这个函数把推导结果变成可断言的量：发射口必须落在末端组的包围盒附近、
+// 必须比该组中心更靠外，且开火峰值时臂链确实发生了位移。
+window.__verifyRepulsor = () => {
+  if (!repulsor) return { ok: false, problems: ['当前模型没有发射口'], sides: [] };
+  if (boxesDirty) refreshWorldBoxes();
+  const H = plan.height * modelScale;
+  const problems = [];
+  const out = [];
+
+  const boxOf = (keys) => {
+    const b = new THREE.Box3();
+    for (const k of keys) {
+      for (const q of partsByGroup.get(k) || []) {
+        if (q.worldBox && !q.worldBox.isEmpty()) b.union(q.worldBox);
+      }
+    }
+    return b.isEmpty() ? null : b;
+  };
+  // 躯干：射流不该打进自己身体，后坐也该把手推离躯干
+  const torso = boxOf(['chest/C', 'chest/L', 'chest/R', 'abdomen/C']);
+  const torsoC = torso ? torso.getCenter(new THREE.Vector3()) : new THREE.Vector3();
+
+  for (const s of Object.values(repulsor.sides)) {
+    const db = boxOf([s.distal]);
+    if (!db) { problems.push(`${s.side}: 取不到末端组的世界包围盒`); continue; }
+    const c = db.getCenter(new THREE.Vector3());
+    const e = new THREE.Vector3();
+    if (!repulsorEmitter(s, e)) { problems.push(`${s.side}: 算不出发射口`); continue; }
+
+    // 1) 发射口必须比末端组中心更远离躯干。若 distal / proximal 取反，方向会掉头，
+    //    这条立刻失败 —— 它是这套推导里最容易错且最不容易看出来的地方。
+    const outward = (e.distanceTo(torsoC) - c.distanceTo(torsoC)) / H;
+    if (outward <= 0) {
+      problems.push(`${s.side}: 发射口比末端组中心更靠近躯干 (${outward.toFixed(4)}H)，方向可能取反`);
+    }
+    // 2) 射流不能一出膛就穿过自己的躯干
+    if (torso && new THREE.Ray(e.clone(), s.worldDir.clone()).intersectsBox(torso)) {
+      problems.push(`${s.side}: 射流方向指向躯干内部`);
+    }
+    out.push({ side: s.side, distal: s.distal, proximal: s.proximal, chain: s.chain,
+               outwardH: +outward.toFixed(4),
+               emitter: e.toArray().map((n) => +n.toFixed(4)),
+               worldDir: s.worldDir.toArray().map((n) => +n.toFixed(4)) });
+  }
+  return { ok: problems.length === 0, problems, sides: out,
+           firing: state.repulsing, recoil: +state.repulsorRecoil.toFixed(4) };
+};
+
+// __verifyRepulsor 的对照组，作用同 __scrambleMeta：证明那个校验不是恒真。
+//   'flip'   把发射方向掉头 —— 等价于 distal / proximal 取反
+//   'center' 把发射口退回末端组的几何中心 —— 等价于漏掉 reach
+//   'restore' 复原
+// 每种破坏都必须让 __verifyRepulsor().ok 变成 false。
+window.__scrambleRepulsor = (mode = 'flip') => {
+  if (!repulsor) return { ok: false, note: '当前模型没有发射口' };
+  repulsor._backup ??= Object.fromEntries(Object.entries(repulsor.sides).map(([k, s]) =>
+    [k, { worldDir: s.worldDir.clone(), dirScene: s.dirScene.clone(), reach: s.reach }]));
+  for (const [k, s] of Object.entries(repulsor.sides)) {
+    const b = repulsor._backup[k];
+    if (mode === 'flip') { s.worldDir.copy(b.worldDir).negate(); s.dirScene.copy(b.dirScene).negate(); s.reach = b.reach; }
+    else if (mode === 'center') { s.worldDir.copy(b.worldDir); s.dirScene.copy(b.dirScene); s.reach = 0; }
+    else { s.worldDir.copy(b.worldDir); s.dirScene.copy(b.dirScene); s.reach = b.reach; }
+  }
+  return { mode, sides: Object.keys(repulsor.sides) };
+};
+
+// 开火时臂链到底动了没有。返回每个受影响组在峰值下的位移（单位：身高）。
+window.__repulsorRecoilProbe = () => {
+  const H = plan.height * modelScale;
+  const by = new Map();
+  for (const p of parts) {
+    if (!p.recoilLocal) continue;
+    const d = p.recoilLocal.length() * state.repulsorRecoil * modelScale / H;
+    by.set(p.groupKey, Math.max(by.get(p.groupKey) ?? 0, d));
+  }
+  return { recoil: +state.repulsorRecoil.toFixed(4),
+           groups: Object.fromEntries([...by].map(([k, v]) => [k, +v.toFixed(5)])) };
 };
 
 window.__debugScene = () => {

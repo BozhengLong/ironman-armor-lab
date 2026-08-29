@@ -72,8 +72,10 @@ jobs:
         run: |
           python3 scripts/analyze_parts.py assets/raw/hulkbuster/scene.gltf
           python3 scripts/analyze_parts.py assets/raw/ironman/scene.gltf
+          python3 scripts/analyze_parts.py assets/raw/samurai/scene.gltf
           python3 scripts/explode_plan.py assets/manifests/hulkbuster.json
           python3 scripts/explode_plan.py assets/manifests/ironman.json
+          python3 scripts/explode_plan.py assets/manifests/samurai.json
           if ! git diff --quiet -- assets/manifests; then
             echo "::error::重算结果与入库的 manifest 不一致："
             git diff --stat -- assets/manifests
