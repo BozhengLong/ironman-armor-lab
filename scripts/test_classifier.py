@@ -71,6 +71,65 @@ def main() -> int:
         print("\n".join(fails))
         return 1
     print(f"PASS  {len(FIXTURE)}/{len(FIXTURE)} 个部件分类正确")
+
+    if check_duplicate_invariant():
+        return 1
+    return 0
+
+
+def check_duplicate_invariant():
+    """不变量：三角面数与尺寸完全相同的零件，必须拿到相同的部位标签。
+
+    side 允许不同 —— 镜像件本来就分左右。这条不变量存在的原因见
+    docs/explode-design.md：samurai 的镜像件里只有一件的材质带着
+    before_duplicating_helmet 前缀，任何依赖材质名的判据都会把这一对劈开，
+    而它们几何完全相同，劈开必然有一件是错的。
+
+    对照：把其中一件的标签改掉，这个检查必须报错 —— 否则它是恒真的。
+    """
+    from collections import defaultdict
+    root = pathlib.Path(__file__).resolve().parent.parent / "assets" / "manifests"
+    mans = sorted(root.glob("*.json"))
+    mans = [m for m in mans if not m.name.endswith((".explode.json", ".overrides.json"))
+            and m.name != "index.json"]
+    if not mans:
+        print("SKIP  没有入库的 manifest 可查")
+        return 0
+
+    def sets_of(parts, bounds):
+        span = max(bounds["max"][i] - bounds["min"][i] for i in range(3)) or 1.0
+        d = defaultdict(list)
+        for q in parts:
+            if q.get("flag"):
+                continue
+            d[(q["tris"], tuple(round(v / span, 4) for v in q["size"]))].append(q)
+        return {k: v for k, v in d.items() if len(v) > 1}
+
+    bad, total, control_ok = [], 0, True
+    for m in mans:
+        doc = json.loads(m.read_text())
+        groups = sets_of(doc["parts"], doc["bounds"])
+        total += len(groups)
+        for v in groups.values():
+            if len({q["part"] for q in v}) > 1:
+                bad.append(f"  {m.stem}: {[(q['node'], q['part']) for q in v]}")
+        # 对照组：人为破坏一组，检查必须能发现
+        if groups:
+            v = list(groups.values())[0]
+            saved = v[0]["part"]
+            v[0]["part"] = "__scrambled__"
+            if len({q["part"] for q in v}) == 1:
+                control_ok = False
+            v[0]["part"] = saved
+
+    if bad:
+        print(f"FAIL  重复体标签不一致 {len(bad)} 组")
+        print("\n".join(bad))
+        return 1
+    if not control_ok:
+        print("FAIL  对照组未能触发 —— 这个检查是恒真的，必须修")
+        return 1
+    print(f"PASS  重复体标签一致性：{total} 组（含对照组验证）")
     return 0
 
 

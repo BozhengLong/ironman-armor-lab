@@ -7,7 +7,7 @@
 原理: glTF 规范要求 POSITION accessor 必须带 min/max，所以只读 JSON 就能拿到每个
 primitive 的局部包围盒，无需解析 .bin 顶点数据。
 """
-import argparse, base64, json, math, pathlib, struct, sys
+import argparse, base64, json, math, pathlib, re, struct, sys
 import numpy as np
 
 # ---------- glTF 载入 ----------
@@ -291,6 +291,9 @@ def classify(parts, up, lat):
                     break
             p["side"] = ("L" if p["lat"] < -SIDE_CUTOFF
                          else ("R" if p["lat"] > SIDE_CUTOFF else "C"))
+        # 纯位置判定的结果。材质提示与对称配对之后可能被覆盖，
+        # 但重复体之间出现分歧时要退回到它 —— 它只依赖几何，重复体上必然一致。
+        p["part_by_position"] = p["part"]
 
         d = p["center"] - body_center
         n = np.linalg.norm(d)
@@ -307,7 +310,7 @@ MATERIAL_HINTS = [
     ("torsi",     "chest"),
     ("torso",     "chest"),
     ("helmet",    "helmet"),
-    ("face",      "helmet"),
+    ("face",      "helmet"),   # 见 WORD_ONLY：整词匹配，否则会命中 aiStandardSurface
     ("feet",      "foot"),
     ("foot",      "foot"),
     ("boot",      "foot"),
@@ -320,6 +323,32 @@ MATERIAL_HINTS = [
     ("neck",      "neck"),
 ]
 EMISSIVE_KEYS = ("light", "glow", "emissive", "reactor", "eye")
+
+# 这些 token 必须整词匹配。"face" 作为子串会命中 "aiStandardSurface" / "polySurface"
+# —— samurai 上实测 5 件因此被指为头盔。
+#
+# 单独修这一条曾经更糟：镜像件中只有一件带 before_duplicating_helmet 前缀，
+# 去掉 face 的误命中会让另一件掉回位置判定，把一对完全相同的零件劈成两个标签。
+# 现在有 enforce_duplicate_consistency 兜底，才可以安全地改。
+WORD_ONLY = {"face"}
+
+
+def _words(name):
+    """材质名拆词。aiStandardSurface28 -> {ai, standard, surface, 28}"""
+    t = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", str(name or ""))
+    return {w for w in re.split(r"[^A-Za-z0-9]+", t.lower()) if w}
+
+
+def material_hint(name):
+    low = str(name or "").lower()
+    words = _words(name)
+    for key, part in MATERIAL_HINTS:
+        if key in WORD_ONLY:
+            if key in words:
+                return part
+        elif key in low:
+            return part
+    return None
 
 
 def material_semantics(g, parts):
@@ -349,11 +378,10 @@ def material_semantics(g, parts):
         low = name.lower()
         if any(k in low for k in EMISSIVE_KEYS):
             p["emissive"] = True
-        for key, part in MATERIAL_HINTS:
-            if key in low:
-                p["material_hint"] = part
-                hits += 1
-                break
+        hint = material_hint(name)
+        if hint:
+            p["material_hint"] = hint
+            hits += 1
     return hits
 
 
@@ -365,6 +393,59 @@ EXPECTED_H = {
     "thigh": (0.24, 0.46), "shin": (0.09, 0.24), "foot": (-0.01, 0.09),
 }
 H_TOLERANCE = 0.08   # 材质提示允许偏离合理区间的幅度
+
+
+def duplicate_key(p, span):
+    """重复体指纹：三角面数 + 归一化尺寸。
+
+    镜像复制不改变三角面数与包围盒尺寸，所以左右对称件与同侧重复件都会落进同一组。
+    尺寸按模型跨度归一后取四位小数，容忍烘焙变换带来的浮点噪声。
+    """
+    scale = float(max(span)) or 1.0
+    return (p["tris"], tuple(round(float(v) / scale, 4) for v in p["size"]))
+
+
+def enforce_duplicate_consistency(parts, span):
+    """完全相同的零件必须拿到相同的部位标签（side 可以不同 —— 镜像件本就分左右）。
+
+    为什么需要这条：samurai 的镜像件里，只有其中一件的材质带着
+    `before_duplicating_helmet` 这个 Maya 组名前缀，另一件没有。任何依赖材质名的
+    判据都会把这一对劈成两个标签 —— 而它们的几何完全相同，劈开必然有一个是错的，
+    且比两个一致地错更难发现（爆炸图上会看到一对孪生件飞向不同方向）。
+
+    分歧只可能来自非几何证据（材质名），因为几何相同则位置判定必然相同。
+    所以裁决规则是：多数决；平局时退回纯位置判定。
+    """
+    from collections import defaultdict
+    sets = defaultdict(list)
+    for p in parts:
+        if p["flag"] is None:
+            sets[duplicate_key(p, span)].append(p)
+
+    fixed = 0
+    for group in sets.values():
+        if len(group) < 2:
+            continue
+        labels = [q["part"] for q in group]
+        if len(set(labels)) == 1:
+            continue
+        counts = {}
+        for l in labels:
+            counts[l] = counts.get(l, 0) + 1
+        top = max(counts.values())
+        winners = sorted(l for l, c in counts.items() if c == top)
+        if len(winners) == 1:
+            win = winners[0]
+        else:
+            # 平局：退回纯位置判定（几何相同 -> 各件的位置判定必然相同）
+            win = group[0]["part_by_position"]
+        for q in group:
+            if q["part"] != win:
+                q["part"] = win
+                q["review"] = None
+                q["dup_normalized"] = True
+                fixed += 1
+    return fixed
 
 
 def apply_material_hints(parts):
@@ -477,6 +558,7 @@ def main():
     mat_hits = material_semantics(g, parts)
     mat_applied, mat_conflicts = apply_material_hints(parts)
     paired = pair_symmetry(parts, up, lat)
+    dup_fixed = enforce_duplicate_consistency(parts, allmax - allmin)
     review = flag_ambiguous(parts)
 
     out = pathlib.Path(a.out) if a.out else pathlib.Path("assets/manifests") / (path.parent.name + ".json")
@@ -497,6 +579,8 @@ def main():
           + (f"  其中异常节点占 {sum(p['tris'] for p in flagged):,}" if flagged else ""))
     if paired:
         print(f"对称修正  : {paired} 对镜像部件被强制归为同一部位")
+    if dup_fixed:
+        print(f"重复体一致: {dup_fixed} 件被拉回与其孪生件相同的部位标签")
     emis = [q for q in parts if q.get("emissive")]
     if mat_hits:
         print(f"材质语义  : {mat_hits} 个部件的材质名含部位信息"

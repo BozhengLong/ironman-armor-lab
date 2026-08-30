@@ -181,7 +181,7 @@
     {
       "node": 54,
       "name": "polySurface579_before_duplicating_helmet:aiStandardSurface40_0",
-      "part": "helmet",
+      "part": "neck",
       "side": "C",
       "flag": null,
       "h": 0.8432,
@@ -207,7 +207,7 @@
     {
       "node": 56,
       "name": "polySurface591_aiStandardSurface40_0",
-      "part": "helmet",
+      "part": "neck",
       "side": "C",
       "flag": null,
       "h": 0.8432,
@@ -308,7 +308,6 @@
         0.8993,
         0.085
       ],
-      "review": "材质 'aiStandardSurface32' 指向 helmet（合理高度 0.90–1.01），但实际 h=0.74，位置判定为 chest",
       "material": "aiStandardSurface32"
     },
     {
@@ -497,7 +496,6 @@
         0.2009,
         0.5245
       ],
-      "review": "材质 'aiStandardSurface28' 指向 helmet（合理高度 0.90–1.01），但实际 h=0.56，位置判定为 forearm",
       "material": "aiStandardSurface28"
     },
     {
@@ -631,7 +629,6 @@
         -0.7768,
         0.4321
       ],
-      "review": "材质 'aiStandardSurface29' 指向 helmet（合理高度 0.90–1.01），但实际 h=0.31，位置判定为 thigh",
       "material": "aiStandardSurface29"
     }
   ]
