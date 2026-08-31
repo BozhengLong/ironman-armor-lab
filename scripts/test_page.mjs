@@ -73,14 +73,23 @@ try {
   // URL 回写是 400ms 防抖，而相机阻尼会持续发 change 事件不断把防抖顶掉 ——
   // 镜头没停稳之前 URL 根本不会写。所以取链接前必须等场景稳定，
   // 不能靠固定 sleep 猜（第一版就是这么错的：拿到的是还在补间中途的角度）。
-  const settle = async (timeout = 8000) => {
+  // 相机是渐近插值，永远不会两帧完全相同 —— 判「停稳」必须带容差，
+  // 而不是要求两次快照字符串相等。CI 的机器慢，第一版 8 秒 + 严格相等直接翻车。
+  const NUMERIC = { az: 0.15, el: 0.15, zoom: 0.002, explode: 0.002 };
+  const near = (a, b, tol) => Object.entries(NUMERIC)
+    .every(([k, e]) => Math.abs((a[k] ?? 0) - (b[k] ?? 0)) <= (tol ?? e));
+  const sameDiscrete = (a, b) => ['model', 'mode', 'group', 'focus', 'debris']
+    .every((k) => a[k] === b[k]);
+
+  const settle = async (timeout = 20000) => {
     const t0 = Date.now();
     let prev = null;
     while (Date.now() - t0 < timeout) {
       await page.waitForTimeout(250);
-      const snap = JSON.stringify(await page.evaluate(() => window.__stateSnapshot()));
+      const snap = await page.evaluate(() => window.__stateSnapshot());
       const url = page.url();
-      if (snap === prev && /[?&](ex|g|mode|az)=/.test(url)) return true;
+      if (prev && near(snap, prev) && sameDiscrete(snap, prev)
+          && /[?&](ex|g|mode|az)=/.test(url)) return true;
       prev = snap;
     }
     return false;
@@ -143,8 +152,21 @@ try {
   await readyOrDie('深链往返 回程');
   await page.waitForTimeout(400);
   const after = await page.evaluate(() => window.__stateSnapshot());
-  ok(JSON.stringify(before) === JSON.stringify(after),
+  // 离散字段必须逐字相等；连续量（角度/缩放/爆炸进度）经过 URL 的取整往返，
+  // 只能带容差比较 —— 要求逐位相等本身就是错的断言。
+  ok(sameDiscrete(before, after) && near(before, after, 0.5),
      `深链往返不一致:\n    去 ${JSON.stringify(before)}\n    回 ${JSON.stringify(after)}`);
+
+  // 往返比较带了容差，容差给宽了它就变成恒真。改一个参数再进来，必须比出不同。
+  const tampered = link.includes('ex=')
+    ? link.replace(/ex=[\d.]+/, 'ex=0.11')
+    : link + '&ex=0.11';
+  await page.goto(tampered);
+  await readyOrDie('往返对照');
+  await page.waitForTimeout(400);
+  const tamperedSnap = await page.evaluate(() => window.__stateSnapshot());
+  ok(!(sameDiscrete(before, tamperedSnap) && near(before, tamperedSnap, 0.5)),
+     `往返对照失效：改掉链接里的 ex 之后快照仍判定为相同 —— 这个比较是恒真的`);
 
   // ---------- 对照组：每条校验都必须能失败 ----------
   // 这一段才是重点。只验「通过」的话，一个恒真的检查会永远显示绿色。
