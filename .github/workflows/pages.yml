@@ -89,6 +89,16 @@ jobs:
       - name: 组装站点
         run: node scripts/build_site.mjs
 
+      # 页面的 JS 此前从头到尾没有任何一步解析过：实测往 applyTransforms 注入一个
+      # 必然白屏的语法错误，npm test 与 build_site.mjs 双双退出码 0，CI 全绿。
+      # check_page.mjs（已并入 npm test）挡住白屏；下面这步再往前一层 ——
+      # 在真实浏览器里跑页面自带的五个 __verify* 钩子，并且验证它们确实能失败。
+      - name: 安装无头浏览器
+        run: npx playwright install --with-deps chromium
+
+      - name: 站点运行时验收
+        run: npm run test:page
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

@@ -4,8 +4,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = Number(process.env.PORT || 8732);
+
+// 默认服务仓库根（`/` 映射到 web/index.html，边改边看）。
+// `--root site` 则直接服务构建产物，供 test_page.mjs 按线上目录结构验收。
+const ai = process.argv.indexOf('--root');
+const CUSTOM = ai >= 0;
+const ROOT = CUSTOM ? path.resolve(process.argv[ai + 1]) : REPO;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -24,7 +30,7 @@ const MIME = {
 
 http.createServer((req, res) => {
   const url = decodeURIComponent((req.url || '/').split('?')[0]);
-  let rel = url === '/' ? '/web/index.html' : url;
+  let rel = url === '/' ? (CUSTOM ? '/index.html' : '/web/index.html') : url;
   const file = path.join(ROOT, rel);
 
   // 防目录穿越
@@ -37,7 +43,7 @@ http.createServer((req, res) => {
   const send = (f) => fs.stat(f, (err, st) => {
     if (err || !st.isFile()) {
       const built = path.join(ROOT, 'site', rel);
-      if (f !== built && built.startsWith(path.join(ROOT, 'site') + path.sep)
+      if (!CUSTOM && f !== built && built.startsWith(path.join(ROOT, 'site') + path.sep)
           && fs.existsSync(built)) return send(built);
       res.writeHead(404, { 'content-type': 'text/plain' }).end('not found: ' + rel);
       return;
@@ -50,4 +56,4 @@ http.createServer((req, res) => {
     fs.createReadStream(f).pipe(res);
   });
   send(file);
-}).listen(PORT, () => console.log(`ready http://localhost:${PORT}/`));
+}).listen(PORT, () => console.log(`ready http://localhost:${PORT}/  root=${ROOT}`));

@@ -6,8 +6,9 @@
   "description": "Web 3D 装甲交互档案 — 最小验证",
   "scripts": {
     "dev": "node scripts/serve.mjs",
-    "test": "python3 scripts/test_classifier.py && python3 scripts/test_explode.py",
-    "plan": "python3 scripts/explode_plan.py assets/manifests/ironman.json --metric && python3 scripts/explode_plan.py assets/manifests/hulkbuster.json --metric"
+    "test": "python3 scripts/test_classifier.py && python3 scripts/test_explode.py && node scripts/check_page.mjs",
+    "plan": "python3 scripts/explode_plan.py assets/manifests/ironman.json --metric && python3 scripts/explode_plan.py assets/manifests/hulkbuster.json --metric",
+    "test:page": "node scripts/test_page.mjs"
   },
   "dependencies": {
     "three": "^0.180.0"
@@ -18,6 +19,7 @@
     "@gltf-transform/functions": "^4.4.2",
     "draco3dgltf": "^1.5.7",
     "meshoptimizer": "^1.2.0",
+    "playwright": "^1.62.1",
     "sharp": "^0.35.4"
   }
 }

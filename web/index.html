@@ -757,10 +757,12 @@ setView('ISO');
 //
 // 用 replaceState 不用 pushState：拖动相机会产生几百个中间状态，
 // 塞进历史记录会把后退键变成噪音。
+// 节流而不是防抖。相机的缩放与对焦点是逐帧渐近插值的，OrbitControls 因此
+// 几乎每帧都发 change —— 纯防抖会被无限顺延，URL 在场景动着的时候永远不写。
+// 改成「首次调用就排一次，窗口内的后续调用忽略」，连续拖动时 URL 也会跟着更新。
 function scheduleUrlSync() {
-  if (!urlReady) return;
-  clearTimeout(urlTimer);
-  urlTimer = setTimeout(syncUrl, 400);
+  if (!urlReady || urlTimer) return;
+  urlTimer = setTimeout(() => { urlTimer = 0; syncUrl(); }, 400);
 }
 function currentStateParams() {
   const sp = new URLSearchParams();
@@ -1411,6 +1413,19 @@ function buildRoster() {
 
 // 模式切换从按钮回调里抽出来：URL 还原要走同一条路径，
 // 否则「点按钮」和「按链接进来」两条路会慢慢分叉。
+// 设爆炸进度的唯一入口。此前滑块、PARTS 按钮、agent 命令、__setExplode 四条路
+// 各写各的，其中只有前两条会回写 URL —— 于是「用 agent 摆好状态再复制链接」
+// 拿到的是一条丢了爆炸进度的链接。CI 的运行时验收一上来就撞在这上面。
+function setExplodeTarget(v) {
+  const x = THREE.MathUtils.clamp(Number(v), 0, 1);
+  if (state.assembling) stopAssemble(false);
+  state.targetExplode = x;
+  $('slider').value = x;
+  $('btnParts').setAttribute('aria-pressed', String(x > 0.001));
+  scheduleUrlSync();
+  return x;
+}
+
 function setMode(m) {
   if (!plan.modes.includes(m)) return;
   state.mode = m;
@@ -1438,18 +1453,10 @@ let currentBox = null, currentCenter = null;
 $('btnAssemble').onclick = () => {
   state.assembling ? stopAssemble(false) : startAssemble();
 };
-$('slider').oninput = (e) => {
-  if (state.assembling) stopAssemble(false);
-  state.targetExplode = Number(e.target.value);
-  $('btnParts').setAttribute('aria-pressed', String(state.targetExplode > 0.001));
-  scheduleUrlSync();
-};
+$('slider').oninput = (e) => setExplodeTarget(e.target.value);
 $('btnParts').onclick = () => {
   if (state.assembling) stopAssemble(false);
-  state.targetExplode = state.targetExplode > 0.001 ? 0 : 1;
-  $('slider').value = state.targetExplode;
-  $('btnParts').setAttribute('aria-pressed', String(state.targetExplode > 0.001));
-  scheduleUrlSync();
+  setExplodeTarget(state.targetExplode > 0.001 ? 0 : 1);
 };
 $('btnDebris').onclick = () => {
   state.showDebris = !state.showDebris; applyDebris(); scheduleUrlSync();
@@ -1601,7 +1608,7 @@ loadIndex().then(() => loadModel(slug)).then(tick).catch((e) => {
   window.__error = String(e?.message || e);
 });
 
-window.__setExplode = (v) => { state.targetExplode = v; $('slider').value = v; };
+window.__setExplode = setExplodeTarget;
 window.__setView = setView;
 // ---------------------------------------------------------------------------
 // Agent 工具层
@@ -1640,13 +1647,7 @@ const AGENT_TOOLS = {
   setExplode: {
     描述: '设置爆炸进度，0 为装配态，1 为完全展开',
     参数: { value: '0 到 1 的小数' },
-    run: ({ value }) => {
-      const v = THREE.MathUtils.clamp(Number(value), 0, 1);
-      if (state.assembling) stopAssemble(false);
-      state.targetExplode = v; $('slider').value = v;
-      $('btnParts').setAttribute('aria-pressed', String(v > 0.001));
-      return { explode: v };
-    },
+    run: ({ value }) => ({ explode: setExplodeTarget(value) }),
   },
   setExplodeMode: {
     描述: '切换爆炸算法',
@@ -1747,12 +1748,10 @@ window.__shotMode = (on = true) => {
 
 window.__assemble = startAssemble;
 window.__stopAssemble = stopAssemble;
+// 曾经是 setMode 的一份副本，只少了 URL 回写 —— 正是「两条路慢慢分叉」的实例。
 window.__setMode = (m) => {
   if (!plan.modes.includes(m)) throw new Error('unknown mode ' + m);
-  state.mode = m;
-  for (const x of $('modes').children) x.setAttribute('aria-pressed', String(x.textContent === m));
-  computeFraming(currentBox, currentCenter);
-  applyTransforms();
+  setMode(m);
 };
 window.__state = state;
 window.__select = selectGroup;
