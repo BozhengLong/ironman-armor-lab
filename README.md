@@ -130,7 +130,7 @@ CC-BY 的署名义务就成立，站点因此提供三处署名：
 Iron Man 及相关角色的权利归各自权利人所有。本项目与 Marvel、Disney 无任何关联，
 未获其认可或授权。
 
-当前状态与未决事项见 [docs/STATE.md](docs/STATE.md)，变更日志见 [docs/HANDOFF.md](docs/HANDOFF.md)。
+当前状态、约束与已定结论见 [docs/STATE.md](docs/STATE.md)，逐批变更日志见 [docs/HANDOFF.md](docs/HANDOFF.md)。
 
 ## Agent 工具层
 
