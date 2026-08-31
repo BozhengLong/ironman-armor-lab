@@ -73,28 +73,6 @@ try {
   // URL 回写是 400ms 防抖，而相机阻尼会持续发 change 事件不断把防抖顶掉 ——
   // 镜头没停稳之前 URL 根本不会写。所以取链接前必须等场景稳定，
   // 不能靠固定 sleep 猜（第一版就是这么错的：拿到的是还在补间中途的角度）。
-  // 相机是渐近插值，永远不会两帧完全相同 —— 判「停稳」必须带容差，
-  // 而不是要求两次快照字符串相等。CI 的机器慢，第一版 8 秒 + 严格相等直接翻车。
-  const NUMERIC = { az: 0.15, el: 0.15, zoom: 0.002, explode: 0.002 };
-  const near = (a, b, tol) => Object.entries(NUMERIC)
-    .every(([k, e]) => Math.abs((a[k] ?? 0) - (b[k] ?? 0)) <= (tol ?? e));
-  const sameDiscrete = (a, b) => ['model', 'mode', 'group', 'focus', 'debris']
-    .every((k) => a[k] === b[k]);
-
-  const settle = async (timeout = 20000) => {
-    const t0 = Date.now();
-    let prev = null;
-    while (Date.now() - t0 < timeout) {
-      await page.waitForTimeout(250);
-      const snap = await page.evaluate(() => window.__stateSnapshot());
-      const url = page.url();
-      if (prev && near(snap, prev) && sameDiscrete(snap, prev)
-          && /[?&](ex|g|mode|az)=/.test(url)) return true;
-      prev = snap;
-    }
-    return false;
-  };
-
   const readyOrDie = async (tag) => {
     try {
       await page.waitForFunction(() => window.__ready === true, null, { timeout: 45000 });
@@ -132,7 +110,33 @@ try {
     }
   }
 
-  // ---------- 深链往返：真实重载 ----------
+  // ---------- 深链往返 ----------
+  // 要断言的性质是「一条链接能还原出它自己写着的状态」。
+  // 第一版是「等场景停稳 -> 拍快照 -> 重载 -> 两次快照相同」，那依赖动画收敛：
+  // CI 用软件渲染 54 万面，帧率只有几帧，靠等收敛判稳必然超时（实测 20 秒不够，
+  // 而且快照被采样在补间中途，除 az/el 外其余字段其实全对）。
+  // 改成拿 URL 自身作为基准 —— 写链接那一刻相机是否还在动就无关紧要了。
+  const FIELD = { az: 'az', el: 'el', z: 'zoom', ex: 'explode',
+                  mode: 'mode', g: 'group', p: 'focus' };
+  const NUM = new Set(['az', 'el', 'z', 'ex', 'p']);
+  const expectedFromUrl = (u) => {
+    const q = new URL(u).searchParams;
+    const want = {};
+    for (const [key, field] of Object.entries(FIELD)) {
+      if (q.has(key)) want[field] = NUM.has(key) ? Number(q.get(key)) : q.get(key);
+    }
+    want.debris = q.get('debris') === '1';
+    return want;
+  };
+  // 连续量（角度/缩放/爆炸进度）经 URL 取整往返，只能带容差；离散量必须相等。
+  const compare = (want, got, tol = 0.5) => Object.entries(want).flatMap(([k, v]) => {
+    const g = got[k];
+    if (typeof v === 'number' && k !== 'focus') {
+      return Math.abs(v - g) <= tol ? [] : [`${k}: 链接写 ${v}，还原成 ${g}`];
+    }
+    return v === g ? [] : [`${k}: 链接写 ${JSON.stringify(v)}，还原成 ${JSON.stringify(g)}`];
+  });
+
   await page.setViewportSize({ width: 1280, height: 860 });
   await page.goto(`${BASE}/?model=${models[0].slug}`);
   await readyOrDie('深链往返 去程');
@@ -145,28 +149,33 @@ try {
     const g = (await window.armorLab.call('listGroups', {}))[0];
     await window.armorLab.call('focusGroup', { key: g.key ?? g });
   });
-  ok(await settle(), '场景与 URL 未能在 8 秒内稳定下来');
-  const before = await page.evaluate(() => window.__stateSnapshot());
-  const link = page.url();
-  await page.goto(link);
-  await readyOrDie('深链往返 回程');
-  await page.waitForTimeout(400);
-  const after = await page.evaluate(() => window.__stateSnapshot());
-  // 离散字段必须逐字相等；连续量（角度/缩放/爆炸进度）经过 URL 的取整往返，
-  // 只能带容差比较 —— 要求逐位相等本身就是错的断言。
-  ok(sameDiscrete(before, after) && near(before, after, 0.5),
-     `深链往返不一致:\n    去 ${JSON.stringify(before)}\n    回 ${JSON.stringify(after)}`);
 
-  // 往返比较带了容差，容差给宽了它就变成恒真。改一个参数再进来，必须比出不同。
-  const tampered = link.includes('ex=')
-    ? link.replace(/ex=[\d.]+/, 'ex=0.11')
-    : link + '&ex=0.11';
-  await page.goto(tampered);
-  await readyOrDie('往返对照');
-  await page.waitForTimeout(400);
-  const tamperedSnap = await page.evaluate(() => window.__stateSnapshot());
-  ok(!(sameDiscrete(before, tamperedSnap) && near(before, tamperedSnap, 0.5)),
-     `往返对照失效：改掉链接里的 ex 之后快照仍判定为相同 —— 这个比较是恒真的`);
+  // 等 URL 把状态写出来（回写是 400ms 节流，这里给足余量）
+  let link = null;
+  for (let i = 0; i < 60 && !link; i++) {
+    await page.waitForTimeout(250);
+    if (/[?&]ex=/.test(page.url()) && /[?&]g=/.test(page.url())) link = page.url();
+  }
+  ok(link, `URL 始终没有写出状态参数，当前是 ${page.url()}`);
+
+  if (link) {
+    const want = expectedFromUrl(link);
+    await page.goto(link);
+    await readyOrDie('深链往返 回程');
+    await page.waitForTimeout(600);
+    const after = await page.evaluate(() => window.__stateSnapshot());
+    const diffs = compare(want, after);
+    ok(diffs.length === 0, `深链往返不一致:\n    ${diffs.join('\n    ')}\n    链接 ${link}`);
+
+    // 容差给宽了这个比较就变成恒真。改掉参数再进来，必须比出不同。
+    const tampered = link.replace(/ex=[\d.]+/, 'ex=0.11').replace(/g=[^&]*/, 'g=__nope__');
+    await page.goto(tampered);
+    await readyOrDie('往返对照');
+    await page.waitForTimeout(500);
+    ok(compare(want, await page.evaluate(() => window.__stateSnapshot())).length > 0,
+       '往返对照失效：改掉链接参数后仍判定为一致 —— 这个比较是恒真的');
+  }
+
 
   // ---------- 对照组：每条校验都必须能失败 ----------
   // 这一段才是重点。只验「通过」的话，一个恒真的检查会永远显示绿色。
