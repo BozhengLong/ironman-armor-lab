@@ -31,7 +31,12 @@
 `ARMOR_TEST_METAL=1 npm run test:page` 走 Apple Metal，默认仍保留 CI 的软件渲染路径。
 截图检查覆盖 1440×900、1280×720、1024×768、390×844 和 375×667。
 本机 M4 Pro / Metal 的三模型静止场景约 120 FPS；新增边线增加 draw calls，读数仍来自 renderer。
-移动端为模拟验证，未对手机实机作性能承诺。本批尚未部署。
+移动端为模拟验证，未对手机实机作性能承诺。
+
+**发布：** 用户随后授权上线；`c7d8b55` 已于 2026-09-07 经
+[GitHub Pages 工作流](https://github.com/BozhengLong/ironman-armor-lab/actions/runs/34109288669) 发布成功。
+线上 HTML、展示 CSS/JS 与本地构建的 SHA-256 一致；三个模型、标注钻取、逐件导航、
+SOURCE 链接恢复及 375×667 设置布局复查通过，无页面或 HTTP 资源错误。
 
 ---
 
