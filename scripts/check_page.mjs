@@ -30,6 +30,11 @@ const modules = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)]
 
 if (!modules.length) fails.push('页面里找不到 <script type="module"> —— 检查本身可能失效了');
 
+// External presentation code must receive the same syntax / DOM-id checks as the page.
+for (const file of fs.readdirSync(path.join(ROOT, 'web')).filter((f) => /\.m?js$/.test(f))) {
+  modules.push(fs.readFileSync(path.join(ROOT, 'web', file), 'utf8'));
+}
+
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'armorlab-'));
 modules.forEach((src, i) => {
   const f = path.join(tmp, `mod${i}.mjs`);

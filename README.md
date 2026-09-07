@@ -1,6 +1,6 @@
 # Iron Man Armor Lab
 
-浏览器里的 3D 装甲交互档案。正交相机 + 工程图式 HUD + 按语义组的爆炸拆解视图。
+浏览器里的 3D 装甲交互档案。正交相机、工程展示配色、细轮廓与部件引线，配合按语义组的爆炸拆解视图。
 
 形态参照 [yadongxie.com/lab/tanks](https://www.yadongxie.com/lab/tanks)（红警坦克 3D 查看器），
 主题换成钢铁侠装甲。这是一个研究 Web 作为空间表达介质的实验项目。
@@ -18,8 +18,16 @@ URL 参数：`?model=hulkbuster|ironman|samurai`、`?src=auto|raw|meshopt|draco`
 
 交互：拖拽旋转、滚轮缩放、**点击任一部件钻取该子装配体**、
 **← → 逐件浏览组内零件**、ESC 逐级退出。
-底部有视角预设、爆炸模式、爆炸进度滑块，以及 **ASSEMBLE 组装动画**
+底部有视角预设、爆炸进度滑块，以及 **ASSEMBLE 组装动画**
 （按穿戴顺序逐组归位，收尾点亮反应堆）。
+
+点击部件引线标签也能钻取；详情中的 **PREV / ALL / NEXT** 支持触屏逐件查看。
+手机支持单指旋转、双指缩放，取景会随详情和设置面板变化。
+
+**SETTINGS** 中保留拆解算法、碎石、标注开关，以及 **ENGINEERED / SOURCE** 材质切换。
+工程展示配色是运行时的展示处理：反浩克源材质中多种不同名称都使用同一浅灰色，
+因此采用显式配色表区分；源文件、节点结构与分类结果不变。SOURCE 恢复源材质。
+`finish=source` 与 `labels=0` 可随分享链接还原。
 
 ### Sketchfab token
 
@@ -57,7 +65,9 @@ scripts/
   test_explode.py      爆炸规划回归测试（含姿态无关性）
   serve.mjs            本地静态服务器
 
-web/index.html         Three.js 场景 + 正交相机 + HUD
+web/index.html         Three.js 场景、状态与交互命令
+web/presentation.js    展示材质、轮廓、部件引线与可用区域取景
+web/presentation.css   工程档案界面与响应式布局
 
 assets/
   assets.lock.json     资源校验和锁文件（入库）
@@ -99,7 +109,9 @@ docs/
 ## 测试
 
 ```bash
-npm test        # 两个回归测试套件
+npm test        # 分类、爆炸规划、页面与外部模块静态检查
+node scripts/build_site.mjs
+npm run test:page # 构建产物的布局、标注、钻取、动画、链接与对照组检查
 npm run plan    # 重算爆炸规划并打印分离指标
 ```
 

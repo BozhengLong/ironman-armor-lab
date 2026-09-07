@@ -18,134 +18,7 @@
 <meta property="og:image:alt" content="正交视角下的钢铁侠装甲，左手正在发射掌心射流，四周是工程控制台式的遥测读数">
 <meta name="twitter:card" content="summary_large_image">
 <title>ARMOR LAB</title>
-<style>
-  :root{
-    --bg:#0a0c0f; --fg:#c8d2dc; --dim:#5a6672; --accent:#e8541f; --line:#1b2128;
-    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);
-    font:11px/1.5 var(--mono);letter-spacing:.06em;overflow:hidden}
-  canvas{display:block;position:fixed;inset:0;touch-action:none}
-  .panel{position:fixed;z-index:2}
-  /* 幽灵态下模型会压到遥测文字上，加一层与背景同色的柔和衬底保证可读性 */
-  .scrim{position:fixed;z-index:1;pointer-events:none}
-  #scrimR{top:0;right:0;width:320px;height:340px;
-    background:radial-gradient(120% 100% at 100% 0%,
-      rgba(10,12,15,.94) 0%, rgba(10,12,15,.80) 45%, rgba(10,12,15,0) 100%)}
-  #scrimL{top:0;left:0;width:340px;height:400px;
-    background:radial-gradient(120% 100% at 0% 0%,
-      rgba(10,12,15,.94) 0%, rgba(10,12,15,.80) 45%, rgba(10,12,15,0) 100%)}
-  #scrimB{bottom:0;left:0;width:760px;height:190px;
-    background:linear-gradient(0deg, rgba(10,12,15,.92) 0%, rgba(10,12,15,0) 100%)}
-  /* 署名在右下角，那一带原本没有衬底；幽灵态下模型会压到文字上 */
-  #scrimC{bottom:0;right:0;width:380px;height:180px;
-    background:radial-gradient(120% 100% at 100% 100%,
-      rgba(10,12,15,.94) 0%, rgba(10,12,15,.78) 45%, rgba(10,12,15,0) 100%)}
-  .lbl{color:var(--dim);font-size:9px;letter-spacing:.18em}
-  .val{font-size:13px;color:var(--fg)}
-  .hd{position:fixed;top:16px;left:20px;z-index:2}
-  .hd h1{margin:0;font-size:12px;font-weight:400;letter-spacing:.3em}
-  .hd .sub{color:var(--dim);font-size:9px;letter-spacing:.18em;margin-top:4px}
-
-  #tele{top:16px;right:20px;text-align:right;min-width:150px}
-  #tele .row{display:flex;justify-content:space-between;gap:16px;padding:2px 0}
-  #tele .row span:first-child{color:var(--dim);font-size:9px;letter-spacing:.14em}
-  #tele .sect{margin-top:10px;padding-top:6px;border-top:1px solid var(--line)}
-
-  #ctl{bottom:18px;left:20px;display:flex;flex-direction:column;gap:12px}
-  .grp{display:flex;gap:4px;align-items:center}
-  button{background:transparent;border:1px solid var(--line);color:var(--dim);
-    font:inherit;letter-spacing:.12em;padding:5px 9px;cursor:pointer}
-  button:hover{border-color:var(--dim);color:var(--fg)}
-  button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
-  button:disabled{opacity:.32;cursor:not-allowed}
-  button:disabled:hover{border-color:var(--line);color:var(--dim)}
-  input[type=range]{width:190px;accent-color:var(--accent)}
-  /* 署名块在 DOM 里是 #ctl 的子节点，桌面端 fixed 出流、独占右下角；
-     移动端（见媒体查询）改回 static，自然成为底部控制栈的最后一行。
-     这样两套布局不需要任何 JS 参与。 */
-  #credit{position:fixed;right:20px;bottom:18px;z-index:2;text-align:right;
-    max-width:min(46vw,380px);color:var(--dim);font-size:9px;
-    letter-spacing:.1em;line-height:1.8}
-  #credit .lbl{margin-bottom:2px}
-  #credit a{color:var(--fg);text-decoration:none;border-bottom:1px solid var(--line)}
-  #credit a:hover{color:var(--accent);border-bottom-color:var(--accent)}
-  #credit .sep{color:var(--line);padding:0 3px}
-  /* 与 #credit 同一套策略：桌面端 fixed 叠在其上方，移动端退回流内 */
-  #tour{position:fixed;right:20px;bottom:70px;z-index:2;text-align:right;display:none;
-    max-width:min(46vw,380px);color:var(--dim);font-size:9px;letter-spacing:.1em;
-    line-height:1.8}
-  #tour #tourCmd{color:var(--accent);font-size:11px;word-break:break-all}
-  #roster{left:20px;top:74px;display:none}
-  #roster .item{display:flex;gap:9px;align-items:center;padding:5px 6px 5px 0;
-    cursor:pointer;border-left:1px solid transparent}
-  #roster .item:hover{border-left-color:var(--dim)}
-  #roster .item[aria-current="true"]{border-left-color:var(--accent)}
-  #roster .item img{width:34px;height:42px;object-fit:cover;background:#12161b;
-    padding-left:0;margin-left:8px;filter:saturate(.85)}
-  #roster .item[aria-current="true"] img{filter:none}
-  #roster .no{color:var(--dim);font-size:9px;width:16px;text-align:right}
-  #roster .nm{font-size:12px;letter-spacing:.14em}
-  #roster .sub{color:var(--dim);font-size:9px;letter-spacing:.1em}
-  #roster .item[aria-current="true"] .nm{color:var(--accent)}
-  #inspect{left:20px;top:70px;display:none;min-width:210px;max-width:260px;
-    border-left:1px solid var(--accent);padding:2px 0 2px 12px}
-  #inspect .insName{font-size:15px;letter-spacing:.18em;margin:2px 0 8px;color:var(--fg)}
-  #inspect .r{display:flex;justify-content:space-between;gap:14px;padding:1px 0}
-  #inspect .r span:first-child{color:var(--dim);font-size:9px;letter-spacing:.14em}
-  #inspect .mats{color:var(--dim);font-size:9px;margin-top:6px;line-height:1.6;
-    word-break:break-all}
-  #inspect .emis{color:var(--accent)}
-  #insClose{margin-top:10px}
-  canvas{cursor:default}
-  canvas.pickable{cursor:pointer}
-  #load{position:fixed;inset:0;z-index:9;background:var(--bg);display:grid;
-    place-content:center;text-align:center;gap:8px;transition:opacity .4s}
-  #load.done{opacity:0;pointer-events:none}
-  #loadName{font-size:17px;letter-spacing:.26em}
-  #loadStage{margin-top:4px}
-  #bar{width:220px;height:1px;background:var(--line);margin:0 auto}
-  #bar i{display:block;height:100%;width:0;background:var(--accent)}
-  #err{color:var(--accent);max-width:60ch;text-align:left;white-space:pre-wrap}
-  /* 媒体查询必须放在所有基础规则之后。
-     此前它在文件开头，与 #tele / #roster / #ctl / #scrim* 同为 id 选择器、
-     特异性相同，而媒体查询本身不增加特异性 —— 后写的基础规则一律胜出，
-     整个移动端布局其实从未生效（只有 html,body 的字号例外，
-     因为那条基础规则写在前面）。 */
-  /* 移动端紧凑布局：390px 宽的屏幕放不下桌面版 HUD */
-  @media (max-width:820px){
-    html,body{font-size:10px}
-    .hd h1{font-size:11px;letter-spacing:.24em}
-    #tele{top:10px;right:12px;min-width:0}
-    #tele .perf{display:none}          /* 性能读数在手机上不是重点 */
-    /* 右上角遥测块在 390 宽下占到 x=260、底边 128。标题与清单都必须让开它：
-       标题限宽并把副标题截断，清单整体挪到遥测块下方。
-       这几个数字由 __verifyHud() 兜底 —— 它在任何视口下检查 HUD 面板两两不重叠。 */
-    .hd{max-width:58vw}
-    .hd .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    #roster{left:12px;top:136px}
-    #roster #rosterList{display:flex;gap:6px}
-    #roster .item img{width:26px;height:32px;margin-left:4px}
-    #roster .nm{font-size:10px}
-    #roster .sub,#roster .no{display:none}
-    #inspect{left:12px;top:120px;max-width:min(58vw,220px);padding-left:9px}
-    #inspect .insName{font-size:13px}
-    #ctl{left:12px;right:12px;bottom:12px;gap:8px}
-    #views,#ctl .grp{flex-wrap:wrap}
-    button{padding:7px 9px}            /* 触摸目标不小于约 30px */
-    input[type=range]{width:min(46vw,190px)}
-    /* 顶部通栏：手机上标题、遥测、清单横向排开，角落的径向衬底盖不住 */
-    #scrimL{width:100vw;height:46vh;
-      background:linear-gradient(180deg, rgba(10,12,15,.95) 0%,
-        rgba(10,12,15,.74) 48%, rgba(10,12,15,0) 100%)}
-    #scrimR{display:none}
-    #scrimB{width:100vw;height:32vh}   /* 底部多了一行署名，衬底跟着长高 */
-    #scrimC{display:none}              /* 已被通栏的 scrimB 覆盖 */
-    #credit{position:static;text-align:left;max-width:none;line-height:1.7}
-    #tour{position:static;text-align:left;max-width:none}
-  }
-</style>
+<link rel="stylesheet" href="./web/presentation.css">
 </head>
 <body>
 <div class="panel" id="roster">
@@ -163,13 +36,17 @@
   <div class="sub" id="modelName">—</div>
 </div>
 
+<div id="drawing"><h2 id="drawingName">ARMOR STUDY</h2><div class="lbl"><span id="drawingSub">—</span><span class="sep">/</span><span id="drawingCount">ASSEMBLY STUDY</span></div></div>
+<div id="annotations" aria-label="Model subassemblies"><svg id="leaders" aria-hidden="true"></svg></div>
+<div id="help">DRAG TO ROTATE · SCROLL TO ZOOM<br>SELECT A PART TO EXPLORE</div>
 <div class="panel" id="tele">
+  <div class="lbl">LIVE VIEW</div>
   <div class="row"><span>AZIMUTH</span><span class="val" id="az">0.0°</span></div>
   <div class="row"><span>ELEVATION</span><span class="val" id="el">0.0°</span></div>
   <div class="row"><span>ORTHO ZOOM</span><span class="val" id="zm">1.00</span></div>
   <div class="row"><span>EXPLODE</span><span class="val" id="ex">0%</span></div>
   <div class="row"><span>MOTION</span><span class="val" id="mo">IDLE</span></div>
-  <div class="sect perf">
+  <details class="sect perf"><summary>RENDER TELEMETRY</summary>
     <div class="row"><span>FPS</span><span class="val" id="fps">—</span></div>
     <div class="row"><span>TRIANGLES</span><span class="val" id="tri">—</span></div>
     <div class="row"><span>DRAW CALLS</span><span class="val" id="dc">—</span></div>
@@ -177,22 +54,24 @@
     <div class="row"><span>GROUPS</span><span class="val" id="gc">—</span></div>
     <div class="row"><span>PARTS</span><span class="val" id="pc">—</span></div>
     <div class="row"><span>LOAD</span><span class="val" id="lt">—</span></div>
-  </div>
+  </details>
 </div>
 
 <div class="panel" id="ctl">
-  <div class="grp" id="views"></div>
-  <div class="grp"><span class="lbl">MODE</span><span id="modes" style="display:inline-flex;gap:4px"></span></div>
-  <div class="grp">
-    <span class="lbl">EXPLODE</span>
-    <input type="range" id="slider" min="0" max="1" step="0.001" value="0">
+  <div class="grp dock-top"><span class="lbl">VIEW</span><div class="grp" id="views" aria-label="View presets"></div><button id="btnSettings" aria-expanded="false" aria-controls="settings">SETTINGS</button></div>
+  <div class="grp actions">
+    <label class="lbl" for="slider">EXPLODE</label>
+    <input type="range" id="slider" aria-label="Explode progress" min="0" max="1" step="0.001" value="0">
+    <output id="explodeValue" for="slider">0%</output>
     <button id="btnParts" aria-pressed="false">PARTS</button>
     <button id="btnAssemble">ASSEMBLE</button>
-    <button id="btnDebris" aria-pressed="false">DEBRIS</button>
     <button id="btnRepulsor" aria-pressed="false">REPULSOR</button>
+    <button id="btnTour" aria-pressed="false" title="播放装甲导览">TOUR</button>
     <button id="btnLink" aria-pressed="false" title="复制当前视图的链接">LINK</button>
-    <button id="btnTour" aria-pressed="false" title="让 Agent 命令集自己驱动一遍场景">TOUR</button>
-
+  </div>
+  <div id="settings">
+    <div class="grp"><span class="lbl">EXPLODE MODE</span><span id="modes"></span></div>
+    <div class="grp"><span class="lbl">DISPLAY</span><button id="btnFinish" aria-pressed="true" title="切换工程展示配色与源材质">ENGINEERED</button><button id="btnLabels" aria-pressed="true">LABELS</button><button id="btnDebris" aria-pressed="false">DEBRIS</button></div>
   </div>
 
   <!-- CC-BY 3(a)(1) 要求的署名：作者、许可（含链接）、原始链接，
@@ -217,7 +96,8 @@
   <div class="lbl" id="insKicker">SUBASSEMBLY</div>
   <div class="insName" id="insName">—</div>
   <div id="insRows"></div>
-  <button id="insClose">CLOSE  ESC</button>
+  <div class="part-nav"><button id="insPrev" aria-label="Previous part">← PREV</button><button id="insAll">ALL</button><button id="insNext" aria-label="Next part">NEXT →</button></div>
+  <button id="insClose">BACK · ESC</button>
 </div>
 
 <div id="load">
@@ -241,6 +121,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { createPresentation } from './web/presentation.js';
 
 // 模型清单由 scripts/build_index.py 生成，不写死在前端
 let MODELS = ['hulkbuster', 'ironman'];   // index.json 加载前的兜底
@@ -298,7 +179,7 @@ function showFatal(msg, detail) {
 
 let renderer;
 try {
-  renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
 } catch (e) {
   showFatal('这个浏览器无法创建 WebGL 上下文，页面需要 WebGL2。\n'
     + '可尝试：更新浏览器、在设置里启用硬件加速、或换一台设备。', String(e));
@@ -307,7 +188,8 @@ try {
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.5;
+renderer.toneMappingExposure = 1.08;
+renderer.setClearColor(0x0b1014, 0);
 document.body.appendChild(renderer.domElement);
 // 显卡驱动重置或标签页长时间后台会丢上下文，静默变黑最难排查
 renderer.domElement.addEventListener('webglcontextlost', (e) => {
@@ -316,7 +198,7 @@ renderer.domElement.addEventListener('webglcontextlost', (e) => {
 });
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a0c0f);
+scene.background = null;
 
 // 正交相机：追求工程图观感，无透视畸变
 const FRUSTUM = 1.5;
@@ -324,7 +206,6 @@ const FRUSTUM = 1.5;
 // 用 matchMedia 实时跟随而不是载入时读一次 —— 用户可能中途改系统设置。
 const reduceMotionMQ = matchMedia('(prefers-reduced-motion: reduce)');
 const reduceMotion = () => reduceMotionMQ.matches;
-const FIT_MARGIN = 1.06;          // 取景留边（对角线取景已偏保守）
 const ASSEMBLE_SECONDS = 4.2;     // 整条组装时间轴的时长
 const ASSEMBLE_BACK = 1.08;       // 到位时的轻微过冲，读作机械咬合；过大会穿模
 
@@ -352,17 +233,18 @@ controls.enableZoom = false;   // 缩放自管：否则 controls 的 change 事�
                                // 我们自己的取景动画误判成用户输入，形成反馈环
 renderer.domElement.addEventListener('wheel', (e) => {
   e.preventDefault();
+  if (state.touring) stopTour();
   state.userZoom = THREE.MathUtils.clamp(
     state.userZoom * Math.pow(0.999, e.deltaY), 0.25, 8);
 }, { passive: false });
 
 // 技术制图式打光：主光 + 侧补光 + 顶部轮廓光，不用环境贴图
-scene.add(new THREE.HemisphereLight(0x8fa8c0, 0x14181d, 1.1));
+scene.add(new THREE.HemisphereLight(0xabbfce, 0x1d232a, 1.25));
 const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(3, 5, 4); scene.add(key);
 const fill = new THREE.DirectionalLight(0x88a4c8, 0.9); fill.position.set(-4, 1, -3); scene.add(fill);
 const rim = new THREE.DirectionalLight(0xffd9c0, 0.7); rim.position.set(0, 4, -5); scene.add(rim);
 // 跟随相机的补光：装甲是开放壳体，爆炸后会大量露出背光的内表面
-const headlight = new THREE.DirectionalLight(0xdfe8f2, 1.4);
+const headlight = new THREE.DirectionalLight(0xdfe8f2, 0.65);
 scene.add(headlight);
 
 // ---------- 状态 ----------
@@ -373,9 +255,6 @@ const state = {
   assembling: false, assembleT: 0,
   repulsing: false, repulsorT: 0, repulsorRecoil: 0, repulsorSides: [],
   touring: false,
-  zoomFitDrill: 1, targetDrillPos: new THREE.Vector3(),
-  zoomFit: 1, zoomFitFull: 1,
-  targetAssembled: new THREE.Vector3(), targetFull: new THREE.Vector3(),
   viewDir: new THREE.Vector3(1, 0.75, 1).normalize(),
   tweening: false,
 };
@@ -460,18 +339,17 @@ async function loadModel(name) {
   buildLocalBoxes();
   state.selected = null; state.drill = 0; state.targetDrill = 0;
   renderInspector();
-  currentBox = box.clone(); currentCenter = center.clone();
-  computeFraming(currentBox, currentCenter);
+  currentCenter = center.clone();
   buildRepulsor();
   buildModeButtons();
   buildRoster();
   renderCredit(name);
+  presentation.modelLoaded(disp);
   window.__urlRestored = restoreFromUrl();   // 供往返测试断言链接确实被用上了
 
   const srcLabel = source.mode.toUpperCase() +
     (source.bytes ? ` ${(source.bytes / 1048576).toFixed(2)}MB` : '');
-  $('modelName').textContent =
-    `${name.toUpperCase()} · ${parts.length} PARTS · ${srcLabel}`;
+  $('modelName').textContent = 'ORTHOGRAPHIC ARMOR ARCHIVE';
   $('sc').textContent = srcLabel;
   document.title = `ARMOR LAB — ${name.toUpperCase()}`;
   window.__source = source;
@@ -513,38 +391,6 @@ function buildVectors(gltfScene) {
         .multiplyScalar(H).applyMatrix3(m3);
     }
   }
-}
-
-// 取景：分别算「装配态」与「完全爆炸态」需要的正交缩放和视点，帧循环里按进度插值
-// 用包围盒对角线（即外接球直径）取景。取 max(w,d) 会低估斜视角下的投影宽度 ——
-// 3/4 视角时对角方向的实际跨度可达 1.4 倍，导致零件被裁到画面外。
-// 对角线是方向无关的上界，用户任意旋转都不会裁切。
-function fitZoom(lo, hi) {
-  const w = (hi[0] - lo[0]) * modelScale;
-  const h = (hi[1] - lo[1]) * modelScale;
-  const d = (hi[2] - lo[2]) * modelScale;
-  const diag = Math.hypot(w, h, d);
-  const need = Math.max(diag, diag / aspect) * FIT_MARGIN;
-  return FRUSTUM / Math.max(need, 1e-6);
-}
-
-function computeFraming(assembledBox, assembledCenter) {
-  const fit = fitZoom;
-  const aLo = assembledBox.min.toArray(), aHi = assembledBox.max.toArray();
-  state.zoomFit = fit(aLo, aHi);
-
-  const fb = plan.boundsAtFull?.[state.mode];
-  if (fb) {
-    state.zoomFitFull = fit(fb.min, fb.max);
-    // 爆炸后包围盒中心相对装配态中心的偏移，换算到世界空间
-    const fc = new THREE.Vector3(
-      (fb.min[0] + fb.max[0]) / 2, (fb.min[1] + fb.max[1]) / 2, (fb.min[2] + fb.max[2]) / 2);
-    state.targetFull.copy(fc).sub(assembledCenter).multiplyScalar(modelScale);
-  } else {
-    state.zoomFitFull = state.zoomFit;
-    state.targetFull.set(0, 0, 0);
-  }
-  state.targetAssembled.set(0, 0, 0);
 }
 
 const EMISSIVE_COLOR = new THREE.Color(0x7fd4ff);
@@ -645,9 +491,10 @@ function partFactor(p) {
 // 选中组:   base + lerp(组向量 × 爆炸进度, 钻取向量, 钻取进度)
 //           —— d=0 时行为不变，d=1 时无论爆炸进度多少都到达钻取位姿
 function applyTransforms() {
-  const e = state.explode, d = state.drill, sel = state.selected;
+  const d = state.drill, sel = state.selected;
   const rr = state.repulsorRecoil;
   for (const p of parts) {
+    const e = partFactor(p);
     const v = p.vecLocal?.[state.mode];
     if (!v) {
       p.obj.position.copy(p.basePos);
@@ -686,8 +533,8 @@ function setGhostMode(on) {
 
 function updateGhostOpacity() {
   if (!state.selected && state.drill < 0.001) return;
-  const outside = THREE.MathUtils.lerp(1, 0.06, state.drill);
-  const sibling = THREE.MathUtils.lerp(1, 0.22, state.drill);
+  const outside = THREE.MathUtils.lerp(1, 0.012, state.drill);
+  const sibling = THREE.MathUtils.lerp(1, 0.12, state.drill);
   for (const p of parts) {
     const inGroup = p.groupKey === state.selected;
     // 组内逐件浏览时，非聚焦的同组件半透，聚焦件保持实体
@@ -779,6 +626,9 @@ function currentStateParams() {
   if (state.selected) sp.set('g', state.selected);
   if (state.focus >= 0) sp.set('p', String(state.focus));
   if (state.showDebris) sp.set('debris', '1');
+  const display = presentation.preferences();
+  if (display.finish === 'source') sp.set('finish', 'source');
+  if (!display.labels) sp.set('labels', '0');
   return sp;
 }
 function syncUrl() {
@@ -830,6 +680,9 @@ function restoreFromUrl() {
     applied.push('group');
   }
   applyTransforms();
+  // A deep link jumps straight to the final drill state, so no interpolation frame
+  // will update ghost opacity. Restore material appearance as well as transforms.
+  updateGhostOpacity();
   urlReady = true;
   return applied;
 }
@@ -924,20 +777,9 @@ function selectGroup(key) {
   state.focus = -1;
   setGhostMode(!!key);
   if (key) indexGroupParts(key);
-  computeDrillFraming();
   renderInspector();
   applyTransforms();
   scheduleUrlSync();
-}
-
-function computeDrillFraming() {
-  const g = state.selected && groupIndex[state.selected];
-  if (!g) { state.zoomFitDrill = state.zoomFit; state.targetDrillPos.set(0, 0, 0); return; }
-  const lo = g.drillBounds.min, hi = g.drillBounds.max;
-  state.zoomFitDrill = fitZoom(lo, hi);
-  state.targetDrillPos
-    .set((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2)
-    .sub(currentCenter).multiplyScalar(modelScale);
 }
 
 function renderInspector() {
@@ -972,7 +814,7 @@ function renderInspector() {
       : (g.materials.length
           ? `<div class="mats">MATERIALS<br>${g.materials.join(' · ')}</div>`
             + '<div class="mats">← → 逐件浏览</div>' : ''));
-  el.style.display = 'block';
+  el.style.display = innerWidth <= 820 ? 'grid' : 'block';
   $('roster').style.display = 'none';
 }
 
@@ -1008,14 +850,32 @@ renderer.domElement.addEventListener('pointerdown', () => { if (state.touring) s
 
 addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
+    if (state.touring) stopTour();
+    if ($('settings').classList.contains('open')) { $('btnSettings').click(); return; }
     if (state.focus >= 0) setFocus(-1); else selectGroup(null);
     return;
   }
-  if (!state.selected) return;
+  if (!state.selected || e.target.matches('input,select,textarea')) return;
+  if (state.touring && ['ArrowRight','ArrowLeft','[',']'].includes(e.key)) stopTour();
   if (e.key === 'ArrowRight' || e.key === ']') { e.preventDefault(); setFocus(state.focus + 1); }
-  if (e.key === 'ArrowLeft' || e.key === '[') { e.preventDefault(); setFocus(state.focus - 1); }
+  if (e.key === 'ArrowLeft' || e.key === '[') { e.preventDefault(); setFocus(state.focus <= 0 ? (partsByGroup.get(state.selected) || []).length - 1 : state.focus - 1); }
 });
 $('insClose').onclick = () => selectGroup(null);
+$('insNext').onclick = () => setFocus(state.focus + 1);
+$('insPrev').onclick = () => {
+  const n = (partsByGroup.get(state.selected) || []).length;
+  setFocus(state.focus <= 0 ? n - 1 : state.focus - 1);
+};
+$('insAll').onclick = () => setFocus(-1);
+$('ctl').addEventListener('pointerdown', (e) => {
+  if (!e.target.closest('#btnTour') && state.touring) stopTour();
+});
+$('ctl').addEventListener('click', (e) => {
+  if (!e.target.closest('#btnTour') && state.touring) stopTour();
+}, true);
+$('ctl').addEventListener('input', () => { if (state.touring) stopTour(); });
+$('inspect').addEventListener('pointerdown', () => { if (state.touring) stopTour(); });
+$('inspect').addEventListener('click', () => { if (state.touring) stopTour(); }, true);
 
 function startAssemble() {
   if (!parts.length) return;
@@ -1385,7 +1245,7 @@ function renderCredit(name) {
     return x;
   };
   l1.append(`\u201c${m.title || m.name}\u201d by `, link(m.authorUrl, m.author));
-  l2.append(link(m.licenseUrl, m.license), sep(), 'MODIFIED (COMPRESSED)',
+  l2.append(link(m.licenseUrl, m.license), sep(), 'MODIFIED · DISPLAY STYLIZED',
             sep(), link(m.source, 'SOURCE'), sep(), link('./CREDITS.txt', 'ALL CREDITS'));
 }
 
@@ -1395,7 +1255,8 @@ function buildRoster() {
   if (MODEL_INDEX.length < 2) { panel.style.display = 'none'; return; }
   el.innerHTML = '';
   MODEL_INDEX.forEach((m, i) => {
-    const row = document.createElement('div');
+    const row = document.createElement('button');
+    row.setAttribute('aria-label', `Load ${m.name}`);
     row.className = 'item';
     row.setAttribute('aria-current', String(m.slug === slug));
     row.title = `${m.parts} 件 / ${m.groups} 组 / ${m.tris.toLocaleString()} 面`
@@ -1432,7 +1293,6 @@ function setMode(m) {
   for (const x of $('modes').children) {
     x.setAttribute('aria-pressed', String(x.textContent === m));
   }
-  computeFraming(currentBox, currentCenter);
   applyTransforms();
   scheduleUrlSync();
 }
@@ -1448,7 +1308,7 @@ function buildModeButtons() {
     el.appendChild(b);
   }
 }
-let currentBox = null, currentCenter = null;
+let currentCenter = null;
 
 $('btnAssemble').onclick = () => {
   state.assembling ? stopAssemble(false) : startAssemble();
@@ -1483,6 +1343,7 @@ addEventListener('resize', () => {
   camera.top = FRUSTUM / 2; camera.bottom = -FRUSTUM / 2;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  if (state.selected) renderInspector();
 });
 
 // ---------- 帧循环 ----------
@@ -1564,17 +1425,18 @@ function tick() {
   if (dirty) { applyTransforms(); updateGhostOpacity(); boxesDirty = true; }
   if (repulsorPh) updateRepulsorVisuals(repulsorPh);
 
-  // 取景两层插值：先按爆炸进度，再按钻取进度收拢到选中组
-  const baseZoom = THREE.MathUtils.lerp(state.zoomFit, state.zoomFitFull, state.explode);
-  const wantZoom = THREE.MathUtils.lerp(baseZoom, state.zoomFitDrill, state.drill);
-  camera.zoom += (wantZoom * state.userZoom - camera.zoom) * 0.12;
+  // Frame the visible parts in the usable drawing area; selection and responsive
+  // controls share the same framing path as assembly animation and manual rotation.
+  const framing = presentation.frame();
+  const zoomTarget = framing.zoom * state.userZoom;
+  camera.zoom = reduceMotion() ? zoomTarget : camera.zoom + (zoomTarget - camera.zoom) * .12;
   camera.updateProjectionMatrix();
-  _a.lerpVectors(state.targetAssembled, state.targetFull, state.explode);
-  _a.lerp(state.targetDrillPos, state.drill);
-  controls.target.lerp(_a, 0.15);
+  if (reduceMotion()) controls.target.copy(framing.target); else controls.target.lerp(framing.target, .15);
 
   controls.update();
   headlight.position.copy(camera.position);
+  camera.updateMatrixWorld();
+  presentation.update(performance.now());
   renderOnce();
 
   // 遥测
@@ -1601,6 +1463,33 @@ function tick() {
       ? `REPULSOR ${Math.round(state.repulsorT * 100)}%` : 'IDLE';
 }
 
+const presentation = createPresentation({camera, state, slug,
+  getParts: () => parts, getGroups: () => groupIndex, selectGroup, stopTour, scheduleUrlSync});
+window.__verifyAnnotations = () => presentation.verify();
+// OrbitControls zoom is disabled because zoom is application state (and shareable).
+// Mirror wheel behavior for two-finger pinch without turning the gesture into a pick.
+const touches = new Map();
+let pinchDistance = 0, pinchZoom = 1;
+renderer.domElement.addEventListener('pointerdown', (e) => {
+  if (e.pointerType !== 'touch') return;
+  touches.set(e.pointerId, [e.clientX, e.clientY]);
+  if (touches.size === 2) {
+    const [a,b] = [...touches.values()];
+    pinchDistance = Math.hypot(a[0]-b[0],a[1]-b[1]); pinchZoom = state.userZoom;
+    downAt = null; controls.enabled = false;
+  }
+});
+renderer.domElement.addEventListener('pointermove', (e) => {
+  if (!touches.has(e.pointerId)) return;
+  touches.set(e.pointerId, [e.clientX,e.clientY]);
+  if (touches.size !== 2 || !pinchDistance) return;
+  const [a,b] = [...touches.values()];
+  state.userZoom = THREE.MathUtils.clamp(pinchZoom * Math.hypot(a[0]-b[0],a[1]-b[1]) / pinchDistance, .25, 8);
+  scheduleUrlSync(); downAt = null;
+});
+const endTouch = (e) => { touches.delete(e.pointerId); if (touches.size < 2) { controls.enabled = true; pinchDistance = 0; } };
+renderer.domElement.addEventListener('pointerup', endTouch);
+renderer.domElement.addEventListener('pointercancel', (e) => { downAt = null; endTouch(e); });
 loadIndex().then(() => loadModel(slug)).then(tick).catch((e) => {
   $('err').textContent = '加载失败:\n' + (e?.stack || e);
   $('pct').textContent = 'ERR';
@@ -1699,6 +1588,7 @@ const AGENT_TOOLS = {
       touring: state.touring,
       repulsing: state.repulsing,
       repulsorSides: repulsor ? Object.keys(repulsor.sides) : [],
+      display: presentation.preferences(),
       azimuth: +THREE.MathUtils.radToDeg(sph.theta).toFixed(1),
       elevation: +(90 - THREE.MathUtils.radToDeg(sph.phi)).toFixed(1),
       groups: Object.keys(groupIndex).length,
@@ -1746,6 +1636,9 @@ window.__shotMode = (on = true) => {
   }
 };
 
+// Read actual node displacement, independently of the assembly easing implementation.
+window.__assemblyDisplacements = () => parts.filter(p => p.vecLocal?.[state.mode]?.length() > 1e-8)
+  .map(p => ({ group: p.groupKey, ratio: p.obj.position.distanceTo(p.basePos) / p.vecLocal[state.mode].length() }));
 window.__assemble = startAssemble;
 window.__stopAssemble = stopAssemble;
 // 曾经是 setMode 的一份副本，只少了 URL 回写 —— 正是「两条路慢慢分叉」的实例。
@@ -1964,6 +1857,7 @@ window.__stateSnapshot = () => {
     group: state.selected,
     focus: state.focus,
     debris: state.showDebris,
+    ...presentation.preferences(),
   };
 };
 

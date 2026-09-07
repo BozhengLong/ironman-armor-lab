@@ -58,7 +58,7 @@ try {
     });
   });
 
-  browser = await chromium.launch();
+  browser = await chromium.launch({ args: process.env.ARMOR_TEST_METAL === '1' ? ['--use-angle=metal'] : [] });
   const page = await browser.newPage();
   const consoleErrors = [];
   page.on('console', (m) => {
@@ -101,14 +101,98 @@ try {
         hud: window.__verifyHud(),
         scrim: window.__verifyScrim(),
         repulsor: window.__verifyRepulsor(),
+        presentation: window.__verifyAnnotations(),
       }));
       ok(r.manifest < 1e-3, `${tag}: manifest 偏差 ${r.manifest}`);
       ok(r.credit.ok, `${tag}: 署名 ${JSON.stringify(r.credit.problems)}`);
       ok(r.hud.ok, `${tag}: HUD 重叠 ${JSON.stringify(r.hud.overlaps)}`);
       ok(r.scrim.ok, `${tag}: 衬底 ${JSON.stringify(r.scrim.problems)}`);
       ok(r.repulsor.ok, `${tag}: 发射口 ${JSON.stringify(r.repulsor.problems)}`);
+      ok(r.presentation.ok, `${tag}: 展示层 ${JSON.stringify(r.presentation.problems)}`);
     }
   }
+
+  // Presentation flows use real controls. Reduced motion makes assertions deterministic
+  // on CI software rendering; normal assembly/repulsor animations are checked below.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${BASE}/?model=ironman`);
+  await readyOrDie('标注交互');
+  await page.waitForFunction(() => window.__verifyAnnotations().visible.length >= 4);
+  for (const view of ['FRONT', 'SIDE', '3/4F']) {
+    await page.getByRole('button', { name: view, exact: true }).click();
+    await page.waitForFunction(() => !window.__state.tweening);
+    const a = await page.evaluate(() => window.__verifyAnnotations());
+    ok(a.ok && a.visible.length >= 4, `${view}: 标注 ${JSON.stringify(a)}`);
+  }
+  // A detached SVG leader must fail the check, not silently pass.
+  const annotationControl = await page.evaluate(() => {
+    const dot = [...document.querySelectorAll('#leaders circle')].find(e => e.style.display !== 'none');
+    const before = dot.getAttribute('cx');
+    dot.setAttribute('cx', '-1000');
+    const broken = window.__verifyAnnotations().ok;
+    dot.setAttribute('cx', before);
+    return { broken, restored: window.__verifyAnnotations().ok };
+  });
+  ok(!annotationControl.broken && annotationControl.restored, '标注对照组没有正确失败或恢复');
+  await page.getByRole('button', { name: 'Inspect center chest', exact: true }).click();
+  await page.waitForFunction(() => window.__state.drill > .999);
+  ok(await page.locator('#inspect').isVisible(), '点击标注没有打开胸甲详情');
+  ok(await page.evaluate(() => armorLab.call('getState').selected === 'chest/C'), '标注选择了错误的组');
+  await page.getByRole('button', { name: 'Next part', exact: true }).click();
+  ok(await page.evaluate(() => armorLab.call('getState').focus === 0), 'NEXT 未聚焦第一个零件');
+  await page.getByRole('button', { name: 'Previous part', exact: true }).click();
+  ok(await page.evaluate(() => armorLab.call('getState').focus > 0), 'PREV 没有循环到末件');
+  await page.keyboard.press('Escape');
+  ok(await page.evaluate(() => armorLab.call('getState').focus === -1), 'ESC 没有退出零件聚焦');
+  await page.keyboard.press('Escape');
+  ok(await page.evaluate(() => armorLab.call('getState').selected === null), 'ESC 没有返回总览');
+
+  await page.getByRole('button', { name: 'SETTINGS', exact: true }).click();
+  await page.getByRole('button', { name: 'ENGINEERED', exact: true }).click();
+  await page.getByRole('button', { name: 'LABELS', exact: true }).click();
+  await page.waitForFunction(() => new URL(location.href).searchParams.get('finish') === 'source'
+    && new URL(location.href).searchParams.get('labels') === '0');
+  await page.reload(); await readyOrDie('展示参数往返');
+  const restoredDisplay = await page.evaluate(() => armorLab.call('getState').display);
+  ok(restoredDisplay.finish === 'source' && restoredDisplay.labels === false, '展示设置没有从链接恢复');
+
+  // Mobile settings and inspector alter the usable drawing region.
+  for (const [width, height] of [[390,844], [375,667]]) {
+    await page.setViewportSize({ width, height });
+    await page.goto(`${BASE}/?model=hulkbuster`); await readyOrDie('移动布局');
+    await page.getByRole('button', { name: 'SETTINGS', exact: true }).click();
+    await page.waitForTimeout(150);
+    ok(await page.evaluate(() => __verifyHud().ok && __verifyScrim().ok), `${width} 设置展开时 HUD 或衬底出错`);
+    await page.getByRole('button', { name: 'SETTINGS', exact: true }).click();
+    await page.evaluate(() => armorLab.call('focusGroup', { key: 'chest/C' }));
+    await page.waitForFunction(() => window.__state.drill > .999);
+    ok(await page.evaluate(() => __verifyHud().ok && __verifyScrim().ok), `${width} 钻取时 HUD 或衬底出错`);
+    await page.getByRole('button', { name: 'Next part', exact: true }).click();
+    ok(await page.evaluate(() => armorLab.call('getState').focus === 0), '移动端逐件按钮失效');
+  }
+
+  // Exercise temporal behavior too: running -> complete and tour -> user interruption.
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.setViewportSize({ width: 1280, height: 860 });
+  await page.goto(`${BASE}/?model=ironman`); await readyOrDie('动画交互');
+  await page.getByRole('button', { name: 'ASSEMBLE', exact: true }).click();
+  ok(await page.evaluate(() => armorLab.call('getState').assembling), '组装未启动');
+  await page.waitForFunction(() => window.__state.assembleT >= .4, null, {timeout:20000});
+  const assemblySpread = await page.evaluate(() => {
+    const ratios = __assemblyDisplacements().map(p => p.ratio);
+    return Math.max(...ratios) - Math.min(...ratios);
+  });
+  ok(assemblySpread > .4, '组装没有错峰归位：所有部件都在做统一的爆炸倒放');
+  await page.waitForFunction(() => !armorLab.call('getState').assembling, null, {timeout:30000});
+  ok(await page.evaluate(() => armorLab.call('getState').explode === 0), '组装结束未完全归位');
+  await page.getByRole('button', { name: 'REPULSOR', exact: true }).click();
+  ok(await page.evaluate(() => armorLab.call('getState').repulsing), '发射未启动');
+  await page.waitForFunction(() => !armorLab.call('getState').repulsing, null, {timeout:20000});
+  await page.getByRole('button', { name: 'TOUR', exact: true }).click();
+  ok(await page.evaluate(() => armorLab.call('getState').touring), '导览未启动');
+  await page.getByRole('button', { name: 'FRONT', exact: true }).click();
+  ok(await page.evaluate(() => !armorLab.call('getState').touring), '用户操作没有中断导览');
 
   // ---------- 深链往返 ----------
   // 要断言的性质是「一条链接能还原出它自己写着的状态」。
@@ -166,6 +250,9 @@ try {
     const after = await page.evaluate(() => window.__stateSnapshot());
     const diffs = compare(want, after);
     ok(diffs.length === 0, `深链往返不一致:\n    ${diffs.join('\n    ')}\n    链接 ${link}`);
+    const visual = await page.evaluate(() => __verifyAnnotations());
+    ok(visual.ok && visual.maxGhostOpacity < .03,
+      `深链恢复了选中状态但未恢复幽灵外观: ${JSON.stringify(visual.problems)}`);
 
     // 容差给宽了这个比较就变成恒真。改掉参数再进来，必须比出不同。
     const tampered = link.replace(/ex=[\d.]+/, 'ex=0.11').replace(/g=[^&]*/, 'g=__nope__');

@@ -115,6 +115,12 @@ const SITE_URL = process.env.SITE_URL || 'https://bozheng-long.org/ironman-armor
 }
 
 // 社交预览图
+// Local presentation modules keep the same /web/ URL in dev and under a Pages subpath.
+for (const file of ['presentation.css', 'presentation.js']) {
+  add('页面', copy(path.join(ROOT, 'web', file), path.join(OUT, 'web', file)));
+}
+
+// 社交预览图
 {
   const src = path.join(ROOT, 'assets', 'social-preview.jpg');
   if (!fs.existsSync(src)) {
