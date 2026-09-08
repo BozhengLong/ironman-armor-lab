@@ -40,6 +40,8 @@ const modeArg = (() => {
 // 降到 1024 是 7.08 MB。写进配置而不是靠调用时记得传 --tex，
 // 否则 CI 用默认值会产出和本地不同的产物。
 const TEX_BUDGET = { samurai: 1024 };
+// Same geometry and node graph, smaller textures for a phone's first visit.
+const MOBILE_TEX_BUDGET = { samurai: 512 };
 const TEX_DEFAULT = 2048;
 const texOverride = (() => {
   const i = args.indexOf('--tex');
@@ -99,7 +101,7 @@ async function makeIO() {
   return io;
 }
 
-async function run(slug, mode, io) {
+async function run(slug, mode, io, mobile = false) {
   const src = path.join(RAW, slug, 'scene.gltf');
   if (!fs.existsSync(src)) {
     console.error(`[skip] ${slug}: 找不到 ${path.relative(ROOT, src)}，先跑 fetch_models.py`);
@@ -130,7 +132,7 @@ async function run(slug, mode, io) {
     // 降到 2048 转 WebP —— 模型在屏幕上不到 1000px，2048 已远超所需。
     textureCompress({
       encoder: sharp, targetFormat: 'webp',
-      resize: [texFor(slug), texFor(slug)], quality: 82,
+      resize: Array(2).fill(mobile ? MOBILE_TEX_BUDGET[slug] : texFor(slug)), quality: 82,
     }),
     mode === 'draco'
       ? draco({ method: 'edgebreaker' })
@@ -139,7 +141,7 @@ async function run(slug, mode, io) {
 
   const outDir = path.join(DIST, slug);
   fs.mkdirSync(outDir, { recursive: true });
-  const outPath = path.join(outDir, `model.${mode}.glb`);
+  const outPath = path.join(outDir, `model.${mobile ? 'mobile.' : ''}${mode}.glb`);
   const glb = await io.writeBinary(doc);
   fs.writeFileSync(outPath, glb);
 
@@ -149,7 +151,7 @@ async function run(slug, mode, io) {
 
   const outBytes = glb.byteLength;
   const pct = ((1 - outBytes / srcBytes) * 100).toFixed(1);
-  console.log(`[${mode.padEnd(7)}] ${slug.padEnd(11)} ${MB(srcBytes).padStart(9)} -> ` +
+  console.log(`[${(mobile ? 'mobile' : mode).padEnd(7)}] ${slug.padEnd(11)} ${MB(srcBytes).padStart(9)} -> ` +
               `${MB(outBytes).padStart(9)}  省 ${pct}%   节点 ${fpAfter.count}`);
 
   if (diffs.length) {
@@ -159,7 +161,7 @@ async function run(slug, mode, io) {
     console.error(`       已删除产物 ${path.relative(ROOT, outPath)}`);
     return { slug, mode, ok: false };
   }
-  return { slug, mode, ok: true, srcBytes, outBytes, path: outPath };
+  return { slug, mode, mobile, ok: true, srcBytes, outBytes, path: outPath };
 }
 
 const io = await makeIO();
@@ -172,12 +174,14 @@ console.log(`模型: ${targets.join(', ')}   编码: ${modes.join(', ')}   贴�
 const results = [];
 for (const slug of targets) {
   for (const mode of modes) results.push(await run(slug, mode, io));
+  if (MOBILE_TEX_BUDGET[slug] && modes.includes('draco')) results.push(await run(slug, 'draco', io, true));
 }
 
 // 每个模型产出 index.json，列出可用编码与体积，供运行时挑最小的
 const byslug = {};
 for (const r of results) {
-  if (r && r.ok) (byslug[r.slug] ||= {})[r.mode] = r.outBytes;
+  if (r && r.ok && !r.mobile) (byslug[r.slug] ||= {})[r.mode] = r.outBytes;
+  if (r && r.ok && r.mobile) fs.writeFileSync(path.join(DIST, r.slug, 'index.mobile.json'), JSON.stringify({[r.mode]:r.outBytes}, null, 1) + '\n');
 }
 for (const [slug, modeMap] of Object.entries(byslug)) {
   const merged = { ...modeMap };

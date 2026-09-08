@@ -107,5 +107,21 @@ try {
   await page.getByRole('button',{name:'结束导览',exact:true}).click();
   console.log('PASS mobile study and tour:',width+'x'+height);
  }
+ // Phone asset budget changes only texture resolution; detailed quality must
+ // fetch the full asset and restore the same focused source node after reload.
+ await page.goto(`${base}/?model=samurai&quality=low`);await settle();
+ const light=await page.evaluate(()=>({perf:__performance(),info:__info(),binding:__verifyManifest()}));
+ assert.equal(light.perf.assetVariant,'mobile');assert(light.binding.maxDeviationInHeights<1e-3);
+ await page.evaluate(()=>armorLab.call('focusGroup',{key:'chest/C'}));await settle();
+ await page.getByRole('button',{name:'Next part',exact:true}).click();await settle();
+ const lightNode=await page.evaluate(()=>__studyParts().find(p=>p.index===__state.focus).node);
+ await page.getByRole('button',{name:'SETTINGS',exact:true}).click();
+ await page.locator('#quality').selectOption('high');
+ await page.waitForFunction(()=>window.__ready===true&&__performance().assetVariant==='full'&&__performance().qualityMode==='high');await settle();
+ const full=await page.evaluate(()=>({perf:__performance(),info:__info(),node:__studyParts().find(p=>p.index===__state.focus).node}));
+ assert.equal(full.node,lightNode);assert.equal(full.info.triangles,light.info.triangles);
+ assert(light.perf.sourceBytes<full.perf.sourceBytes*.6,'mobile asset did not meet the payload budget');
+ assert((await page.evaluate(()=>performance.getEntriesByType('resource').filter(r=>r.name.endsWith('/model.draco.glb')).length))>0,'full-quality asset was not requested');
+ console.log('PASS phone texture budget / original geometry / detailed quality reload preserves node');
  assert.deepEqual(errors,[]);
 } finally {await browser?.close();server.kill();}

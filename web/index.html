@@ -152,6 +152,18 @@ const srcPref = params.get('src') || 'auto';   // auto | raw | meshopt | draco
 async function resolveSource(name) {
   const raw = { url: `./assets/raw/${name}/scene.gltf`, mode: 'raw', bytes: 0 };
   if (srcPref === 'raw') return raw;
+  const compact = name === 'samurai' && srcPref === 'auto' && qualityMode !== 'high'
+    && (matchMedia('(pointer:coarse)').matches || navigator.connection?.saveData || qualityMode === 'low');
+  if (compact) {
+    try {
+      const r = await fetch(`./assets/dist/${name}/index.mobile.json`);
+      if (r.ok) {
+        const index = await r.json();
+        if (Number.isFinite(index.draco) && index.draco > 0)
+          return {url:`./assets/dist/${name}/model.mobile.draco.glb`, mode:'draco', bytes:index.draco, variant:'mobile'};
+      }
+    } catch { /* The regular compressed model remains a valid fallback. */ }
+  }
   let index = null;
   try {
     const r = await fetch(`./assets/dist/${name}/index.json`);
@@ -294,6 +306,7 @@ let pickTargets = [];    // 可拾取的 Mesh
 let emissiveMats = [];   // {mat, base} —— 组装收尾时点亮
 let modelScale = 1;
 let loadStart = performance.now();
+let loadedSource = null;
 
 // ---------- 加载 ----------
 async function loadModel(name) {
@@ -318,6 +331,8 @@ async function loadModel(name) {
 
   $('loadStage').textContent = 'RESOLVING GEOMETRY SOURCE';
   const source = await resolveSource(name);
+  loadedSource = source;
+  updateQuality();
   $('loadStage').textContent = `STREAMING ${source.mode.toUpperCase()}`
     + (source.bytes ? ` · ${(source.bytes / 1048576).toFixed(2)} MB` : '');
   const loader = new GLTFLoader();
@@ -644,6 +659,7 @@ function currentStateParams() {
   const sp = new URLSearchParams();
   sp.set('model', slug);
   if (srcPref !== 'auto') sp.set('src', srcPref);
+  if (qualityMode !== 'auto') sp.set('quality', qualityMode);
   const sc = new THREE.Spherical().setFromVector3(camera.position);
   // 极小的负值经 toFixed 会写成 "-0.0"，分享出去的链接里看着像是坏的，压平掉
   const flat = (v) => (Math.abs(v) < 0.05 ? 0 : v).toFixed(1);
@@ -1552,7 +1568,8 @@ function applyQuality() {
 function updateQuality() {
   renderer.setPixelRatio(Math.min(devicePixelRatio,{low:1,balanced:1.5,high:2}[qualityProfile]));
   $('quality').value=qualityMode;
-  $('qualityHint').textContent=({low:'减少边线 · 1× 分辨率',balanced:'重点边线 · 最高 1.5×',high:'完整边线 · 最高 2×'})[qualityProfile];
+  $('qualityHint').textContent=({low:'减少边线 · 1× 分辨率',balanced:'重点边线 · 最高 1.5×',high:'完整边线 · 最高 2×'})[qualityProfile]
+    +(loadedSource?.variant==='mobile'?' · 轻量贴图，选精细可载入高清':'');
   costSamples=[];slowSince=0;requestRender();
 }
 function recordFrameCost(start,interval) {
@@ -1563,8 +1580,14 @@ function recordFrameCost(start,interval) {
   const mean=costSamples.reduce((a,b)=>a+b,0)/costSamples.length;
   if(mean>28){if(!slowSince)slowSince=performance.now();if(performance.now()-slowSince>1500){qualityProfile=qualityProfile==='high'?'balanced':'low';updateQuality();}}else slowSince=0;
 }
-$('quality').onchange=()=>{qualityMode=$('quality').value;applyQuality();};
-window.__performance=()=>({frames:renderedFrames,pending:!!renderFrame,hidden:document.hidden,qualityMode,qualityProfile,pixelRatio:renderer.getPixelRatio(),samples:costSamples.slice()});
+$('quality').onchange=()=>{
+  qualityMode=$('quality').value;
+  if(loadedSource?.variant==='mobile'&&qualityMode==='high'){
+    syncUrl();location.reload();return;
+  }
+  applyQuality();scheduleUrlSync();
+};
+window.__performance=()=>({frames:renderedFrames,pending:!!renderFrame,hidden:document.hidden,qualityMode,qualityProfile,pixelRatio:renderer.getPixelRatio(),assetVariant:loadedSource?.variant||'full',sourceBytes:loadedSource?.bytes||0,samples:costSamples.slice()});
 for(const event of ['pointerdown','pointerup','input','click','keydown'])document.addEventListener(event,requestRender,{capture:true,passive:true});
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){cancelAnimationFrame(renderFrame);renderFrame=0;if(state.touring&&!state.tourPaused){toggleTourPause();}}
