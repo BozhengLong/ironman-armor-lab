@@ -18,7 +18,10 @@ try {
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  page.on('response',r=>{if(r.status()>=400&&!r.url().includes('favicon'))errors.push(r.status()+' '+r.url());});
  const settle=async()=>{await page.waitForFunction(()=>window.__ready===true && !window.__performance().pending,null,{timeout:60000});await page.waitForTimeout(100);};
- const stage=async n=>{await page.locator(`[data-stage="${n}"]`).click();await settle();return page.evaluate(()=>__studyParts());};
+ // Stage buttons update this scene and replace the share URL; they never load
+ // another document. Wait for the actual render state and geometry below rather
+ // than Playwright's post-click navigation barrier (slow on CI software WebGL).
+ const stage=async n=>{await page.locator(`[data-stage="${n}"]`).click({noWaitAfter:true});await settle();return page.evaluate(()=>__studyParts());};
  for(const model of ['hulkbuster','ironman','samurai']){
   await page.goto(`${base}/?model=${model}&quality=balanced`);await settle();
   const before=await page.evaluate(()=>__performance().frames);await page.waitForTimeout(900);
