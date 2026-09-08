@@ -53,6 +53,7 @@
     <div class="row"><span>SOURCE</span><span class="val" id="sc">—</span></div>
     <div class="row"><span>GROUPS</span><span class="val" id="gc">—</span></div>
     <div class="row"><span>PARTS</span><span class="val" id="pc">—</span></div>
+    <div class="row"><span>RENDER</span><span class="val" id="renderStatus">ACTIVE</span></div>
     <div class="row"><span>LOAD</span><span class="val" id="lt">—</span></div>
   </details>
 </div>
@@ -72,18 +73,19 @@
   <div id="settings">
     <div class="grp"><span class="lbl">EXPLODE MODE</span><span id="modes"></span></div>
     <div class="grp"><span class="lbl">DISPLAY</span><button id="btnFinish" aria-pressed="true" title="切换工程展示配色与源材质">ENGINEERED</button><button id="btnLabels" aria-pressed="true">LABELS</button><button id="btnDebris" aria-pressed="false">DEBRIS</button></div>
+    <div class="grp"><label class="lbl" for="quality">画质</label><select id="quality"><option value="auto">自动</option><option value="low">省电</option><option value="balanced">均衡</option><option value="high">精细</option></select><span id="qualityHint"></span></div>
   </div>
 
   <!-- CC-BY 3(a)(1) 要求的署名：作者、许可（含链接）、原始链接，
        以及 (B) 的「已改动」声明。桌面端定位到右下角，移动端 position:static
        退回流内，成为底部控制栈的最后一行 —— 两种布局下都必须可见，
        它此前只存在于清单项的 title 属性里，触屏设备根本触发不到。 -->
-  <!-- Agent 导览的当前指令。项目的命题就是 Agent 层，但访客得开 devtools
-       才看得到它存在 —— 这块把正在执行的命令显示出来，让命题本身可见。 -->
-  <div id="tour">
-    <div class="lbl"><span id="tourKicker">AGENT</span></div>
-    <div id="tourCmd">—</div>
-  </div>
+  <!-- 导览调用与公开命令相同的状态入口；面向访客显示观察提示。 -->
+  <section id="tour" aria-label="装甲讲解">
+    <div class="tour-copy" aria-live="polite"><div class="lbl" id="tourKicker">GUIDED STUDY</div><div id="tourTitle">认识这副装甲</div><p id="tourText"></p></div>
+    <div class="tour-nav"><button id="tourPrev" aria-label="导览上一步">←</button><button id="tourPause">暂停</button><button id="tourNext" aria-label="导览下一步">→</button><button id="tourClose" aria-label="结束导览">结束</button></div>
+    <progress id="tourProgress" max="1" value="0" aria-label="当前讲解进度"></progress>
+  </section>
 
   <div id="credit">
     <div class="lbl">MODEL CREDIT</div>
@@ -95,9 +97,13 @@
 <div class="panel" id="inspect">
   <div class="lbl" id="insKicker">SUBASSEMBLY</div>
   <div class="insName" id="insName">—</div>
-  <div id="insRows"></div>
-  <div class="part-nav"><button id="insPrev" aria-label="Previous part">← PREV</button><button id="insAll">ALL</button><button id="insNext" aria-label="Next part">NEXT →</button></div>
-  <button id="insClose">BACK · ESC</button>
+  <div id="insSummary" aria-live="polite"></div>
+  <div class="study-stages" id="studyStages" aria-label="拆解阶段">
+    <button data-stage="0">1 原位</button><button data-stage="1">2 大件</button><button data-stage="2">3 细件</button>
+  </div>
+  <details id="insContext" open><summary>定位与原位对照</summary><div class="locator-wrap"><svg id="locator" viewBox="0 0 110 120" role="img" aria-label="整体位置"></svg><div><span class="lbl">整体位置 · 正视</span><p id="insLocation"></p><button id="insOrigin" aria-pressed="false">按住查看原位</button></div></div></details>
+  <details id="insTechnical"><summary>模型数据</summary><div id="insRows"></div></details>
+  <div class="part-nav"><button id="insPrev" aria-label="Previous part">← PREV</button><button id="insAll">ALL</button><button id="insNext" aria-label="Next part">NEXT →</button><button id="insClose">返回整体</button></div>
 </div>
 
 <div id="load">
@@ -122,6 +128,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { createPresentation } from './web/presentation.js';
+import { prepareStudy, studyFactor, drawLocator, STUDY_STAGES, STUDY_VIEW, PART_NAMES, SIDE_NAMES } from './web/study.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 // 模型清单由 scripts/build_index.py 生成，不写死在前端
 let MODELS = ['hulkbuster', 'ironman'];   // index.json 加载前的兜底
@@ -162,7 +170,7 @@ const $ = (id) => document.getElementById(id);
 // ---------- 视角预设：单位球方向 ----------
 const VIEWS = {
   ISO:   [ 1,  0.75,  1],
-  '3/4F':[ 0.6, 0.35, 1],
+  '3/4F':STUDY_VIEW,
   FRONT: [ 0,  0,     1],
   SIDE:  [ 1,  0,     0],
   PLAN:  [ 0,  1,     0.001],
@@ -177,6 +185,12 @@ function showFatal(msg, detail) {
   $('load')?.classList.remove('done');
 }
 
+let renderFrame = 0, renderEnabled = false, renderedFrames = 0;
+function requestRender() {
+  if (!renderEnabled || document.hidden || renderFrame) return;
+  if(!tick.last){fpsT=performance.now();frames=0;}
+  renderFrame = requestAnimationFrame(tick);
+}
 let renderer;
 try {
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
@@ -188,7 +202,7 @@ try {
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.08;
+renderer.toneMappingExposure = .97;
 renderer.setClearColor(0x0b1014, 0);
 document.body.appendChild(renderer.domElement);
 // 显卡驱动重置或标签页长时间后台会丢上下文，静默变黑最难排查
@@ -199,6 +213,13 @@ renderer.domElement.addEventListener('webglcontextlost', (e) => {
 
 const scene = new THREE.Scene();
 scene.background = null;
+// A small procedural studio reflection; no network HDR or postprocessing pass.
+const studio = new RoomEnvironment();
+const pmrem = new THREE.PMREMGenerator(renderer);
+const studioMap = pmrem.fromScene(studio, .04, .1, 100, {size:128});
+scene.environment = studioMap.texture;
+scene.environmentIntensity = .32;
+studio.dispose(); pmrem.dispose();
 
 // 正交相机：追求工程图观感，无透视畸变
 const FRUSTUM = 1.5;
@@ -228,7 +249,9 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.target.set(0, 0, 0);
-controls.addEventListener('change', () => scheduleUrlSync());
+controls.addEventListener('change', () => { scheduleUrlSync(); requestRender(); });
+controls.addEventListener('start', () => {state.tweening=false;requestRender();});
+controls.addEventListener('end', requestRender);
 controls.enableZoom = false;   // 缩放自管：否则 controls 的 change 事件会把
                                // 我们自己的取景动画误判成用户输入，形成反馈环
 renderer.domElement.addEventListener('wheel', (e) => {
@@ -236,15 +259,16 @@ renderer.domElement.addEventListener('wheel', (e) => {
   if (state.touring) stopTour();
   state.userZoom = THREE.MathUtils.clamp(
     state.userZoom * Math.pow(0.999, e.deltaY), 0.25, 8);
+  requestRender();
 }, { passive: false });
 
-// 技术制图式打光：主光 + 侧补光 + 顶部轮廓光，不用环境贴图
-scene.add(new THREE.HemisphereLight(0xabbfce, 0x1d232a, 1.25));
-const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(3, 5, 4); scene.add(key);
+// 主光、侧补光与轮廓光配合低强度摄影棚反射，保留壳体的明暗层次。
+scene.add(new THREE.HemisphereLight(0xb8c8dc, 0x151c24, .8));
+const key = new THREE.DirectionalLight(0xffefe0, 1.8); key.position.set(3, 5, 4); scene.add(key);
 const fill = new THREE.DirectionalLight(0x88a4c8, 0.9); fill.position.set(-4, 1, -3); scene.add(fill);
 const rim = new THREE.DirectionalLight(0xffd9c0, 0.7); rim.position.set(0, 4, -5); scene.add(rim);
 // 跟随相机的补光：装甲是开放壳体，爆炸后会大量露出背光的内表面
-const headlight = new THREE.DirectionalLight(0xdfe8f2, 0.65);
+const headlight = new THREE.DirectionalLight(0xdfe8f2, 0.35);
 scene.add(headlight);
 
 // ---------- 状态 ----------
@@ -254,7 +278,8 @@ const state = {
   selected: null, drill: 0, targetDrill: 0, focus: -1,
   assembling: false, assembleT: 0,
   repulsing: false, repulsorT: 0, repulsorRecoil: 0, repulsorSides: [],
-  touring: false,
+  touring: false, tourPaused: false, tourIndex: -1, tourElapsed: 0,
+  studyStage: 2, studyProgress: 2, originPeek: false,
   viewDir: new THREE.Vector3(1, 0.75, 1).normalize(),
   tweening: false,
 };
@@ -264,6 +289,7 @@ let root = null;
 let plan = null;         // <slug>.explode.json
 let groupIndex = {};     // "部位/左右" -> 组元数据
 let partsByGroup = new Map();
+let studyGroups = new Map();
 let pickTargets = [];    // 可拾取的 Mesh
 let emissiveMats = [];   // {mat, base} —— 组装收尾时点亮
 let modelScale = 1;
@@ -302,7 +328,7 @@ async function loadModel(name) {
 
   const gltf = await loader.loadAsync(source.url, (e) => {
     if (e.lengthComputable) {
-      const p = e.loaded / e.total;
+      const p = THREE.MathUtils.clamp(e.loaded / e.total, 0, 1);
       $('pct').textContent = String(Math.round(p * 100)).padStart(2, '0') + '%';
       $('bar').firstElementChild.style.width = (p * 100) + '%';
     }
@@ -337,6 +363,7 @@ async function loadModel(name) {
   buildVectors(gltf.scene);
   buildGroups();
   buildLocalBoxes();
+  studyGroups = prepareStudy(parts, groupIndex);
   state.selected = null; state.drill = 0; state.targetDrill = 0;
   renderInspector();
   currentCenter = center.clone();
@@ -359,6 +386,8 @@ async function loadModel(name) {
   $('tri').textContent = renderer.info.render.triangles.toLocaleString();
   applyDebris();
   $('loadStage').textContent = 'SYSTEM ONLINE';
+  $('pct').textContent = '100%';
+  $('bar').firstElementChild.style.width = '100%';
   $('load').classList.add('done');
 
   window.__ready = true;
@@ -494,12 +523,12 @@ function applyTransforms() {
   const d = state.drill, sel = state.selected;
   const rr = state.repulsorRecoil;
   for (const p of parts) {
-    const e = partFactor(p);
+    const e = state.originPeek ? 0 : partFactor(p);
     const v = p.vecLocal?.[state.mode];
     if (!v) {
       p.obj.position.copy(p.basePos);
     } else if (sel && p.groupKey === sel && p.vecLocal.drill) {
-      _a.copy(v).multiplyScalar(e).lerp(_b.copy(p.vecLocal.drill), d);
+      _a.copy(v).multiplyScalar(e).lerp(_b.copy(p.study.localOffset).multiplyScalar(state.originPeek ? 0 : studyFactor(p,state.studyProgress)), d);
       p.obj.position.copy(p.basePos).add(_a);
     } else {
       p.obj.position.copy(p.basePos).addScaledVector(v, e);
@@ -533,7 +562,7 @@ function setGhostMode(on) {
 
 function updateGhostOpacity() {
   if (!state.selected && state.drill < 0.001) return;
-  const outside = THREE.MathUtils.lerp(1, 0.012, state.drill);
+  const outside = THREE.MathUtils.lerp(1, state.originPeek ? .16 : .008, state.drill);
   const sibling = THREE.MathUtils.lerp(1, 0.12, state.drill);
   for (const p of parts) {
     const inGroup = p.groupKey === state.selected;
@@ -549,17 +578,16 @@ function updateGhostOpacity() {
 // 组内按钻取轴上的位置排序，逐件浏览时顺序才符合拆解层次
 function indexGroupParts(key) {
   const list = partsByGroup.get(key) || [];
-  const scored = list.map((p) => ({
-    p, k: p.vecLocal?.drill ? p.vecLocal.drill.length() : 0,
-  })).sort((a, b) => a.k - b.k);
-  scored.forEach((x, i) => { x.p.focusIndex = i; });
-  return scored.map((x) => x.p);
+  const sorted = [...list].sort((a,b)=>a.study.order-b.study.order);
+  sorted.forEach((p,i)=>{p.focusIndex=i;});
+  return sorted;
 }
 
 function setFocus(i) {
   const list = partsByGroup.get(state.selected) || [];
   if (!list.length) return;
   state.focus = i < 0 ? -1 : ((i % list.length) + list.length) % list.length;
+  if (state.focus >= 0) state.studyStage = 2;
   // 同组其余件需要参与透明混合，否则聚焦看不出来
   const on = state.focus >= 0;
   for (const p of list) for (const m of p.meshes) for (const mm of matList(m)) {
@@ -608,6 +636,7 @@ setView('ISO');
 // 几乎每帧都发 change —— 纯防抖会被无限顺延，URL 在场景动着的时候永远不写。
 // 改成「首次调用就排一次，窗口内的后续调用忽略」，连续拖动时 URL 也会跟着更新。
 function scheduleUrlSync() {
+  requestRender();
   if (!urlReady || urlTimer) return;
   urlTimer = setTimeout(() => { urlTimer = 0; syncUrl(); }, 400);
 }
@@ -624,7 +653,12 @@ function currentStateParams() {
   if (state.targetExplode > 0.001) sp.set('ex', state.targetExplode.toFixed(3));
   if (plan && state.mode !== plan.defaultMode) sp.set('mode', state.mode);
   if (state.selected) sp.set('g', state.selected);
-  if (state.focus >= 0) sp.set('p', String(state.focus));
+  if (state.focus >= 0) {
+    sp.set('p',String(state.focus));
+    const part=(partsByGroup.get(state.selected)||[]).find(p=>p.focusIndex===state.focus);
+    if(part)sp.set('node',String(part.meta.node));
+  }
+  if (state.selected && state.studyStage !== 2) sp.set('stage', String(state.studyStage));
   if (state.showDebris) sp.set('debris', '1');
   const display = presentation.preferences();
   if (display.finish === 'source') sp.set('finish', 'source');
@@ -674,9 +708,20 @@ function restoreFromUrl() {
   const g = params.get('g');
   if (g && groupIndex[g]) {
     selectGroup(g);
+    const stage = Number(params.get('stage') ?? 2);
+    state.studyStage = state.studyProgress = [0,1,2].includes(stage) ? stage : 2;
+    renderInspector();
     state.drill = state.targetDrill;      // 直接到位，别让分享出去的链接自己动一下
-    const pi = parseInt(params.get('p'), 10);
-    if (Number.isFinite(pi)) { setFocus(pi); applied.push('part'); }
+    const pi=parseInt(params.get('p'),10),list=partsByGroup.get(g)||[];
+    const pinned=params.has('node')?list.find(p=>p.meta.node===Number(params.get('node'))):null;
+    if(pinned){setFocus(pinned.focusIndex);applied.push('part');}
+    else if(Number.isFinite(pi)){
+      // Links written before study ordering used distance along the old drill axis.
+      const legacy=[...list].sort((a,b)=>(a.vecLocal.drill?.length()||0)-(b.vecLocal.drill?.length()||0));
+      setFocus(pi<0?-1:legacy[((pi%legacy.length)+legacy.length)%legacy.length].focusIndex);applied.push('part');
+    }
+    state.studyProgress = state.studyStage;
+    if(Number.isFinite(az)&&Number.isFinite(el)){camera.position.setFromSpherical(new THREE.Spherical(3,THREE.MathUtils.degToRad(90-el),THREE.MathUtils.degToRad(az)));state.tweening=false;camera.lookAt(controls.target);}
     applied.push('group');
   }
   applyTransforms();
@@ -747,7 +792,7 @@ function pickAt(clientX, clientY) {
 
   const cand = [];
   for (const p of parts) {
-    if (!p.worldBox || p.worldBox.isEmpty()) continue;
+    if (!p.worldBox || p.worldBox.isEmpty() || (state.selected&&p.groupKey!==state.selected)) continue;
     if (raycaster.ray.intersectBox(p.worldBox, _pt)) {
       cand.push([raycaster.ray.origin.distanceTo(_pt), p]);
     }
@@ -756,13 +801,14 @@ function pickAt(clientX, clientY) {
   cand.sort((a, b) => a[0] - b[0]);
 
   let best = Infinity, bestKey = null, tested = 0;
+  pickAt.lastPart = null;
   for (const [boxDist, p] of cand) {
     if (boxDist > best) break;          // 后续候选的盒都比已命中更远
     tested++;
     const hits = raycaster.intersectObjects(p.meshes, false);
     if (hits.length && hits[0].distance < best) {
       best = hits[0].distance;
-      bestKey = p.groupKey;
+      bestKey = p.groupKey;pickAt.lastPart = p;
     }
   }
   pickAt.lastStats = { candidates: cand.length, tested, total: parts.length };
@@ -775,6 +821,8 @@ function selectGroup(key) {
   state.selected = key;
   state.targetDrill = key ? 1 : 0;
   state.focus = -1;
+  state.studyStage = 2; state.studyProgress = key ? 0 : 2; state.originPeek = false;
+  if (key) {setView('3/4F');$('insContext').open=innerWidth>820&&innerHeight>500;$('insTechnical').open=false;}
   setGhostMode(!!key);
   if (key) indexGroupParts(key);
   renderInspector();
@@ -782,41 +830,46 @@ function selectGroup(key) {
   scheduleUrlSync();
 }
 
-function renderInspector() {
-  const el = $('inspect');
-  const key = state.selected;
-  if (!key) { el.style.display = 'none'; buildRoster(); return; }
-  const g = groupIndex[key];
-  const list = partsByGroup.get(key) || [];
-  const focused = state.focus >= 0 ? list.find((p) => p.focusIndex === state.focus) : null;
-  const sideText = { L: 'LEFT', R: 'RIGHT', C: 'CENTER' }[g.side] || g.side;
-  $('insName').textContent = g.part.replace(/_/g, ' ').toUpperCase();
-  $('insKicker').textContent = `SUBASSEMBLY · ${sideText}`;
-  const rows = [
-    ['PARTS', g.count],
-    ['TRIANGLES', g.tris.toLocaleString()],
-    ['HEIGHT', `${(g.hRange[0] * 100).toFixed(0)}–${(g.hRange[1] * 100).toFixed(0)}%`],
-  ];
-  if (g.emissive) rows.push(['EMISSIVE', `${g.emissive} ACTIVE`]);
-  if (focused) {
-    rows.length = 0;
-    rows.push(['PART', `${state.focus + 1} / ${list.length}`],
-              ['NAME', focused.meta.name.slice(0, 18)],
-              ['TRIANGLES', focused.meta.tris.toLocaleString()],
-              ['MATERIAL', String(focused.meta.material || '—').slice(0, 16)]);
-    if (focused.meta.emissive) rows.push(['EMISSIVE', 'ACTIVE']);
-  }
-  $('insRows').innerHTML =
-    rows.map(([k, v]) => `<div class="r"><span>${k}</span>` +
-      `<span class="val${k === 'EMISSIVE' ? ' emis' : ''}">${v}</span></div>`).join('') +
-    (focused
-      ? '<div class="mats">← → 浏览组内零件 · ESC 退出</div>'
-      : (g.materials.length
-          ? `<div class="mats">MATERIALS<br>${g.materials.join(' · ')}</div>`
-            + '<div class="mats">← → 逐件浏览</div>' : ''));
-  el.style.display = innerWidth <= 820 ? 'grid' : 'block';
-  $('roster').style.display = 'none';
+function setStudyStage(stage) {
+  if (!state.selected || ![0,1,2].includes(stage)) return;
+  setFocus(-1); state.studyStage = stage;
+  renderInspector(); scheduleUrlSync();
 }
+function peekOrigin(on) {
+  if (!state.selected) return;
+  state.originPeek = on;
+  if(on&&state.touring&&!state.tourPaused)toggleTourPause();
+  $('insOrigin').setAttribute('aria-pressed',String(on));
+  applyTransforms(); updateGhostOpacity(); boxesDirty=true; requestRender();
+}
+function renderInspector() {
+  const el=$('inspect'), key=state.selected;
+  if(!key){el.style.display='none';buildRoster();return;}
+  const g=groupIndex[key],list=partsByGroup.get(key)||[];
+  const focused=state.focus>=0?list.find(p=>p.focusIndex===state.focus):null;
+  const name=PART_NAMES[g.part]||g.part,side=SIDE_NAMES[g.side]||g.side;
+  $('insName').textContent=g.part.replaceAll('_',' ').toUpperCase();
+  $('insKicker').textContent=`${side} · ${name}`;
+  $('insSummary').textContent=focused
+    ? `第 ${state.focus+1} / ${list.length} 件 · ${focused.meta.emissive?'发光部件':focused.study.large?'大件':'细件'}`
+    : `${list.length} 个部件 · ${STUDY_STAGES[state.studyStage]}`;
+  $('insLocation').textContent=focused?`第 ${state.focus+1} 件位于${side}${name}内；橙色标记保留原位。`:`橙色区域标出${side}${name}在整体中的位置。`;
+  for(const b of $('studyStages').children)b.setAttribute('aria-pressed',String(Number(b.dataset.stage)===state.studyStage));
+  drawLocator($('locator'),parts,key,state.focus);
+  const rows=focused?[['源节点',focused.meta.name],['三角面',focused.meta.tris.toLocaleString()],['源材质',focused.meta.material||'—']]
+    : [['三角面',g.tris.toLocaleString()],['源材质',g.materials.join(' · ')]];
+  $('insRows').replaceChildren();
+  for(const [label,value] of rows){const r=document.createElement('div');r.className='r';const k=document.createElement('span'),v=document.createElement('span');k.textContent=label;v.className='val';v.textContent=value;r.append(k,v);$('insRows').append(r);}
+  const note=document.createElement('p');note.className='mats';note.textContent='按模型网格组织的观察拆解；不代表真实机械装配顺序。';$('insRows').append(note);
+  el.style.display='block';$('roster').style.display='none';
+}
+for(const b of $('studyStages').children)b.onclick=()=>setStudyStage(Number(b.dataset.stage));
+$('insOrigin').addEventListener('pointerdown',e=>{e.preventDefault();e.currentTarget.focus({preventScroll:true});e.currentTarget.setPointerCapture(e.pointerId);peekOrigin(true);});
+for(const event of ['pointerup','pointercancel','lostpointercapture','blur'])$('insOrigin').addEventListener(event,()=>peekOrigin(false));
+$('insOrigin').addEventListener('keydown',e=>{if([' ','Enter'].includes(e.key)){e.preventDefault();peekOrigin(true);}});
+$('insOrigin').addEventListener('keyup',e=>{if([' ','Enter'].includes(e.key)){e.preventDefault();peekOrigin(false);}});
+$('insTechnical').addEventListener('toggle',requestRender);
+$('insContext').addEventListener('toggle',requestRender);
 
 renderer.domElement.addEventListener('pointerdown', (e) => {
   downAt = { x: e.clientX, y: e.clientY, touch: e.pointerType !== 'mouse' };
@@ -827,7 +880,8 @@ renderer.domElement.addEventListener('pointerup', (e) => {
   const slop = downAt.touch ? DRAG_SLOP_TOUCH : DRAG_SLOP_MOUSE;
   downAt = null;
   if (moved > slop) return;           // 是拖拽旋转，不是点击
-  selectGroup(pickAt(e.clientX, e.clientY));
+  const hit=pickAt(e.clientX,e.clientY);
+  if(hit && hit===state.selected && pickAt.lastPart)setFocus(pickAt.lastPart.focusIndex);else selectGroup(hit);
 });
 // 单次拾取实测约 3.8ms（两阶段筛选后），连续悬停会顶掉帧预算。
 // 光标反馈并不需要高频，改成指针停下来之后再拾取一次。
@@ -868,14 +922,14 @@ $('insPrev').onclick = () => {
 };
 $('insAll').onclick = () => setFocus(-1);
 $('ctl').addEventListener('pointerdown', (e) => {
-  if (!e.target.closest('#btnTour') && state.touring) stopTour();
+  if (!e.target.closest('#btnTour, #tour') && state.touring) stopTour();
 });
 $('ctl').addEventListener('click', (e) => {
-  if (!e.target.closest('#btnTour') && state.touring) stopTour();
+  if (!e.target.closest('#btnTour, #tour') && state.touring) stopTour();
 }, true);
-$('ctl').addEventListener('input', () => { if (state.touring) stopTour(); });
-$('inspect').addEventListener('pointerdown', () => { if (state.touring) stopTour(); });
-$('inspect').addEventListener('click', () => { if (state.touring) stopTour(); }, true);
+$('ctl').addEventListener('input', e => { if (state.touring && !e.target.closest('#tour')) stopTour(); });
+$('inspect').addEventListener('pointerdown', e => { if (state.touring&&!e.target.closest('#insOrigin, #insContext')) stopTour(); });
+$('inspect').addEventListener('click', e => { if (state.touring&&!e.target.closest('#insOrigin, #insContext')) stopTour(); }, true);
 
 function startAssemble() {
   if (!parts.length) return;
@@ -1147,75 +1201,80 @@ function updateRepulsorButton() {
 }
 
 // ---------------------------------------------------------------------------
-// Agent 导览
-//
-// 页面自身不调用任何 LLM —— 它只暴露命令面。导览做的事情是把一串既定的命令
-// 交给同一个命令面执行，并把每一条显示出来。它证明的不是「页面会自己动」，
-// 而是「这个场景的每种状态变化都已经是一个可被外部调度的原语」。
-//
-// 步骤按当前模型现有的组挑选：三个模型的分组差别很大，写死组名会在别的模型上失效。
+// 讲解按各模型实际存在的分组编排。各步骤定义完整状态，后退与跳步
+// 不依赖上一条命令是否跑完。文字计时独立于 3D 重绘；慢设备等动作完成再换章。
 function tourSteps() {
-  const has = (k) => !!groupIndex[k];
-  const pick = (...c) => c.find(has) ?? Object.keys(groupIndex)[0] ?? null;
-  const torso = pick('chest/C', 'chest/L', 'abdomen/C');
-  const steps = [
-    { tool: 'setView',        args: { name: 'FRONT' },              wait: 1100 },
-    { tool: 'setExplodeMode', args: { mode: 'groupSpread' },        wait: 800 },
-    { tool: 'setExplode',     args: { value: 1 },                   wait: 1900 },
-    { tool: 'setView',        args: { name: '3/4F' },               wait: 1600 },
+  const torso=['chest/C','chest/L','abdomen/C'].find(k=>groupIndex[k])||Object.keys(groupIndex)[0];
+  const name=PART_NAMES[groupIndex[torso]?.part]||'部件';
+  const count=partsByGroup.get(torso)?.length||0;
+  const steps=[
+    {title:'先看整体轮廓',text:'正交视角保持前后尺寸一致。观察装甲各部分的比例，再开始拆解。',duration:5,view:'FRONT',explode:0},
+    {title:'分开各个部位',text:'头部、躯干与四肢沿各自方向展开；原有朝向保持不变。',duration:6,view:'3/4F',explode:1},
+    {title:`找到${name}的位置`,text:`高亮的是${name}分组，包含 ${count} 个模型部件。左侧定位图始终保留它在整体中的位置。`,duration:5,view:'3/4F',group:torso,stage:0},
+    {title:'先展开大件',text:'占据较大画面的部件先移开，细件暂留原位。这里按可见形状编排，不推断真实机械层级。',duration:6,view:'3/4F',group:torso,stage:1},
+    {title:'再分离细件',text:'较小部件进入独立排列。点上一件、下一件，可以逐个放大观察。',duration:6,view:'3/4F',group:torso,stage:2},
+    {title:'追踪一件零件',text:'定位图标出当前部件的原始位置。按住「查看原位」，可以把它放回装甲中对照。',duration:6,view:'3/4F',group:torso,stage:2,focus:0},
+    {title:'看它们逐件归位',text:'各部位错峰收拢，最后恢复发光。你可以随时暂停，或手动旋转接着探索。',duration:6,view:'3/4F',assemble:true},
   ];
-  if (torso) {
-    steps.push({ tool: 'focusGroup', args: { key: torso }, wait: 1900 },
-               { tool: 'focusPart',  args: { index: 1 },   wait: 1500 },
-               { tool: 'focusGroup', args: { key: null },  wait: 1000 });
-  }
-  steps.push({ tool: 'setExplode',   args: { value: 0 },  wait: 1200 },
-             { tool: 'playAssemble', args: {},            wait: ASSEMBLE_SECONDS * 1000 + 400 });
-  // 没有发射口的模型（手臂未分离到小臂）就不排这一步，而不是让它抛错
-  if (repulsor && Object.keys(repulsor.sides).length) {
-    steps.push({ tool: 'playRepulsor', args: {}, wait: REPULSOR_SECONDS * 1000 + 300 });
-  }
+  if(repulsor&&Object.keys(repulsor.sides).length)steps.push({title:'观察发光与后坐',text:'这是依据臂部位置生成的演示效果。看完后，可继续自由探索装甲。',duration:5,view:'3/4F',repulsor:true});
   return steps;
 }
-
-let tourToken = null;
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-function showTourStep(step, i, n) {
-  $('tourKicker').textContent = `AGENT · ${i + 1}/${n}`;
-  const a = JSON.stringify(step.args);
-  $('tourCmd').textContent = `${step.tool}(${a === '{}' ? '' : a})`;
+let activeTourSteps=[],tourTimer=0,tourLast=0;
+function scheduleTourClock(){
+  if(tourTimer||!state.touring||state.tourPaused)return;
+  if(!tourLast)tourLast=performance.now();
+  tourTimer=setTimeout(()=>{tourTimer=0;const now=performance.now(),dt=(now-tourLast)/1000;tourLast=now;advanceTour(dt);scheduleTourClock();},100);
 }
-
-async function startTour() {
-  if (state.touring) { stopTour(); return; }
-  const steps = tourSteps();
-  if (!steps.length) return;
-  const token = {};
-  tourToken = token;
-  state.touring = true;
-  $('btnTour').setAttribute('aria-pressed', 'true');
-  $('tour').style.display = 'block';
-  for (let i = 0; i < steps.length; i++) {
-    if (tourToken !== token) return;              // 已被打断
-    showTourStep(steps[i], i, steps.length);
-    try {
-      AGENT_TOOLS[steps[i].tool].run(steps[i].args);
-    } catch (e) {
-      $('tourCmd').textContent = `${steps[i].tool} —— ${e.message}`;
-    }
-    // 开了「减少动态效果」时不该被一段两分钟的编排绑住，压缩每步停留
-    await sleep(reduceMotion() ? Math.min(steps[i].wait, 450) : steps[i].wait);
+function pauseTourClock(){clearTimeout(tourTimer);tourTimer=0;tourLast=0;}
+function toggleTourPause(){
+  state.tourPaused=!state.tourPaused;$('tourPause').textContent=state.tourPaused?'继续':'暂停';
+  if(state.tourPaused)pauseTourClock();else scheduleTourClock();requestRender();
+}
+function applyTourStep(index) {
+  if(index<0||index>=activeTourSteps.length)return;
+  stopAssemble(false);stopRepulsor();peekOrigin(false);
+  const step=activeTourSteps[index];state.tourIndex=index;state.tourElapsed=0;tourLast=performance.now();
+  selectGroup(step.group||null);setExplodeTarget(step.explode||0);setView(step.view);
+  if(step.group){setStudyStage(step.stage);if(step.focus!==undefined)setFocus(step.focus);$('insContext').open=(innerWidth>820&&innerHeight>500)||step.focus!==undefined;}
+  if(step.assemble)startAssemble();if(step.repulsor)startRepulsor('both');
+  $('tourKicker').textContent=`GUIDED STUDY · ${index+1} / ${activeTourSteps.length}`;
+  $('tourTitle').textContent=step.title;$('tourText').textContent=step.text;
+  $('tourPrev').disabled=index===0;$('tourNext').disabled=index===activeTourSteps.length-1;
+  if(state.tourPaused){
+    state.drill=state.targetDrill;state.studyProgress=state.studyStage;
+    if(!step.assemble)state.explode=state.targetExplode;
+    camera.position.copy(state.viewDir).multiplyScalar(3);state.tweening=false;
+    applyTransforms();updateGhostOpacity();boxesDirty=true;
+    const f=presentation.frame();camera.zoom=f.zoom*state.userZoom;controls.target.copy(f.target);camera.lookAt(controls.target);camera.updateProjectionMatrix();
   }
-  if (tourToken === token) stopTour();
+  $('tourProgress').value=0;requestRender();
 }
-
+function startTour() {
+  if(state.touring){stopTour();return;}
+  document.body.classList.add('guiding');
+  activeTourSteps=tourSteps();state.touring=true;state.tourPaused=false;
+  $('btnTour').setAttribute('aria-pressed','true');$('tour').style.display='grid';$('tourPause').textContent='暂停';
+  applyTourStep(0);scheduleTourClock();
+}
 function stopTour() {
-  tourToken = null;
-  state.touring = false;
-  $('btnTour').setAttribute('aria-pressed', 'false');
-  $('tour').style.display = 'none';
+  pauseTourClock();
+  document.body.classList.remove('guiding');
+  state.touring=false;state.tourPaused=false;state.tourIndex=-1;
+  $('btnTour').setAttribute('aria-pressed','false');$('tour').style.display='none';requestRender();
 }
+function advanceTour(dt) {
+  if(!state.touring||state.tourPaused)return;
+  const step=activeTourSteps[state.tourIndex];state.tourElapsed+=dt;
+  $('tourProgress').value=Math.min(1,state.tourElapsed/step.duration);
+  const moving=state.assembling||state.repulsing||state.tweening||Math.abs(state.drill-state.targetDrill)>.0004||Math.abs(state.studyProgress-state.studyStage)>.0004||Math.abs(state.explode-state.targetExplode)>.0004;
+  if(state.tourElapsed>=step.duration&&!moving){
+    if(state.tourIndex+1<activeTourSteps.length)applyTourStep(state.tourIndex+1);else stopTour();
+  }
+}
+$('tourPrev').onclick=()=>applyTourStep(state.tourIndex-1);
+$('tourNext').onclick=()=>applyTourStep(state.tourIndex+1);
+$('tourPause').onclick=toggleTourPause;
+$('tourClose').onclick=stopTour;
 
 // CC-BY 3(a)(1) 要求随作品保留：作者、许可声明与其 URI、指向原作的链接；
 // (B) 还要求声明是否改动过 —— 站点分发的是压缩过的几何与贴图，属于有改动。
@@ -1347,7 +1406,7 @@ addEventListener('resize', () => {
 });
 
 // ---------- 帧循环 ----------
-function renderOnce() { renderer.render(scene, camera); }
+function renderOnce() { renderer.render(scene, camera); renderedFrames++; }
 window.__renderOnce = renderOnce;
 window.__info = () => ({
   triangles: renderer.info.render.triangles,
@@ -1359,12 +1418,15 @@ window.__info = () => ({
 const sph = new THREE.Spherical();
 let frames = 0, fpsT = performance.now(), fps = 0;
 const fpsHistory = [];
+let framedLayoutVersion=-1;
 
 function tick() {
-  requestAnimationFrame(tick);
+  renderFrame = 0;
+  if(document.hidden || !renderEnabled)return;
+  const paused=state.touring && state.tourPaused;
 
   // 视角补间
-  if (state.tweening) {
+  if (state.tweening && !paused) {
     const want = state.viewDir.clone().multiplyScalar(3);
     if (reduceMotion()) { camera.position.copy(want); state.tweening = false; }
     else {
@@ -1376,16 +1438,17 @@ function tick() {
 
   // 组装时间轴
   const now0 = performance.now();
-  const dt = Math.min((now0 - (tick.last || now0)) / 1000, 0.1);   // 卡顿时钳住步长
+  const frameMs=now0-(tick.last||now0);
+  const dt = paused ? 0 : Math.min(frameMs/1000, 0.1);   // 卡顿时钳住步长
   tick.last = now0;
 
   let dirty = false;
-  if (state.assembling && reduceMotion()) {
+  if (state.assembling && reduceMotion() && !paused) {
     // 组装是一段 4.2 秒的编排，属于典型的「非必要动效」，直接给终态
     setEmissiveLevel(1);
     stopAssemble(true);
     dirty = true;
-  } else if (state.assembling) {
+  } else if (state.assembling && !paused) {
     state.assembleT += dt / ASSEMBLE_SECONDS;
     // 取景整体从全爆炸收到装配态；位置由 partFactor 各自的时间轴驱动
     state.explode = 1 - THREE.MathUtils.smoothstep(state.assembleT, 0, 1);
@@ -1397,7 +1460,7 @@ function tick() {
 
   // REPULSOR 时间轴
   let repulsorPh = null;
-  if (state.repulsing) {
+  if (state.repulsing && !paused) {
     state.repulsorT += dt / REPULSOR_SECONDS;
     if (state.repulsorT >= 1) {
       stopRepulsor();
@@ -1410,17 +1473,25 @@ function tick() {
   }
 
   // 爆炸与钻取补间
-  if (!state.assembling) {
+  if (!state.assembling && !paused) {
   if (Math.abs(state.explode - state.targetExplode) > 0.0004) {
     state.explode = reduceMotion() ? state.targetExplode
       : state.explode + (state.targetExplode - state.explode) * 0.1;
     dirty = true;
   }
   }
-  if (Math.abs(state.drill - state.targetDrill) > 0.0004) {
+  if (!paused && Math.abs(state.drill - state.targetDrill) > 0.0004) {
     state.drill = reduceMotion() ? state.targetDrill
       : state.drill + (state.targetDrill - state.drill) * 0.12;
     dirty = true;
+  }
+  if(!paused && Math.abs(state.studyProgress-state.studyStage)>.0004) {
+    state.studyProgress=reduceMotion()?state.studyStage:THREE.MathUtils.damp(state.studyProgress,state.studyStage,5,dt);dirty=true;
+  }
+  if(!paused){
+    for(const [field,target] of [['drill','targetDrill'],['studyProgress','studyStage'],...(!state.assembling?[['explode','targetExplode']]:[])]){
+      if(state[field]!==state[target]&&Math.abs(state[field]-state[target])<=.0004){state[field]=state[target];dirty=true;}
+    }
   }
   if (dirty) { applyTransforms(); updateGhostOpacity(); boxesDirty = true; }
   if (repulsorPh) updateRepulsorVisuals(repulsorPh);
@@ -1429,11 +1500,16 @@ function tick() {
   // controls share the same framing path as assembly animation and manual rotation.
   const framing = presentation.frame();
   const zoomTarget = framing.zoom * state.userZoom;
-  camera.zoom = reduceMotion() ? zoomTarget : camera.zoom + (zoomTarget - camera.zoom) * .12;
+  const layoutChanged=framedLayoutVersion!==framing.version;framedLayoutVersion=framing.version;
+  let framingBusy=false;
+  if(!paused||layoutChanged){
+    framingBusy=Math.abs(zoomTarget-camera.zoom)>.0001||controls.target.distanceTo(framing.target)>.00001;
+    camera.zoom = paused || reduceMotion() || Math.abs(zoomTarget-camera.zoom)<.0001 ? zoomTarget : camera.zoom + (zoomTarget-camera.zoom)*.12;
   camera.updateProjectionMatrix();
-  if (reduceMotion()) controls.target.copy(framing.target); else controls.target.lerp(framing.target, .15);
+  if (paused || reduceMotion() || controls.target.distanceTo(framing.target)<.00001) controls.target.copy(framing.target); else controls.target.lerp(framing.target,.15);
+  }
 
-  controls.update();
+  const orbitBusy=!paused && controls.update();
   headlight.position.copy(camera.position);
   camera.updateMatrixWorld();
   presentation.update(performance.now());
@@ -1461,11 +1537,58 @@ function tick() {
     ? `ASSEMBLE ${Math.round(state.assembleT * 100)}%`
     : state.repulsing
       ? `REPULSOR ${Math.round(state.repulsorT * 100)}%` : 'IDLE';
+  const active=!paused&&(dirty||framingBusy||orbitBusy||state.tweening||state.assembling||state.repulsing);
+  $('renderStatus').textContent=active?'ACTIVE':'RESTING';
+  if(active){requestRender();recordFrameCost(now0,frameMs);}else{$('fps').textContent='REST';tick.last=0;}
 }
 
+let qualityMode=['auto','low','balanced','high'].includes(params.get('quality'))?params.get('quality'):'auto';
+let qualityProfile='balanced',costSamples=[],slowSince=0;
+function applyQuality() {
+  const low=navigator.connection?.saveData || (navigator.deviceMemory && navigator.deviceMemory<=4);
+  qualityProfile=qualityMode==='auto'?(low?'low':matchMedia('(pointer:coarse)').matches?'balanced':'high'):qualityMode;
+  updateQuality();
+}
+function updateQuality() {
+  renderer.setPixelRatio(Math.min(devicePixelRatio,{low:1,balanced:1.5,high:2}[qualityProfile]));
+  $('quality').value=qualityMode;
+  $('qualityHint').textContent=({low:'减少边线 · 1× 分辨率',balanced:'重点边线 · 最高 1.5×',high:'完整边线 · 最高 2×'})[qualityProfile];
+  costSamples=[];slowSince=0;requestRender();
+}
+function recordFrameCost(start,interval) {
+  if(qualityMode!=='auto'||qualityProfile==='low'||state.tourPaused)return;
+  // Rendering cost, not network wait or an intentional idle gap.
+  costSamples.push(Math.max(performance.now()-start,interval));if(costSamples.length>45)costSamples.shift();
+  if(costSamples.length<30)return;
+  const mean=costSamples.reduce((a,b)=>a+b,0)/costSamples.length;
+  if(mean>28){if(!slowSince)slowSince=performance.now();if(performance.now()-slowSince>1500){qualityProfile=qualityProfile==='high'?'balanced':'low';updateQuality();}}else slowSince=0;
+}
+$('quality').onchange=()=>{qualityMode=$('quality').value;applyQuality();};
+window.__performance=()=>({frames:renderedFrames,pending:!!renderFrame,hidden:document.hidden,qualityMode,qualityProfile,pixelRatio:renderer.getPixelRatio(),samples:costSamples.slice()});
+for(const event of ['pointerdown','pointerup','input','click','keydown'])document.addEventListener(event,requestRender,{capture:true,passive:true});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){cancelAnimationFrame(renderFrame);renderFrame=0;if(state.touring&&!state.tourPaused){toggleTourPause();}}
+  else{tick.last=0;requestRender();}
+});
+reduceMotionMQ.addEventListener('change',requestRender);
+
+
 const presentation = createPresentation({camera, state, slug,
-  getParts: () => parts, getGroups: () => groupIndex, selectGroup, stopTour, scheduleUrlSync});
+  getParts: () => parts, getGroups: () => groupIndex, selectGroup, stopTour, scheduleUrlSync, requestRender, getQuality:()=>qualityProfile});
+applyQuality();
 window.__verifyAnnotations = () => presentation.verify();
+window.__studyParts = () => parts.filter(p=>p.groupKey===state.selected).map(p=>{
+  const bounds={left:Infinity,right:-Infinity,top:Infinity,bottom:-Infinity};
+  p.obj.updateWorldMatrix(true,false);
+  for(let i=0;i<8;i++){
+    const v=new THREE.Vector3(i&1?p.localBox.max.x:p.localBox.min.x,i&2?p.localBox.max.y:p.localBox.min.y,i&4?p.localBox.max.z:p.localBox.min.z).applyMatrix4(p.obj.matrixWorld).project(camera);
+    const x=(v.x*.5+.5)*innerWidth,y=(-v.y*.5+.5)*innerHeight;
+    bounds.left=Math.min(bounds.left,x);bounds.right=Math.max(bounds.right,x);bounds.top=Math.min(bounds.top,y);bounds.bottom=Math.max(bounds.bottom,y);
+  }
+  return {node:p.meta.node,index:p.focusIndex,large:p.study.large,base:p.basePos.toArray(),position:p.obj.position.toArray(),target:p.basePos.clone().add(p.study.localOffset).toArray(),bounds};
+});
+window.__surfaceMaterials=()=>parts.flatMap(p=>p.meshes.flatMap(mesh=>matList(mesh).map(m=>({node:p.meta.node,name:m.name,color:m.color.toArray(),metalness:m.metalness,roughness:m.roughness}))));
+
 // OrbitControls zoom is disabled because zoom is application state (and shareable).
 // Mirror wheel behavior for two-finger pinch without turning the gesture into a pick.
 const touches = new Map();
@@ -1490,7 +1613,7 @@ renderer.domElement.addEventListener('pointermove', (e) => {
 const endTouch = (e) => { touches.delete(e.pointerId); if (touches.size < 2) { controls.enabled = true; pinchDistance = 0; } };
 renderer.domElement.addEventListener('pointerup', endTouch);
 renderer.domElement.addEventListener('pointercancel', (e) => { downAt = null; endTouch(e); });
-loadIndex().then(() => loadModel(slug)).then(tick).catch((e) => {
+loadIndex().then(() => loadModel(slug)).then(()=>{renderEnabled=true;requestRender();}).catch((e) => {
   $('err').textContent = '加载失败:\n' + (e?.stack || e);
   $('pct').textContent = 'ERR';
   window.__ready = 'error';
@@ -1589,6 +1712,7 @@ const AGENT_TOOLS = {
       repulsing: state.repulsing,
       repulsorSides: repulsor ? Object.keys(repulsor.sides) : [],
       display: presentation.preferences(),
+      studyStage: state.studyStage, tourPaused: state.tourPaused, tourIndex: state.tourIndex,
       azimuth: +THREE.MathUtils.radToDeg(sph.theta).toFixed(1),
       elevation: +(90 - THREE.MathUtils.radToDeg(sph.phi)).toFixed(1),
       groups: Object.keys(groupIndex).length,
@@ -1681,9 +1805,9 @@ window.__verifyManifest = () => {
     const entry = plan.parts[String(p.meta.node)];
     const raw = entry?.[state.mode];
     if (raw) {
-      const off = new THREE.Vector3(...raw).multiplyScalar(H * state.explode);
+      const off = new THREE.Vector3(...raw).multiplyScalar(H * (state.originPeek ? 0 : state.explode));
       if (state.selected && p.groupKey === state.selected && entry.drill) {
-        off.lerp(new THREE.Vector3(...entry.drill).multiplyScalar(H), state.drill);
+        off.lerp(p.study.worldOffset.clone().multiplyScalar((state.originPeek?0:studyFactor(p,state.studyProgress))/modelScale),state.drill);
       }
       exp.addScaledVector(off, modelScale);
     }
@@ -1857,6 +1981,7 @@ window.__stateSnapshot = () => {
     group: state.selected,
     focus: state.focus,
     debris: state.showDebris,
+    stage: state.studyStage,
     ...presentation.preferences(),
   };
 };

@@ -12,6 +12,7 @@
  * 用法: node scripts/build_site.mjs [--out site]
  */
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -27,6 +28,7 @@ const THREE_ENTRIES = [
   'examples/jsm/loaders/GLTFLoader.js',
   'examples/jsm/loaders/DRACOLoader.js',
   'examples/jsm/controls/OrbitControls.js',
+  'examples/jsm/environments/RoomEnvironment.js',
   'examples/jsm/libs/meshopt_decoder.module.js',
 ];
 
@@ -108,6 +110,11 @@ const SITE_URL = process.env.SITE_URL || 'https://bozheng-long.org/ironman-armor
     process.exit(1);
   }
   html = html.replaceAll('__SITE_URL__', SITE_URL.replace(/\/$/, ''));
+  // Returning visitors must fetch this release's application modules and styles.
+  const release = createHash('sha256');
+  for(const file of ['index.html','presentation.css','presentation.js','study.js'])release.update(fs.readFileSync(path.join(ROOT,'web',file)));
+  const version=release.digest('hex').slice(0,12);
+  html=html.replace(/(\.\/web\/(?:presentation\.(?:css|js)|study\.js))(['"])/g,`$1?v=${version}$2`);
   const dst = path.join(OUT, 'index.html');
   fs.mkdirSync(path.dirname(dst), { recursive: true });
   fs.writeFileSync(dst, html, 'utf8');
@@ -116,7 +123,7 @@ const SITE_URL = process.env.SITE_URL || 'https://bozheng-long.org/ironman-armor
 
 // 社交预览图
 // Local presentation modules keep the same /web/ URL in dev and under a Pages subpath.
-for (const file of ['presentation.css', 'presentation.js']) {
+for (const file of ['presentation.css', 'presentation.js', 'study.js']) {
   add('页面', copy(path.join(ROOT, 'web', file), path.join(OUT, 'web', file)));
 }
 

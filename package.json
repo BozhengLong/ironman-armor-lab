@@ -8,7 +8,7 @@
     "dev": "node scripts/serve.mjs",
     "test": "python3 scripts/test_classifier.py && python3 scripts/test_explode.py && node scripts/check_page.mjs",
     "plan": "python3 scripts/explode_plan.py assets/manifests/ironman.json --metric && python3 scripts/explode_plan.py assets/manifests/hulkbuster.json --metric",
-    "test:page": "node scripts/test_page.mjs"
+    "test:page": "node scripts/test_page.mjs && node scripts/test_study.mjs"
   },
   "dependencies": {
     "three": "^0.180.0"

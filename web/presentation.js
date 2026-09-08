@@ -2,10 +2,10 @@ import * as THREE from 'three';
 
 // Presentation only: source assets, manifest bindings and displacement plans stay intact.
 const HULKBUSTER_PALETTE = {
-  Gold_1:'#b29a69', Gold_2:'#b29a69', Gold_4:'#b29a69',
+  Gold_1:'#d7b96c', Gold_2:'#d7b96c', Gold_4:'#d7b96c',
   iron:'#566571', Iron_2:'#566571', material:'#566571', material_18:'#566571',
-  legs_down:'#96392f', Legs:'#96392f', forearm:'#96392f', Feet:'#96392f',
-  foot:'#71352e', Face:'#b29a69', Object037__0:'#a43f32', Torsi:'#96392f', Pelvis:'#96392f',
+  legs_down:'#982a22', Legs:'#982a22', forearm:'#982a22', Feet:'#982a22',
+  foot:'#71352e', Face:'#d7b96c', Object037__0:'#a43f32', Torsi:'#982a22', Pelvis:'#982a22',
 };
 const GROUP_NAMES = {helmet:'HELMET',chest:'CHEST',abdomen:'ABDOMEN',pelvis:'PELVIS',
   shoulder:'SHOULDER',upper_arm:'UPPER ARM',forearm:'FOREARM',hand:'HAND',
@@ -13,25 +13,27 @@ const GROUP_NAMES = {helmet:'HELMET',chest:'CHEST',abdomen:'ABDOMEN',pelvis:'PEL
 const ns='http://www.w3.org/2000/svg';
 const svg = (tag) => document.createElementNS(ns,tag);
 
-export function createPresentation({camera, state, getParts, getGroups, selectGroup, stopTour, scheduleUrlSync, slug}) {
+export function createPresentation({camera, state, getParts, getGroups, selectGroup, stopTour, scheduleUrlSync, slug, requestRender, getQuality}) {
   const $=id=>document.getElementById(id);
   const layer=$('annotations'), leaders=$('leaders');
   const original=new WeakMap();
   const params=new URLSearchParams(location.search);
-  let edgeObjects=[], annotations=[], engineering=params.get('finish')!=='source', labelsOn=params.get('labels')!=='0', layout=null;
-  let lastStamp='', lastLabelTime=-Infinity;
+  let edgeMeshes=new WeakSet(), edgeObjects=[], annotations=[], engineering=params.get('finish')!=='source', labelsOn=params.get('labels')!=='0', layout=null;
+  let lastStamp='', lastLabelTime=-Infinity, layoutVersion=0;
   const box=new THREE.Box3(), anchor=new THREE.Vector3();
   const q=new THREE.Quaternion(), corner=new THREE.Vector3();
 
   function visible(el) { return !!el && el.getClientRects().length>0 && getComputedStyle(el).display!=='none'; }
   function measure() {
-    const mobile=innerWidth<=820, dock=$('ctl').getBoundingClientRect();
+    const landscape=innerWidth>700&&innerWidth<=1100&&innerHeight<=500;
+    const mobile=innerWidth<=820||landscape, dock=$('ctl').getBoundingClientRect();
     const side=visible($('inspect'))?$('inspect'):$('roster');
     const title=$('drawing').getBoundingClientRect();
-    const top=mobile ? Math.max(title.bottom,side.getBoundingClientRect().bottom)+16 : title.bottom+18;
-    const left=mobile?18:title.left;
+    const top=landscape?title.bottom+12:mobile ? Math.max(title.bottom,side.getBoundingClientRect().bottom)+16 : title.bottom+18;
+    const left=landscape?title.left:mobile?18:title.left;
     const right=mobile?innerWidth-18:$('tele').getBoundingClientRect().left-28;
-    layout={mobile,left,right,top,bottom:Math.max(top+80,dock.top-22)};
+    layoutVersion++;
+    layout={mobile,left,right,top,bottom:Math.max(top+80,dock.top-(landscape?10:22))};
     layout.width=right-left;layout.height=layout.bottom-top;
     const cx=(left+right)/2,cy=(top+layout.bottom)/2;
     camera.setViewOffset(innerWidth,innerHeight,innerWidth/2-cx,innerHeight/2-cy,innerWidth,innerHeight);
@@ -47,7 +49,7 @@ export function createPresentation({camera, state, getParts, getGroups, selectGr
       el.style.cssText=`display:block;left:${l-4}px;top:${t-4}px;width:${r-l+8}px;height:${b-t+8}px`;
       if(id==='scrimL')el.style.background='linear-gradient(90deg, var(--bg), transparent 250px)';
     }
-    lastLabelTime=-Infinity;
+    lastLabelTime=-Infinity;requestRender();
   }
   const observer=new ResizeObserver(measure);
   ['ctl','roster','inspect','tele','drawing','credit','tour'].forEach(id=>observer.observe($(id)));
@@ -61,7 +63,7 @@ export function createPresentation({camera, state, getParts, getGroups, selectGr
     q.copy(camera.quaternion).invert();
     let x0=Infinity,y0=Infinity,z0=Infinity,x1=-Infinity,y1=-Infinity,z1=-Infinity;
     for(const p of getParts()) {
-      if(state.selected && (p.groupKey!==state.selected || (state.focus>=0&&p.focusIndex!==state.focus)))continue;
+      if(state.selected && !state.originPeek && (p.groupKey!==state.selected || (state.focus>=0&&p.focusIndex!==state.focus)))continue;
       p.obj.updateWorldMatrix(true,false);
       const lo=p.localBox.min,hi=p.localBox.max;
       for(let i=0;i<8;i++) {
@@ -70,38 +72,44 @@ export function createPresentation({camera, state, getParts, getGroups, selectGr
         z0=Math.min(z0,corner.z);z1=Math.max(z1,corner.z);
       }
     }
-    if(!Number.isFinite(x0))return {zoom:1,target:frameTarget.set(0,0,0)};
+    if(!Number.isFinite(x0))return {zoom:1,target:frameTarget.set(0,0,0),version:layoutVersion};
     frameTarget.set((x0+x1)/2,(y0+y1)/2,(z0+z1)/2).applyQuaternion(camera.quaternion);
-    const width=Math.max(80,layout.width-(!layout.mobile&&labelsOn?320:20));
+    const width=Math.max(80,layout.width-(!layout.mobile&&labelsOn?(state.selected?170:320):20));
     const height=Math.max(40,layout.height-24);
-    return {zoom:1.5/innerHeight/Math.max((x1-x0)/width,(y1-y0)/height,1e-6),target:frameTarget};
+    return {zoom:1.5/innerHeight/Math.max((x1-x0)/width,(y1-y0)/height,1e-6),target:frameTarget,version:layoutVersion};
   }
 
   function styleMaterials() {
     for(const p of getParts())for(const mesh of p.meshes)for(const m of (Array.isArray(mesh.material)?mesh.material:[mesh.material])) {
       if(!original.has(m)) original.set(m,{color:m.color.clone(),metalness:m.metalness,roughness:m.roughness,
-        polygonOffset:m.polygonOffset,polygonOffsetFactor:m.polygonOffsetFactor,polygonOffsetUnits:m.polygonOffsetUnits});
+        envMapIntensity:m.envMapIntensity,polygonOffset:m.polygonOffset,polygonOffsetFactor:m.polygonOffsetFactor,polygonOffsetUnits:m.polygonOffsetUnits});
       const src=original.get(m);
-      m.color.copy(src.color);m.metalness=src.metalness;m.roughness=src.roughness;
+      m.color.copy(src.color);m.metalness=src.metalness;m.roughness=src.roughness;m.envMapIntensity=src.envMapIntensity;
       if(engineering) {
         if(slug==='hulkbuster'&&!p.meta.emissive&&HULKBUSTER_PALETTE[m.name]) {
-          m.color.set(HULKBUSTER_PALETTE[m.name]);m.metalness=.35;m.roughness=.58;
+          m.color.set(HULKBUSTER_PALETTE[m.name]);
+          const gold=/Gold|Face/.test(m.name),steel=/^iron$|Iron_2|material/.test(m.name);
+          m.metalness=gold?.78:steel?.72:.4;m.roughness=gold?.36:steel?.44:.36;m.envMapIntensity=gold?.9:.65;
         } else if(!p.meta.emissive) {
-          m.metalness=Math.min(src.metalness??0,.55);
-          m.roughness=Math.max(src.roughness??.5,.56);
+          m.metalness=THREE.MathUtils.clamp(src.metalness??.5,.35,.85);
+          m.roughness=THREE.MathUtils.clamp(src.roughness??.4,.3,.6);m.envMapIntensity=.8;
         }
       }
       m.polygonOffset=engineering||src.polygonOffset;
       m.polygonOffsetFactor=engineering?1:src.polygonOffsetFactor;
       m.polygonOffsetUnits=engineering?1:src.polygonOffsetUnits;
     }
-    lastStamp='';
+    lastStamp='';requestRender();
   }
 
-  function buildEdges() {
+  function buildEdges(reset=true) {
+    if(reset){
     for(const {line} of edgeObjects){line.removeFromParent();line.geometry.dispose();line.material.dispose();}
-    edgeObjects=[];
+    edgeObjects=[];edgeMeshes=new WeakSet();}
+    const quality=getQuality();
     for(const p of getParts())for(const mesh of p.meshes) {
+      if(edgeMeshes.has(mesh)||!(quality==='high'||(quality==='balanced'&&(p.study.large||p.groupKey===state.selected))||(p.groupKey===state.selected&&state.focus>=0)))continue;
+      edgeMeshes.add(mesh);
       const geo=new THREE.EdgesGeometry(mesh.geometry,42);
       if(!geo.getAttribute('position').count){geo.dispose();continue;}
       const line=new THREE.LineSegments(geo,new THREE.LineBasicMaterial({color:0x9ab4c1,transparent:true,
@@ -133,7 +141,7 @@ export function createPresentation({camera, state, getParts, getGroups, selectGr
   }
 
   function updateLabels(time) {
-    if(time-lastLabelTime<50)return;lastLabelTime=time;
+    lastLabelTime=time;
     if(!layout)measure();
     const {mobile,left,right,top,bottom}=layout;
     const columns=[[],[]];
@@ -179,12 +187,15 @@ export function createPresentation({camera, state, getParts, getGroups, selectGr
   }
 
   function update(time) {
-    const stamp=`${engineering}/${state.selected}/${state.focus}`;
+    const quality=getQuality();
+    const stamp=`${engineering}/${state.selected}/${state.focus}/${quality}`;
     if(stamp!==lastStamp) {
+      buildEdges(false);
       for(const {line,p} of edgeObjects) {
         const selected=p.groupKey===state.selected;
-        line.visible=engineering&&(!state.selected||selected)&&(state.focus<0||p.focusIndex===state.focus);
-        line.material.color.set(selected?0xf17a46:0x9ab4c1);line.material.opacity=selected?.48:.18;
+        line.visible=engineering&&(!state.selected||selected)&&(state.focus<0||p.focusIndex===state.focus)
+          &&(quality==='high'||(quality==='balanced'&&(selected||p.study.large))||(selected&&state.focus>=0));
+        line.material.color.set(selected?0xf17a46:0x9ab4c1);line.material.opacity=selected?(state.focus>=0?.42:.16):.055;
       }
       if(state.selected&&!annotations.some(a=>a.key===state.selected))buildLabels();
       lastStamp=stamp;
@@ -207,7 +218,7 @@ export function createPresentation({camera, state, getParts, getGroups, selectGr
     verify(){
       const shown=annotations.filter(a=>!a.button.hidden),problems=[];
       let maxGhostOpacity=0;
-      if(state.selected&&state.drill>.999) {
+      if(state.selected&&!state.originPeek&&state.drill>.999) {
         for(const p of getParts())if(p.groupKey!==state.selected)for(const mesh of p.meshes)
           for(const m of (Array.isArray(mesh.material)?mesh.material:[mesh.material])) {
             maxGhostOpacity=Math.max(maxGhostOpacity,m.opacity);
