@@ -115,6 +115,9 @@ const SITE_URL = process.env.SITE_URL || 'https://bozheng-long.org/ironman-armor
   for(const file of ['index.html','presentation.css','presentation.js','study.js'])release.update(fs.readFileSync(path.join(ROOT,'web',file)));
   const version=release.digest('hex').slice(0,12);
   html=html.replace(/(\.\/web\/(?:presentation\.(?:css|js)|study\.js))(['"])/g,`$1?v=${version}$2`);
+  // Editorial collection membership must not come from a returning visitor's old cache.
+  const indexVersion=createHash('sha256').update(fs.readFileSync(path.join(ROOT,'assets/manifests/index.json'))).digest('hex').slice(0,12);
+  html=html.replaceAll("'./assets/manifests/index.json'",`'./assets/manifests/index.json?v=${indexVersion}'`);
   const dst = path.join(OUT, 'index.html');
   fs.mkdirSync(path.dirname(dst), { recursive: true });
   fs.writeFileSync(dst, html, 'utf8');
