@@ -8,6 +8,10 @@ Escape 由弹窗处理，关闭恢复入口焦点，不改变背后的观察状�
 因此撤下未经作者确认的 MARK VI / MARK 44 展示标签；反浩克的 Mark XLIV 仅作为电影背景，并明确模型外形归类与作者确认的区别。
 武士原作明确描述日本武士灵感，未声明 Marvel 关联。编辑内容以 scripts/model_editorial.json 为源，由 build_index.py 生成；CI 同步检查清单可复现性。
 
+首轮云端检查发现新增档案测试关闭弹窗后未等待 Escape 触发的最后一帧，导致静止计数出现 6 ≠ 5。
+补上已有 settle() 等待，继续严格验证静止期间帧数完全不变；不放宽断言或修改渲染逻辑。
+同时清理下载脚本中的历史型号注记；生成清单与站点内容不变。
+
 资料核查日期：2026-09-08。
 - https://api.sketchfab.com/v3/models/11645b0747db4e9bbe4f56568802e01a
 - https://api.sketchfab.com/v3/models/1a21e1b8f2844956a30d28838d5f816a

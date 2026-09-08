@@ -38,6 +38,8 @@ try {
   await page.keyboard.press('Escape');
   assert(!(await page.locator('#dossier').isVisible()));
   assert.equal(await page.evaluate(()=>document.activeElement.id),'btnDossier');
+  // Escape schedules an input-driven frame. Measure rest only after it renders.
+  await settle();
   const before=await page.evaluate(()=>__performance().frames);await page.waitForTimeout(900);
   assert.equal(await page.evaluate(()=>__performance().frames),before,model+' redraws while idle');
   await page.getByRole('button',{name:'Inspect center chest',exact:true}).click();await settle();

@@ -38,9 +38,9 @@ MODELS = {
     "hulkbuster": {
         "uid": "11645b0747db4e9bbe4f56568802e01a",
         "title": "Iron Man",
-        # 上游标题就叫 Iron Man，但模型实为 Mark 44 Hulkbuster。
-        # 署名必须用上游标题原文，这条注记只用于我们自己的展示名。
-        "note": "实为 Mark 44 Hulkbuster",
+        # 上游标题与描述仅为 Iron Man，未确认型号。
+        # 本站按外形归为 Hulkbuster，展示说明维护在 model_editorial.json。
+        "note": "",
         "author": "o0ozexo0o",
         "author_url": "https://sketchfab.com/dadndan0091",
         "url": "https://sketchfab.com/3d-models/iron-man-11645b0747db4e9bbe4f56568802e01a",
