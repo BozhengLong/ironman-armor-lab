@@ -1,5 +1,10 @@
 # Iron Man Armor Lab
 
+主展区展示钢铁侠与反浩克装甲；武士机甲保留在独立的“实验模型”入口，明确标注为非 Marvel 展品。
+点击“装甲档案”可阅读设计背景、三个观察角度与模型来源，并开始对应的中文导览。
+角色设定与模型版本分别说明：上传者未确认的 Mark 型号不作为模型标签。
+编辑内容维护在 `scripts/model_editorial.json`，运行 `python3 scripts/build_index.py` 同步到清单。
+
 浏览器里的 3D 装甲交互档案。正交相机、工程展示配色、细轮廓与部件引线，配合按语义组的爆炸拆解视图。
 
 形态参照 [yadongxie.com/lab/tanks](https://www.yadongxie.com/lab/tanks)（红警坦克 3D 查看器），

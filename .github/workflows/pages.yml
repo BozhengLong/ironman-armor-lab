@@ -76,6 +76,7 @@ jobs:
           python3 scripts/explode_plan.py assets/manifests/hulkbuster.json
           python3 scripts/explode_plan.py assets/manifests/ironman.json
           python3 scripts/explode_plan.py assets/manifests/samurai.json
+          python3 scripts/build_index.py
           if ! git diff --quiet -- assets/manifests; then
             echo "::error::重算结果与入库的 manifest 不一致："
             git diff --stat -- assets/manifests

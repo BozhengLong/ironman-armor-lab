@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="可交互的装甲档案：正交视角、逐件拆解、组装与发射。零件分类与爆炸规划全部由程序从几何推导，没有手工标注。">
+<meta name="description" content="探索钢铁侠装甲：旋转观察、分阶段拆解与中文导览。阅读模型来源与设计背景，发现每副装甲的轮廓细节。">
 <!-- 社交预览。__SITE_URL__ 由 scripts/build_site.mjs 在出站点时替换成绝对地址 ——
      og:image 必须是绝对 URL，而绝对地址属于部署信息，不该写死在源文件里。
      占位符不存在时构建会失败，避免这里被改动后静默失效。 -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ARMOR LAB">
-<meta property="og:title" content="ARMOR LAB — 可交互装甲档案">
-<meta property="og:description" content="正交视角、逐件拆解、组装与发射。零件分类与爆炸规划全部由程序从几何推导，没有手工标注。">
+<meta property="og:title" content="ARMOR LAB — 钢铁侠装甲档案">
+<meta property="og:description" content="旋转观察、分阶段拆解与中文导览。阅读模型来源与设计背景，发现每副装甲的轮廓细节。">
 <meta property="og:url" content="__SITE_URL__/">
 <meta property="og:image" content="__SITE_URL__/social-preview.jpg">
 <meta property="og:image:width" content="1200">
@@ -22,9 +22,20 @@
 </head>
 <body>
 <div class="panel" id="roster">
-  <div class="lbl">ARMOR ARCHIVE</div>
+  <div class="lbl" id="rosterHeading">IRON MAN · 主展区</div>
   <div id="rosterList"></div>
+  <div class="archive-nav"><button id="btnDossier">装甲档案 ↗</button><a id="collectionLink" href="?model=samurai">实验模型 →</a></div>
 </div>
+
+<dialog id="dossier" aria-labelledby="dossierTitle">
+  <form method="dialog" class="dossier-top"><span class="lbl" id="dossierKicker">ARMOR ARCHIVE</span><button aria-label="关闭装甲档案" autofocus>关闭 ×</button></form>
+  <h2 id="dossierTitle"></h2><p id="dossierIntro" class="dossier-intro"></p>
+  <h3>角色与设计背景</h3><p id="dossierBackground"></p><a id="dossierReference" target="_blank" rel="noopener noreferrer"></a>
+  <h3>三个观察角度</h3><ol id="dossierObservations"></ol>
+  <h3>关于这件模型</h3><p id="dossierProvenance"></p><a id="dossierSource" target="_blank" rel="noopener noreferrer"></a>
+  <p class="dossier-note">拆解展示的是模型网格的空间关系，不是装甲内部的真实机械结构。展示配色可在 SETTINGS 中切换回 SOURCE 原始材质。</p>
+  <button id="dossierTour">开始观察导览 →</button>
+</dialog>
 
 <div class="scrim" id="scrimL"></div>
 <div class="scrim" id="scrimR"></div>
@@ -391,7 +402,7 @@ async function loadModel(name) {
 
   const srcLabel = source.mode.toUpperCase() +
     (source.bytes ? ` ${(source.bytes / 1048576).toFixed(2)}MB` : '');
-  $('modelName').textContent = 'ORTHOGRAPHIC ARMOR ARCHIVE';
+  $('modelName').textContent = disp.editorial?.collection === 'experimental' ? '实验展区 · 非 MARVEL' : 'IRON MAN · 装甲档案';
   $('sc').textContent = srcLabel;
   document.title = `ARMOR LAB — ${name.toUpperCase()}`;
   window.__source = source;
@@ -919,6 +930,7 @@ renderer.domElement.addEventListener('pointermove', (e) => {
 renderer.domElement.addEventListener('pointerdown', () => { if (state.touring) stopTour(); });
 
 addEventListener('keydown', (e) => {
+  if ($('dossier').open) return; // Native dialog owns Escape and focus while reading.
   if (e.key === 'Escape') {
     if (state.touring) stopTour();
     if ($('settings').classList.contains('open')) { $('btnSettings').click(); return; }
@@ -1220,13 +1232,14 @@ function updateRepulsorButton() {
 // 讲解按各模型实际存在的分组编排。各步骤定义完整状态，后退与跳步
 // 不依赖上一条命令是否跑完。文字计时独立于 3D 重绘；慢设备等动作完成再换章。
 function tourSteps() {
+  const editorial=MODEL_INDEX.find(m=>m.slug===slug)?.editorial;
   const torso=['chest/C','chest/L','abdomen/C'].find(k=>groupIndex[k])||Object.keys(groupIndex)[0];
   const name=PART_NAMES[groupIndex[torso]?.part]||'部件';
   const count=partsByGroup.get(torso)?.length||0;
   const steps=[
-    {title:'先看整体轮廓',text:'正交视角保持前后尺寸一致。观察装甲各部分的比例，再开始拆解。',duration:5,view:'FRONT',explode:0},
+    {title:editorial?.heading||'先看整体轮廓',text:editorial?.intro||'正交视角保持前后尺寸一致。观察装甲各部分的比例，再开始拆解。',duration:8,view:'FRONT',explode:0},
     {title:'分开各个部位',text:'头部、躯干与四肢沿各自方向展开；原有朝向保持不变。',duration:6,view:'3/4F',explode:1},
-    {title:`找到${name}的位置`,text:`高亮的是${name}分组，包含 ${count} 个模型部件。左侧定位图始终保留它在整体中的位置。`,duration:5,view:'3/4F',group:torso,stage:0},
+    {title:`找到${name}的位置`,text:editorial?.tourChest||`高亮的是${name}分组，包含 ${count} 个模型部件。定位图保留它在整体中的位置。`,duration:8,view:'3/4F',group:torso,stage:0},
     {title:'先展开大件',text:'占据较大画面的部件先移开，细件暂留原位。这里按可见形状编排，不推断真实机械层级。',duration:6,view:'3/4F',group:torso,stage:1},
     {title:'再分离细件',text:'较小部件进入独立排列。点上一件、下一件，可以逐个放大观察。',duration:6,view:'3/4F',group:torso,stage:2},
     {title:'追踪一件零件',text:'定位图标出当前部件的原始位置。按住「查看原位」，可以把它放回装甲中对照。',duration:6,view:'3/4F',group:torso,stage:2,focus:0},
@@ -1329,7 +1342,12 @@ function buildRoster() {
   const panel = $('roster');
   if (MODEL_INDEX.length < 2) { panel.style.display = 'none'; return; }
   el.innerHTML = '';
-  MODEL_INDEX.forEach((m, i) => {
+  const current=MODEL_INDEX.find(m=>m.slug===slug);
+  const experimental=current?.editorial?.collection==='experimental';
+  $('rosterHeading').textContent=experimental?'EXPERIMENTAL · 实验展区':'IRON MAN · 主展区';
+  $('collectionLink').textContent=experimental?'← 返回钢铁侠主展区':'实验模型 →';
+  $('collectionLink').href=experimental?'?model=hulkbuster':'?model=samurai';
+  MODEL_INDEX.filter(m=>(m.editorial?.collection==='experimental')===experimental).forEach((m, i) => {
     const row = document.createElement('button');
     row.setAttribute('aria-label', `Load ${m.name}`);
     row.className = 'item';
@@ -1345,6 +1363,20 @@ function buildRoster() {
     el.appendChild(row);
   });
   panel.style.display = 'block';
+  const info=current?.editorial;
+  $('btnDossier').hidden=!info?.heading;
+  if(info?.heading){
+    $('dossierKicker').textContent=experimental?'EXPERIMENTAL · 非 MARVEL':'IRON MAN · 主展区';
+    for(const [id,key] of [['dossierTitle','heading'],['dossierIntro','intro'],['dossierBackground','background'],['dossierProvenance','provenance']])$(id).textContent=info[key];
+    $('dossierReference').textContent=info.reference[0]+' ↗';$('dossierReference').href=info.reference[1];
+    $('dossierSource').textContent=`模型原作 · ${current.author} ↗`;$('dossierSource').href=current.source;
+    $('dossierObservations').replaceChildren(...info.observations.map(([title,text])=>{
+      const li=document.createElement('li'),strong=document.createElement('strong'),p=document.createElement('p');
+      strong.textContent=title;p.textContent=text;li.append(strong,p);return li;
+    }));
+    $('btnDossier').onclick=()=>{if(state.touring&&!state.tourPaused)toggleTourPause();$('dossier').showModal();};
+    $('dossierTour').onclick=()=>{$('dossier').close();if(state.touring)stopTour();startTour();};
+  }
 }
 
 // 模式切换从按钮回调里抽出来：URL 还原要走同一条路径，

@@ -1,3 +1,26 @@
+# R17 · 2026-09-08 · 主展区与实验展区、来源明确的装甲档案
+
+主展区只列 hulkbuster / ironman；samurai 通过独立入口进入实验展区，页面明确标注非 Marvel，旧模型链接继续有效。
+新增原生 dialog 档案：角色背景、三个观察角度、模型来源与参考链接，可直接开始对应导览。
+Escape 由弹窗处理，关闭恢复入口焦点，不改变背后的观察状态。导览首章与胸部章节使用各模型自己的文字。
+
+核查两个 Sketchfab v3 公共接口：Hulkbuster 的标题/描述只有 Iron Man；Vfx Boy 的描述仅说明部件已分离、可用于动画。两者均未标注型号。
+因此撤下未经作者确认的 MARK VI / MARK 44 展示标签；反浩克的 Mark XLIV 仅作为电影背景，并明确模型外形归类与作者确认的区别。
+武士原作明确描述日本武士灵感，未声明 Marvel 关联。编辑内容以 scripts/model_editorial.json 为源，由 build_index.py 生成；CI 同步检查清单可复现性。
+
+资料核查日期：2026-09-08。
+- https://api.sketchfab.com/v3/models/11645b0747db4e9bbe4f56568802e01a
+- https://api.sketchfab.com/v3/models/1a21e1b8f2844956a30d28838d5f816a
+- https://sketchfab.com/3d-models/high-poly-samurai-mech-43cfb1207bc046b89a106e740f2f826e
+- https://www.lego.com/en-us/product/hulkbuster-76210
+- https://www.marvel.com/characters/iron-man-tony-stark/in-comics?mobile-app=true&theme=dark%2F1000
+
+验证：npm test、ARMOR_TEST_METAL=1 npm run test:page 均通过。额外 Playwright 实际点击主展区→实验区→返回→另一装甲、档案→导览，验证 Escape / 焦点与来源链接。
+1440×900、390×844、375×667、844×390 截图人工检查；面板/署名/背景覆盖检查通过，无页面或控制台错误。
+Browser plugin not available，使用仓库现有 Playwright。用户已接受 iPhone 优化并结束实机工作，本轮未连接手机。
+
+---
+
 # 变更日志
 
 按批次记录，最新在上。每条只写**做了什么、为什么、踩到什么**；

@@ -3,7 +3,34 @@
   {
    "slug": "hulkbuster",
    "name": "HULKBUSTER",
-   "subtitle": "MARK 44",
+   "subtitle": "HEAVY ARMOR",
+   "editorial": {
+    "collection": "ironman",
+    "subtitle": "HEAVY ARMOR",
+    "heading": "反浩克装甲 · 重型轮廓",
+    "intro": "先看宽肩、厚重的胸甲与巨大的前臂：这副装甲的力量感，来自各部位体量的对比。",
+    "background": "电影《复仇者联盟2：奥创纪元》中的反浩克装甲称为 Mark XLIV（44）。红色外壳与金色甲片共同构成它庞大的重型轮廓。",
+    "provenance": "本站按外形将这件作品归为 Hulkbuster。上传者仅将作品命名为 Iron Man，未注明型号；电影背景用来帮助理解角色，不代表作者确认了模型的具体版本。",
+    "observations": [
+     [
+      "肩部与头盔",
+      "从正面观察头盔在宽阔肩甲之间所占的比例，再转到侧面看肩部厚度。"
+     ],
+     [
+      "胸甲与腰部",
+      "观察胸甲如何向腰部收窄；拆开胸部分组，对照各块表面在原位如何拼接。"
+     ],
+     [
+      "前臂与腿部",
+      "对比前臂、上臂与小腿的体量，留意重型轮廓如何延伸到四肢。"
+     ]
+    ],
+    "tourChest": "胸甲向腰部收窄，让上半身显得更厚重。接下来展开这一分组，观察表面如何拼接。",
+    "reference": [
+     "LEGO Marvel · Hulkbuster 的电影与型号资料",
+     "https://www.lego.com/en-us/product/hulkbuster-76210"
+    ]
+   },
    "parts": 147,
    "groups": 24,
    "tris": 694736,
@@ -18,7 +45,34 @@
   {
    "slug": "ironman",
    "name": "IRON MAN",
-   "subtitle": "MARK VI",
+   "subtitle": "ARMOR STUDY",
+   "editorial": {
+    "collection": "ironman",
+    "subtitle": "ARMOR STUDY",
+    "heading": "钢铁侠 · 贴身装甲",
+    "intro": "沿着头盔、胸甲与腰线向下看：这副装甲更贴近人体轮廓，可以用来观察金属外壳如何包覆躯干与四肢。",
+    "background": "钢铁侠是托尼·斯塔克以技术与装甲塑造的英雄身份。Marvel 的角色资料介绍了他与殷森制造早期铁甲的起源故事；不同作品中的装甲设计会持续变化。",
+    "provenance": "作者 Vfx Boy 将作品命名为 Iron Man，并说明部件已分离、可用于动画。来源没有注明 Mark 型号；这里以钢铁侠装甲习作展示，不指定电影版本。",
+    "observations": [
+     [
+      "头盔与面甲",
+      "转动模型，观察面甲与头盔外壳的分界，以及眼部开口的形状。"
+     ],
+     [
+      "胸部与腹部",
+      "沿胸甲边缘向下看，比较大块外壳与腹部细分表面的过渡。"
+     ],
+     [
+      "四肢的分段",
+      "从侧面观察上臂、前臂和腿部的轮廓变化；使用原位对照辨认拆出的部件。"
+     ]
+    ],
+    "tourChest": "留意胸甲边缘与腹部细分表面的过渡。展开这一分组，看看哪些形状共同构成躯干轮廓。",
+    "reference": [
+     "Marvel · 托尼·斯塔克角色起源（漫画）",
+     "https://www.marvel.com/characters/iron-man-tony-stark/in-comics?mobile-app=true&theme=dark%2F1000"
+    ]
+   },
    "parts": 61,
    "groups": 19,
    "tris": 140226,
@@ -33,7 +87,34 @@
   {
    "slug": "samurai",
    "name": "SAMURAI",
-   "subtitle": "MECH FRAME",
+   "subtitle": "NON-MARVEL MECH",
+   "editorial": {
+    "collection": "experimental",
+    "subtitle": "NON-MARVEL MECH",
+    "heading": "武士机甲 · 实验展品",
+    "intro": "这是一件受日本武士启发的科幻机甲。观察头盔、层叠甲片与刀的组合，看看传统轮廓如何转化为机械造型。",
+    "background": "作者 Johnny Kaddissi 将这件作品描述为融合传统与未来风格的武士机甲，未标注钢铁侠或 Marvel 关联。本站将它作为独立实验展品展示。",
+    "provenance": "原作标题为 High Poly Samurai Mech。它最初用于检验本站的拆解方式能否适应另一种造型；保留在实验区，便于探索不同风格的装甲。",
+    "observations": [
+     [
+      "头盔与颈部",
+      "从侧面观察头盔下方层叠的护甲，留意它与躯干之间的间隙。"
+     ],
+     [
+      "层叠外壳",
+      "观察胸部和四肢上的甲片如何叠置，再用原位对照追踪单个部件。"
+     ],
+     [
+      "刀与整体轮廓",
+      "旋转到背面和侧面，比较刀与人体形机甲之间的比例。"
+     ]
+    ],
+    "tourChest": "这里的外壳延续了武士甲片的层叠观感。展开胸部分组，观察各块表面在原位如何叠置。",
+    "reference": [
+     "Johnny Kaddissi · 原作介绍",
+     "https://sketchfab.com/3d-models/high-poly-samurai-mech-43cfb1207bc046b89a106e740f2f826e"
+    ]
+   },
    "parts": 22,
    "groups": 11,
    "tris": 477058,

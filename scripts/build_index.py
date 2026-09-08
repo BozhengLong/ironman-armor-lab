@@ -14,10 +14,11 @@ MAN = ROOT / "assets" / "manifests"
 
 # 展示用的短名与副标题，按需覆盖 MODELS 里的原始标题
 DISPLAY = {
-    "hulkbuster": ("HULKBUSTER", "MARK 44"),
-    "ironman":    ("IRON MAN",   "MARK VI"),
+    "hulkbuster": ("HULKBUSTER", "HEAVY ARMOR"),
+    "ironman":    ("IRON MAN",   "ARMOR STUDY"),
     "samurai":    ("SAMURAI",    "MECH FRAME"),
 }
+EDITORIAL = json.loads((ROOT / "scripts" / "model_editorial.json").read_text(encoding="utf-8"))
 
 
 def main() -> int:
@@ -34,7 +35,8 @@ def main() -> int:
             groups = len(json.loads(ep.read_text(encoding="utf-8")).get("groups", {}))
         name, sub = DISPLAY.get(slug, (slug.upper(), ""))
         out.append({
-            "slug": slug, "name": name, "subtitle": sub,
+            "slug": slug, "name": name, "subtitle": EDITORIAL.get(slug, {}).get("subtitle", sub),
+            "editorial": EDITORIAL.get(slug, {}),
             "parts": man["usableParts"],
             "groups": groups,
             "tris": sum(p["tris"] for p in man["parts"]),

@@ -24,6 +24,20 @@ try {
  const stage=async n=>{await page.locator(`[data-stage="${n}"]`).click({noWaitAfter:true});await settle();return page.evaluate(()=>__studyParts());};
  for(const model of ['hulkbuster','ironman','samurai']){
   await page.goto(`${base}/?model=${model}&quality=balanced`);await settle();
+  // Collection boundaries and source context must survive direct/shared links.
+  const experimental=model==='samurai';
+  assert.equal(await page.locator('#rosterList .item').count(),experimental?1:2);
+  assert.equal(await page.getByRole('button',{name:'Load SAMURAI',exact:true}).count(),experimental?1:0);
+  assert.equal(await page.locator('#collectionLink').getAttribute('href'),experimental?'?model=hulkbuster':'?model=samurai');
+  await page.locator('#btnDossier').click();
+  assert(await page.locator('#dossier').isVisible());
+  assert((await page.locator('#dossierSource').getAttribute('href')).startsWith('https://sketchfab.com/'));
+  assert.equal(await page.locator('#dossierObservations li').count(),3);
+  if(experimental)assert((await page.locator('#dossierKicker').innerText()).includes('非 MARVEL'));
+  if(model==='ironman')assert.equal(await page.locator('#drawingSub').innerText(),'ARMOR STUDY');
+  await page.keyboard.press('Escape');
+  assert(!(await page.locator('#dossier').isVisible()));
+  assert.equal(await page.evaluate(()=>document.activeElement.id),'btnDossier');
   const before=await page.evaluate(()=>__performance().frames);await page.waitForTimeout(900);
   assert.equal(await page.evaluate(()=>__performance().frames),before,model+' redraws while idle');
   await page.getByRole('button',{name:'Inspect center chest',exact:true}).click();await settle();
